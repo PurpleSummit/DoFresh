@@ -1,0 +1,75 @@
+body {
+    font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+    padding: 17px;
+}
+
+nav {
+    margin: -17px -17px 17px -17px;
+    padding-left: 8px;
+}
+
+button {
+    font-size: 25px;
+    background-color: rgba(0, 0, 0, 0);
+    border: none;
+    width: auto;
+    height: auto;
+    cursor: pointer;
+    text-align: center;
+    margin-left: auto;
+}
+
+.edit-todo-box-btn {
+    margin-left: 10px;
+    margin-bottom: 5px;
+    border-radius: 100% !important;
+}
+
+.todo-box-div {
+    display: flex;
+}
+
+.todo-box {
+    border-style: solid;
+    border-color: #f8f9fa;
+    border-width: 1.7px;
+    border-radius: 17px;
+    width: 550px;
+    min-height: 300px;
+    margin: 17px;
+    padding: 19px;
+}
+
+.todo-box-heading {
+    display: flex;
+}
+
+.add-task-btn {
+    width: 41.8px;
+    height: 39.9833px;
+    border-radius: 100% !important;
+}
+
+.todo-task {
+    display: flex;
+    margin-bottom: 5px; 
+}
+
+label {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+textarea {
+    font-family:'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+    font-size: 17px;
+    max-width: 516px;
+    min-height: 24px;
+    border-style: none;
+    background: rgba(0, 0, 0, 0);
+    margin-left: 10px;
+    width: 100%;
+    box-sizing: border-box;
+    resize: none;
+    field-sizing: content; 
+}
