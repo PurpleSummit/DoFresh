@@ -20,7 +20,7 @@ button {
 }
 
 .edit-todo-box-btn {
-    margin-left: 10px;
+    margin-left: 10px !important;
     margin-bottom: 5px;
     border-radius: 100% !important;
 }
@@ -45,9 +45,16 @@ button {
 }
 
 .add-task-btn {
+    margin-left: 10px !important;
     width: 41.8px;
     height: 39.9833px;
     border-radius: 100% !important;
+}
+
+.refreshing-tag {
+    background-color: #0d6efd;
+    height: 20px;
+    margin-top: 10px;
 }
 
 .todo-task {
@@ -72,4 +79,8 @@ textarea {
     box-sizing: border-box;
     resize: none;
     field-sizing: content; 
+}
+
+.btn-group {
+    margin-left: auto;
 }

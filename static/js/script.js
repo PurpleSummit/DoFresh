@@ -225,15 +225,19 @@ function addHTMLTodoBox(boxId) {
     }
 
     let refreshingCheck = '';
+    let refreshingTag = '';
     if (todoBoxData.refreshing) {
         refreshingCheck = '☑';
+        refreshingTag = 'Refreshing';
+        
     }
 
     box.innerHTML = `
     <div class='todo-box-heading'>
         <h2 class='todo-title'>${boxTitle}</h2>
-        <button class='btn-light add-task-btn'>+</button>
         <div class="btn-group">
+            <span class="badge text-bg-primary refreshing-tag">${refreshingTag}</span>
+            <button class='btn-light add-task-btn'>+</button>
             <button type="button" class="btn btn-light edit-todo-box-btn" data-bs-toggle="dropdown" aria-expanded="false" data-toggle="dropdown">
                 <svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='currentColor'
                 class='bi bi-three-dots' viewBox='0 0 16 16'>
@@ -246,7 +250,7 @@ function addHTMLTodoBox(boxId) {
                 <li><a class="dropdown-item rename-todo-box-btn" href="#">Rename</a></li>
                 <li><a class="dropdown-item remove-todo-box-btn" href="#">Remove list</a></li>
             </ul>
-        <div>
+        </div>
     </div>`;
 
     let todoBoxDiv = document.querySelector('.todo-box-div');
@@ -329,9 +333,12 @@ function makeRefreshingTodoBox(button) {
 
     // ⛰️ Update the todo box HTML
     let refreshingCheck = '';
+    let refreshingTag = '';
     if (todoBoxData.refreshing) {
         refreshingCheck = '☑';
+        refreshingTag = 'Refreshing';
     }
 
     parentTodoBox.querySelector('.refreshing-todo-box-btn').innerHTML = `Refreshing list ${refreshingCheck}`;
+    parentTodoBox.querySelector('.refreshing-tag').innerHTML = refreshingTag;
 }
