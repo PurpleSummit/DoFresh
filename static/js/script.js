@@ -331,7 +331,7 @@ function makeRefreshingTodoBox(button) {
 
     console.log(todoBoxData);
 
-    // ⛰️ Update the todo box HTML
+    // ⛰️ Update the todo box HTML to be a refreshing / standard to-do list
     let refreshingCheck = '';
     let refreshingTag = '';
     if (todoBoxData.refreshing) {
