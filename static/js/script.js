@@ -1,7 +1,33 @@
+let today = new Date().toDateString();
+
+let lastDate = localStorage.getItem('lastAccessedDate');
+
+if (today !== lastDate) {
+    console.log("The date changed!");
+
+    localStorage.setItem('lastAccessedDate', today);
+
+    const allTodoBoxes = Object.keys(localStorage).filter(key => key !== 'lastAccessedDate');
+
+    allTodoBoxes.forEach(todoBox => {
+        let todoBoxData = JSON.parse(localStorage.getItem(todoBox));
+
+        if (todoBoxData && todoBoxData.refreshing && todoBoxData.tasks) {
+            const allCompletedTasks = Object.entries(todoBoxData.tasks).filter(([taskId, taskContent]) => !taskContent.active);
+
+            allCompletedTasks.forEach(([taskId, taskContent]) => {
+                todoBoxData.tasks[taskId].active = true;
+            });
+
+            localStorage.setItem(todoBox, JSON.stringify(todoBoxData));
+        }
+    });
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     console.log(localStorage);
 
-    let allTodoBoxes = Object.keys(localStorage);
+    const allTodoBoxes = Object.keys(localStorage).filter(key => key !== 'lastAccessedDate');
 
     allTodoBoxes.forEach(boxId => {
         addHTMLTodoBox(boxId);
@@ -12,7 +38,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     setListeners();
-
 });
 
 function setListeners() {
@@ -20,27 +45,24 @@ function setListeners() {
 
     allAddTaskButtons.forEach(button => {
         button.onclick = () => {
-            console.log('Before task was added:', localStorage);
             addTask(button);
-            console.log('After task was added:', localStorage);
         };
     });
 
     let allTodoTasks = document.querySelectorAll('.todo-task-text');
 
     allTodoTasks.forEach(textarea => {
-        textarea.onfocusout = () => {
+        // TODO NEXT MORNING: FIND HOW TO DO FOCUSOUT FOR NON-OVERLAPPING
+        textarea.addEventListener('focusout', () => {
             editTask(textarea);
-        };
+        });
     });
 
     let allTodoCheckboxes = document.querySelectorAll('input[type="radio"]');
 
     allTodoCheckboxes.forEach(radio => {
         radio.onclick = () => {
-            console.log('Before radio was clicked:', localStorage);
-            destroyTask(radio);
-            console.log('After radio was clicked:', localStorage);
+            completeTask(radio);
         };
     });
 
@@ -48,11 +70,11 @@ function setListeners() {
 
     addTodoBoxButton.addEventListener('click', addTodoBox);
 
-    let allEditTodoBoxButton = document.querySelectorAll('.edit-todo-box-btn');
+    let allRenameTodoBoxButtons = document.querySelectorAll('.rename-todo-box-btn');
 
-    allEditTodoBoxButton.forEach(button => {
+    allRenameTodoBoxButtons.forEach(button => {
         button.onclick = () => {
-
+            renameTodoBox(button);
         };
     });
 
@@ -61,6 +83,13 @@ function setListeners() {
     allRemoveTodoBoxButton.forEach(button => {
         button.onclick = () => {
             removeTodoBox(button);
+        };
+    });
+
+    let allRefreshTodoBoxButton = document.querySelectorAll('.refreshing-todo-box-btn');
+    allRefreshTodoBoxButton.forEach(button => {
+        button.onclick = () => {
+            makeRefreshingTodoBox(button);
         };
     });
 }
@@ -97,20 +126,9 @@ function addTask(button) {
     }
 
     // Creating a new id for the new task
-    let taskList = Object.keys(todoBoxData.tasks);
+    let newTaskId = "task_" + Date.now();
 
-    let newTaskId;
-
-    if (taskList.length < 1) {
-        newTaskId = 0;
-    }
-    else {
-        newTaskId = Math.max(...taskList) + 1;
-    }
-
-    console.log(newTaskId);
-
-    todoBoxData.tasks[newTaskId] = 'New task';
+    todoBoxData.tasks[newTaskId] = { task: 'New task', active: true };
 
     localStorage.setItem(todoBoxId, JSON.stringify(todoBoxData));
 
@@ -121,45 +139,37 @@ function addTask(button) {
 
     div.innerHTML = `
         <input type='radio'>
-        <textarea class='todo-task-text' id='todo-task${newTaskId}'>New task</textarea>`;
+        <textarea class='todo-task-text' id='${newTaskId}'>New task</textarea>`;
 
     parentTodoBox.appendChild(div);
 
     div.querySelector('.todo-task-text').focus();
 
     setListeners();
-
-    console.log(localStorage);
 }
 
-// Remove a task when the radio button is pressed
-function destroyTask(radio) {
+// Complete a task when the radio button is pressed
+function completeTask(radio) {
     let parentTodoTask = radio.parentElement;
     let parentTodoBox = parentTodoTask.parentElement;
     let todoBoxId = parentTodoBox.id.replace('todo-box', '');
 
-    // ✨ Remove the task from the tasks object of the todoBox in localStorage
+    // ✨ Change the task's active status in localStorage
     let todoBoxData = localStorage.getItem(todoBoxId);
     todoBoxData = JSON.parse(todoBoxData);
 
-    let taskId = parentTodoTask.querySelector('.todo-task-text').id.replace('todo-task', '');
+    let taskId = parentTodoTask.querySelector('.todo-task-text').id;
+    todoBoxData.tasks[taskId].active = !todoBoxData.tasks[taskId].active;
 
-    delete todoBoxData.tasks[taskId];
+    // ⛰️ Check the task checkbox
+    radio.checked = !todoBoxData.tasks[taskId].active;
 
     localStorage.setItem(todoBoxId, JSON.stringify(todoBoxData));
-
-    // ⛰️ Delete the task div from the todo box
-    parentTodoBox.removeChild(parentTodoTask);
-
-    // If there are no tasks left, fill in the blank
-    if (Object.keys(todoBoxData.tasks).length < 1) {
-        fillIfBlank(parentTodoBox);
-    }
 }
 
 // Edit the task when the textarea is clicked
 function editTask(textarea) {
-    const taskId = textarea.id.replace('todo-task', '');
+    const taskId = textarea.id;
 
     let parentTodoBox = textarea.parentElement.parentElement;
     let todoBoxId = parentTodoBox.id.replace('todo-box', '');
@@ -167,15 +177,15 @@ function editTask(textarea) {
     let todoBoxData = localStorage.getItem(todoBoxId);
     todoBoxData = JSON.parse(todoBoxData);
 
-    todoBoxData.tasks[taskId] = textarea.value;
+    todoBoxData.tasks[taskId] = { task: textarea.value, active: true };
 
     localStorage.setItem(todoBoxId, JSON.stringify(todoBoxData));
 }
 
 function addTodoBox() {
-    let fillInText = document.body.querySelector('.blank-todo-fill');
+    let fillInText = document.querySelector('.blank-todo-fill:not(.todo-box .blank-todo-fill)');
     if (fillInText) {
-        document.body.removeChild(fillInText);
+        fillInText.remove();
     }
 
     // ✨ Initializing the data for the to-do box
@@ -197,16 +207,31 @@ function addTodoBox() {
 }
 
 function addHTMLTodoBox(boxId) {
-    let todoBoxData = localStorage.getItem(boxId)
+    let todoBoxData = localStorage.getItem(boxId);
+
     todoBoxData = JSON.parse(todoBoxData);
 
     let box = document.createElement('div');
     box.className = 'todo-box';
     box.id = `todo-box${boxId}`;
 
+    let boxTitle;
+
+    if (todoBoxData.title == "To-Do List") {
+        boxTitle = `${todoBoxData.title} ${boxId}`;
+    }
+    else {
+        boxTitle = todoBoxData.title;
+    }
+
+    let refreshingCheck = '';
+    if (todoBoxData.refreshing) {
+        refreshingCheck = '☑';
+    }
+
     box.innerHTML = `
     <div class='todo-box-heading'>
-        <h2 class='todo-title'>${todoBoxData.title} ${boxId}</h2>
+        <h2 class='todo-title'>${boxTitle}</h2>
         <button class='btn-light add-task-btn'>+</button>
         <div class="btn-group">
             <button type="button" class="btn btn-light edit-todo-box-btn" data-bs-toggle="dropdown" aria-expanded="false" data-toggle="dropdown">
@@ -217,7 +242,8 @@ function addHTMLTodoBox(boxId) {
                 </svg>
             </button>
             <ul class="dropdown-menu">
-                <li><a class="dropdown-item" href="#">Rename</a></li>
+                <li><a class="dropdown-item refreshing-todo-box-btn" href="#">Refreshing list ${refreshingCheck}</a></li>
+                <li><a class="dropdown-item rename-todo-box-btn" href="#">Rename</a></li>
                 <li><a class="dropdown-item remove-todo-box-btn" href="#">Remove list</a></li>
             </ul>
         <div>
@@ -228,18 +254,25 @@ function addHTMLTodoBox(boxId) {
     todoBoxDiv.appendChild(box);
 
     if (Object.keys(todoBoxData.tasks).length >= 1) {
-        Object.entries(todoBoxData.tasks).forEach(([taskId, taskText]) => {
+        Object.entries(todoBoxData.tasks).forEach(([taskId, taskContent]) => {
+
+            let taskText = taskContent.task;
+            let taskActiveBool = taskContent.active;
+
+            let htmlCompleted = '';
+            if (!taskActiveBool) {
+                htmlCompleted = 'checked';
+            }
+
             const div = document.createElement('div');
 
             div.className = 'todo-task';
 
             div.innerHTML = `
-            <input type='radio'>
-            <textarea class='todo-task-text' id='todo-task${taskId}'>${taskText}</textarea>`;
+            <input type='radio' ${htmlCompleted}>
+            <textarea class='todo-task-text' id='${taskId}'>${taskText}</textarea>`;
 
             box.appendChild(div);
-
-            console.log(`Adding ${taskText}`);
         });
     }
     else {
@@ -260,4 +293,45 @@ function removeTodoBox(button) {
     if (Object.keys(localStorage).length < 1) {
         fillIfBlank(document.body);
     }
+}
+
+function renameTodoBox(button) {
+    let parentTodoBox = button.parentElement.parentElement.parentElement.parentElement.parentElement;
+    let todoBoxId = parentTodoBox.id.replace('todo-box', '');
+    let todoBoxData = JSON.parse(localStorage[todoBoxId]);
+
+    let todoTitleHeader = parentTodoBox.querySelector('.todo-title');
+
+    let renamedTitle = prompt("Rename list", todoTitleHeader.innerText);
+
+    if (renamedTitle == "" || renamedTitle == null) {
+        return;
+    }
+    else {
+        todoBoxData.title = renamedTitle;
+        localStorage.setItem(todoBoxId, JSON.stringify(todoBoxData));
+
+        todoTitleHeader.innerText = todoBoxData.title;
+    }
+}
+
+function makeRefreshingTodoBox(button) {
+    let parentTodoBox = button.parentElement.parentElement.parentElement.parentElement.parentElement;
+    let todoBoxId = parentTodoBox.id.replace('todo-box', '');
+    let todoBoxData = JSON.parse(localStorage[todoBoxId]);
+
+    // ✨ Change the refreshing bool and update localStorage
+    todoBoxData.refreshing = !todoBoxData.refreshing;
+
+    localStorage.setItem(todoBoxId, JSON.stringify(todoBoxData));
+
+    console.log(todoBoxData);
+
+    // ⛰️ Update the todo box HTML
+    let refreshingCheck = '';
+    if (todoBoxData.refreshing) {
+        refreshingCheck = '☑';
+    }
+
+    parentTodoBox.querySelector('.refreshing-todo-box-btn').innerHTML = `Refreshing list ${refreshingCheck}`;
 }
