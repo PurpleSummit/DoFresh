@@ -7,7 +7,7 @@ if (today !== lastDate) {
 
     localStorage.setItem('lastAccessedDate', today);
 
-    const allTodoBoxes = Object.keys(localStorage).filter(key => key !== 'lastAccessedDate');
+    const allTodoBoxes = Object.keys(localStorage).filter(key => Number.isInteger(+key));
 
     allTodoBoxes.forEach(todoBox => {
         let todoBoxData = JSON.parse(localStorage.getItem(todoBox));
@@ -27,7 +27,7 @@ if (today !== lastDate) {
 document.addEventListener('DOMContentLoaded', () => {
     console.log(localStorage);
 
-    const allTodoBoxes = Object.keys(localStorage).filter(key => key !== 'lastAccessedDate');
+    const allTodoBoxes = Object.keys(localStorage).filter(key => Number.isInteger(+key));
 
     allTodoBoxes.forEach(boxId => {
         addHTMLTodoBox(boxId);
@@ -41,6 +41,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function setListeners() {
+    // To-do task buttons
     let allAddTaskButtons = document.querySelectorAll('.add-task-btn');
 
     allAddTaskButtons.forEach(button => {
@@ -66,6 +67,15 @@ function setListeners() {
         };
     });
 
+    let allRemoveTaskButtons = document.querySelectorAll('.remove-task-btn');
+
+    allRemoveTaskButtons.forEach(button => {
+        button.onclick = () => {
+            removeTask(button);
+        };
+    });
+
+    // To-do box buttons
     let addTodoBoxButton = document.querySelector('.add-todo-box-btn');
 
     addTodoBoxButton.addEventListener('click', addTodoBox);
@@ -89,7 +99,7 @@ function setListeners() {
     let allRefreshTodoBoxButton = document.querySelectorAll('.refreshing-todo-box-btn');
     allRefreshTodoBoxButton.forEach(button => {
         button.onclick = () => {
-            makeRefreshingTodoBox(button);
+            removeTask(button);
         };
     });
 }
@@ -105,7 +115,7 @@ function fillIfBlank(todoBox) {
 // Add a task when the + button on the to-do box is clicked
 function addTask(button) {
 
-    const parentTodoBox = button.parentElement.parentElement;
+    const parentTodoBox = button.parentElement.parentElement.parentElement;
 
     // Remove the fill-in paragraph if needed
     let fillInText = parentTodoBox.querySelector('.blank-todo-fill');
@@ -134,14 +144,18 @@ function addTask(button) {
 
     // ⛰️ Create a todo-task div and add it
     const div = document.createElement('div');
-
+    div.id = newTaskId;
     div.className = 'todo-task';
 
     div.innerHTML = `
         <input type='radio'>
-        <textarea class='todo-task-text' id='${newTaskId}'>New task</textarea>`;
+        <textarea class='todo-task-text''>New task</textarea>
+        <button class='remove-task-btn'><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash-fill" viewBox="0 0 16 16">
+                <path d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5M8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5m3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0"/>
+            </svg>
+        </button>`;
 
-    parentTodoBox.appendChild(div);
+    parentTodoBox.querySelector('.todo-box-tasks').appendChild(div);
 
     div.querySelector('.todo-task-text').focus();
 
@@ -151,14 +165,15 @@ function addTask(button) {
 // Complete a task when the radio button is pressed
 function completeTask(radio) {
     let parentTodoTask = radio.parentElement;
-    let parentTodoBox = parentTodoTask.parentElement;
+    let taskId = parentTodoTask.id;
+
+    let parentTodoBox = parentTodoTask.parentElement.parentElement;
     let todoBoxId = parentTodoBox.id.replace('todo-box', '');
 
     // ✨ Change the task's active status in localStorage
     let todoBoxData = localStorage.getItem(todoBoxId);
     todoBoxData = JSON.parse(todoBoxData);
-
-    let taskId = parentTodoTask.querySelector('.todo-task-text').id;
+    
     todoBoxData.tasks[taskId].active = !todoBoxData.tasks[taskId].active;
 
     // ⛰️ Check the task checkbox
@@ -169,17 +184,44 @@ function completeTask(radio) {
 
 // Edit the task when the textarea is clicked
 function editTask(textarea) {
-    const taskId = textarea.id;
+    let parentTodoTask = textarea.parentElement;
+    let taskId = parentTodoTask.id;
 
-    let parentTodoBox = textarea.parentElement.parentElement;
+    let parentTodoBox = parentTodoTask.parentElement.parentElement;
     let todoBoxId = parentTodoBox.id.replace('todo-box', '');
 
+    // ✨ Change the task's content in localStorage
     let todoBoxData = localStorage.getItem(todoBoxId);
     todoBoxData = JSON.parse(todoBoxData);
 
-    todoBoxData.tasks[taskId] = { task: textarea.value, active: true };
+    todoBoxData.tasks[taskId].task = textarea.value;
 
     localStorage.setItem(todoBoxId, JSON.stringify(todoBoxData));
+}
+
+// Remove a task when the radio button is pressed
+function removeTask(button) {
+    let parentTodoTask = button.parentElement;
+    let taskId = parentTodoTask.id;
+
+    let parentTodoBox = parentTodoTask.parentElement.parentElement;
+    let todoBoxId = parentTodoBox.id.replace('todo-box', '');
+
+    // ✨ Remove the task from the tasks object of the todoBox in localStorage
+    let todoBoxData = localStorage.getItem(todoBoxId);
+    todoBoxData = JSON.parse(todoBoxData);
+
+    delete todoBoxData.tasks[taskId];
+
+    localStorage.setItem(todoBoxId, JSON.stringify(todoBoxData));
+
+    // ⛰️ Delete the task div from the todo box
+    parentTodoTask.remove();
+
+    // If there are no tasks left, fill in the blank
+    if (Object.keys(todoBoxData.tasks).length < 1) {
+        fillIfBlank(parentTodoBox);
+    }
 }
 
 function addTodoBox() {
@@ -190,7 +232,7 @@ function addTodoBox() {
 
     // ✨ Initializing the data for the to-do box
     // Creating a new id number for the box
-    let taskBoxList = Object.keys(localStorage);
+    let taskBoxList = Object.keys(localStorage).filter(key => Number.isInteger(+key));
     let newBoxId;
 
     if (taskBoxList.length < 1) {
@@ -229,7 +271,7 @@ function addHTMLTodoBox(boxId) {
     if (todoBoxData.refreshing) {
         refreshingCheck = '☑';
         refreshingTag = 'Refreshing';
-        
+
     }
 
     box.innerHTML = `
@@ -254,8 +296,11 @@ function addHTMLTodoBox(boxId) {
     </div>`;
 
     let todoBoxDiv = document.querySelector('.todo-box-div');
-
     todoBoxDiv.appendChild(box);
+
+    const todoBoxTasks = document.createElement('div');
+    todoBoxTasks.className = 'todo-box-tasks';
+    box.appendChild(todoBoxTasks);
 
     if (Object.keys(todoBoxData.tasks).length >= 1) {
         Object.entries(todoBoxData.tasks).forEach(([taskId, taskContent]) => {
@@ -269,19 +314,37 @@ function addHTMLTodoBox(boxId) {
             }
 
             const div = document.createElement('div');
-
+            div.id = `${taskId}`;
             div.className = 'todo-task';
 
             div.innerHTML = `
             <input type='radio' ${htmlCompleted}>
-            <textarea class='todo-task-text' id='${taskId}'>${taskText}</textarea>`;
+            <textarea class='todo-task-text'>${taskText}</textarea>
+            <button class='remove-task-btn'>
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash-fill" viewBox="0 0 16 16">
+                    <path d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5M8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5m3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0"/>
+                </svg>
+            </button>`;
 
-            box.appendChild(div);
+            todoBoxTasks.appendChild(div);
         });
     }
     else {
         fillIfBlank(box);
     }
+
+    // Add the collapsing div for the completed tasks
+    let collapseDiv = document.createElement('div');
+    collapseDiv.className = 'todo-box-completed-tasks';
+    collapseDiv.innerHTML = `<p class="d-inline-flex gap-1">
+        <button class="btn btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#collapseExample" aria-expanded="false" aria-controls="collapseExample">
+            Completed v
+        </button>
+    </p>
+    <div class="collapse" id="collapseExample">
+        Completed tasks go here!
+    </div>`;
+    box.appendChild(collapseDiv);
 
     setListeners();
 }
