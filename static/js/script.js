@@ -289,7 +289,7 @@ function addHTMLTodoBox(boxId) {
             </button>
             <ul class="dropdown-menu">
                 <li><a class="dropdown-item refreshing-todo-box-btn" href="#">Refreshing list ${refreshingCheck}</a></li>
-                <li><a class="dropdown-item rename-todo-box-btn" href="#">Rename</a></li>
+                <li><a class="dropdown-item rename-todo-box-btn" href="#" data-bs-toggle="modal" data-bs-target="#exampleModal">Rename</a></li>
                 <li><a class="dropdown-item remove-todo-box-btn" href="#">Remove list</a></li>
             </ul>
         </div>
@@ -363,23 +363,33 @@ function removeTodoBox(button) {
 }
 
 function renameTodoBox(button) {
-    let parentTodoBox = button.parentElement.parentElement.parentElement.parentElement.parentElement;
+    const parentTodoBox = button.parentElement.parentElement.parentElement.parentElement.parentElement;
     let todoBoxId = parentTodoBox.id.replace('todo-box', '');
     let todoBoxData = JSON.parse(localStorage[todoBoxId]);
 
-    let todoTitleHeader = parentTodoBox.querySelector('.todo-title');
+    const todoTitleHeader = parentTodoBox.querySelector('.todo-title');
 
-    let renamedTitle = prompt("Rename list", todoTitleHeader.innerText);
+    const renameModalInput = document.querySelector('#modal-rename-input');
+    const renameModalButton = document.querySelector('#modal-rename-button');
 
-    if (renamedTitle == "" || renamedTitle == null) {
-        return;
-    }
-    else {
-        todoBoxData.title = renamedTitle;
-        localStorage.setItem(todoBoxId, JSON.stringify(todoBoxData));
+    renameModalButton.onclick = () => {
+        const renamedTitle = renameModalInput.value;
+        
+        if (renamedTitle == "" || renamedTitle == null) {
+            return;
+        }
+        else {
+            todoBoxData.title = renamedTitle;
+            localStorage.setItem(todoBoxId, JSON.stringify(todoBoxData));
 
-        todoTitleHeader.innerText = todoBoxData.title;
-    }
+            todoTitleHeader.innerText = todoBoxData.title;
+        }
+
+        let renameModal = bootstrap.Modal.getOrCreateInstance(document.getElementById('exampleModal'));
+        renameModal.hide();
+    };
+
+    
 }
 
 function makeRefreshingTodoBox(button) {
