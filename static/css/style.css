@@ -62,6 +62,10 @@ button {
     margin-bottom: 5px; 
 }
 
+.todo-completed-task-text {
+    text-decoration: line-through;
+}
+
 label {
     width: 100%;
     box-sizing: border-box;
