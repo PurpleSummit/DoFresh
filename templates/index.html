@@ -1,18 +1,19 @@
 {% extends "layout.html" %}
 
 {% block body %}
-    <div style="display: flex;">
-        <h1>DoFresh</h1>
+<div style="display: flex;">
+    <h1>DoFresh</h1>
 
-        <button type="button" class="btn btn-outline-primary add-todo-box-btn">Add a list</button>
-    </div>
+    <button type="button" class="btn btn-outline-primary add-todo-box-btn" data-bs-toggle="modal"
+            data-bs-target="#makeTodoBoxModal">Add a List</button>
+</div>
 
-    <div class="todo-box-div"></div>
+<div class="todo-box-div"></div>
 
-    <!-- Modal -->
-    <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
+<!-- Modal -->
+<div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
             <div class="modal-header">
                 <h1 class="modal-title fs-5" id="exampleModalLabel">Rename list</h1>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -24,8 +25,26 @@
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                 <button type="button" id="modal-rename-button" class="btn btn-primary">Rename</button>
             </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="makeTodoBoxModal" tabindex="-1" aria-labelledby="makeTodoBoxModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="makeTodoBoxModalLabel">Add a Todo-Do List!</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <button type="button" id="add-refreshing-box-button" class="btn btn-primary">Refreshing List</button>
+                <button type="button" id="add-standard-box-button" class="btn btn-primary">Standard List</button>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
             </div>
         </div>
     </div>
+</div>
 
 {% endblock %}

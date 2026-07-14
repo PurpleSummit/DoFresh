@@ -8,6 +8,10 @@ nav {
     padding-left: 8px;
 }
 
+a {
+    text-decoration: none;
+}
+
 button {
     font-size: 25px;
     background-color: rgba(0, 0, 0, 0);
@@ -37,11 +41,11 @@ button {
     width: 550px;
     min-height: 300px;
     margin: 17px;
-    padding: 19px;
 }
 
 .todo-box-heading {
     display: flex;
+    margin: 19px 19px 0px 19px
 }
 
 .add-task-btn {
@@ -57,9 +61,19 @@ button {
     margin-top: 10px;
 }
 
+.blank-todo-fill {
+    margin-left: 19px;
+}
+
 .todo-task {
     display: flex;
-    margin-bottom: 5px; 
+    margin-bottom: 5px;
+    padding: 0px 19px;
+    border-radius: 4px;
+}
+
+.todo-task:hover {
+    background-color: #ededed;
 }
 
 .todo-completed-task-text {
@@ -88,4 +102,22 @@ textarea {
 
 .btn-group {
     margin-left: auto;
+}
+
+.collapse-btn-div {
+    width: 100%;
+}
+
+.collapse-btn {
+    background-color: rgba(0, 0, 0, 0);
+    border-color: rgba(0, 0, 0, 0);
+    color: #80868b !important;
+    box-shadow: none !important;
+    width: 100%;
+    text-align: left;
+}
+
+.collapse-btn:hover {
+    background-color: #ededed;
+    border-color: rgba(0, 0, 0, 0);
 }

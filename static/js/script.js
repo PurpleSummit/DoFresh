@@ -94,12 +94,12 @@ function setListeners() {
         };
     });
 
-    let allRefreshTodoBoxButton = document.querySelectorAll('.refreshing-todo-box-btn');
+    /* let allRefreshTodoBoxButton = document.querySelectorAll('.refreshing-todo-box-btn');
     allRefreshTodoBoxButton.forEach(button => {
         button.onclick = () => {
             makeRefreshingTodoBox(button);
         };
-    });
+    }); */
 }
 
 function fillIfBlank(todoBox) {
@@ -181,7 +181,9 @@ function completeTask(radio) {
         
         taskIndex = todoBoxData.tasks.completed.indexOf(todoBoxData.tasks.completed.find(task => taskId in task));
         todoBoxData.tasks.active.push(todoBoxData.tasks.completed[taskIndex]);
-        todoBoxData.tasks.completed.splice(taskIndex, 1);        
+        todoBoxData.tasks.completed.splice(taskIndex, 1);
+        
+        addHTMLTodoTask(todoBoxId, taskId, taskContent, active);   
     }
 
     // If no active tasks
@@ -189,20 +191,12 @@ function completeTask(radio) {
         fillIfBlank(parentTodoBox.querySelector('.todo-box-tasks'));
     }
     
-    // If no completed tasks
-    if (todoBoxData.tasks.completed.length < 1 && parentTodoBox.querySelector('.todo-box-completed-tasks') !== null) {
-        let completedDiv = parentTodoBox.querySelector('.todo-box-completed-tasks');
-        completedDiv.remove()
-        let completedButton = parentTodoBox.querySelector('.d-inline-flex');
-        completedButton.remove();
-
-    }
-
     localStorage.setItem(todoBoxId, JSON.stringify(todoBoxData));
 
     parentTodoTask.remove();
-
-    addHTMLTodoTask(todoBoxId, taskId, taskContent, active);
+    
+    // Updates all the tasks in completed-tasks div & removes elements if no tasks left
+    updateHTMLCollapseDiv(todoBoxId);
 
     setListeners();
 }
@@ -248,6 +242,7 @@ function removeTask(button) {
         const taskIndex = todoBoxData.tasks.completed.indexOf(todoBoxData.tasks.completed.find(task => taskId in task));
         if (taskIndex > -1) {
             todoBoxData.tasks.completed.splice(taskIndex, 1);
+            updateHTMLCollapseDiv(todoBoxId);
         }
     }
 
@@ -268,6 +263,13 @@ function addTodoBox() {
         fillInText.remove();
     }
 
+    const refreshingBoxButton = document.querySelector('#add-refreshing-box-button');
+    const standardBoxButton = document.querySelector('#add-standard-box-button');
+
+    let refreshingBool;
+    let addBoxModal = bootstrap.Modal.getOrCreateInstance(document.getElementById('makeTodoBoxModal'));
+
+
     // ✨ Initializing the data for the to-do box
     // Creating a new id number for the box
     let taskBoxList = Object.keys(localStorage).filter(key => Number.isInteger(+key));
@@ -279,11 +281,27 @@ function addTodoBox() {
     else {
         newBoxId = Math.max(...taskBoxList) + 1;
     }
+    
+    refreshingBoxButton.onclick = () => {
+        refreshingBool = true;
+        addBoxModal.hide();
+    
+        let todoBoxData = { title: 'To-Do List', tasks: {active: [], completed: []}, refreshing: false };
+        localStorage.setItem(newBoxId, JSON.stringify(todoBoxData));
 
-    let todoBoxData = { title: 'To-Do List', tasks: {active: [], completed: []}, refreshing: false };
-    localStorage.setItem(newBoxId, JSON.stringify(todoBoxData));
+        addHTMLTodoBox(newBoxId);
+        makeRefreshingTodoBox(newBoxId);
+        };
 
-    addHTMLTodoBox(newBoxId);
+    standardBoxButton.onclick = () => {
+        refreshingBool = false;
+        addBoxModal.hide();
+
+        let todoBoxData = { title: 'Refreshing To-Do List', tasks: {active: [], completed: []}, refreshing: false };
+        localStorage.setItem(newBoxId, JSON.stringify(todoBoxData));
+
+        addHTMLTodoBox(newBoxId);
+    };
 }
 
 function addHTMLTodoTask(todoBoxId, taskId, taskText, active) {
@@ -309,14 +327,11 @@ function addHTMLTodoTask(todoBoxId, taskId, taskText, active) {
 
     let taskDiv = document.querySelector(`#todo-box${todoBoxId}`).querySelector(`.todo-box${completed}-tasks`);
     if (!active && taskDiv === null) {
-        console.log(active, taskDiv);
-
         // Adds a collapse div and all the tasks
         addHTMLCollapseDiv(todoBoxId);
         taskDiv = document.querySelector(`#todo-box${todoBoxId}`).querySelector(`.todo-box${completed}-tasks`);
     }
     else {
-        console.log("adding");
         taskDiv.appendChild(div);
     }
 
@@ -328,10 +343,10 @@ function addHTMLCollapseDiv(todoBoxId) {
     let todoBoxData = localStorage.getItem(todoBoxId);
     todoBoxData = JSON.parse(todoBoxData);
 
-    let collapseToggle = document.createElement('p');
-    collapseToggle.className = 'd-inline-flex gap-1';
-    collapseToggle.innerHTML = `<button class="btn btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#collapseExample${todoBoxId}" aria-expanded="false" aria-controls="collapseExample${todoBoxId}">
-        Completed v
+    let collapseToggle = document.createElement('div');
+    collapseToggle.className = 'collapse-btn-div d-inline-flex gap-1';
+    collapseToggle.innerHTML = `<button class="btn btn-light collapse-btn" type="button" data-bs-toggle="collapse" data-bs-target="#collapseExample${todoBoxId}" aria-expanded="false" aria-controls="collapseExample${todoBoxId}">
+        Completed (${todoBoxData.tasks.completed.length})
     </button>`;
     box.appendChild(collapseToggle);
 
@@ -339,14 +354,6 @@ function addHTMLCollapseDiv(todoBoxId) {
     collapseDiv.className = 'collapse todo-box-completed-tasks';
     collapseDiv.id = `collapseExample${todoBoxId}`;
     box.appendChild(collapseDiv);
-
-    (todoBoxData.tasks.completed).forEach((task) => {
-
-        let taskId = Object.keys(task)[0];
-        let taskText = task[taskId].task;
-
-        addHTMLTodoTask(todoBoxId, taskId, taskText, false);
-    });
 }
 
 function addHTMLTodoBox(boxId) {
@@ -380,7 +387,7 @@ function addHTMLTodoBox(boxId) {
                 </svg>
             </button>
             <ul class="dropdown-menu">
-                <li><a class="dropdown-item refreshing-todo-box-btn" href="#">Refreshing list ${refreshingCheck}</a></li>
+                <!-- <li><a class="dropdown-item refreshing-todo-box-btn" href="#">Refreshing list ${refreshingCheck}</a></li> -->
                 <li><a class="dropdown-item rename-todo-box-btn" href="#" data-bs-toggle="modal" data-bs-target="#exampleModal">Rename</a></li>
                 <li><a class="dropdown-item remove-todo-box-btn" href="#">Remove list</a></li>
             </ul>
@@ -409,9 +416,46 @@ function addHTMLTodoBox(boxId) {
     if (todoBoxData.tasks.completed.length >= 1) {
         // Add the collapsing div for the completed tasks
         addHTMLCollapseDiv(boxId);
+        updateHTMLCollapseDiv(boxId);
     }
 
     setListeners();
+}
+
+function updateHTMLCollapseDiv(todoBoxId) {
+    const todoBox = document.querySelector(`#todo-box${todoBoxId}`);
+
+    let todoBoxData = localStorage.getItem(todoBoxId);
+    todoBoxData = JSON.parse(todoBoxData);
+
+    let collapseToggle = todoBox.querySelector('.collapse-btn-div');
+    if (collapseToggle === null) {
+        addHTMLCollapseDiv(todoBoxId);
+        collapseToggle = todoBox.querySelector('.collapse-btn-div');
+    }
+
+    collapseToggle.innerHTML = `<button class="btn btn-light collapse-btn" type="button" data-bs-toggle="collapse" data-bs-target="#collapseExample${todoBoxId}" aria-expanded="false" aria-controls="collapseExample${todoBoxId}">
+        Completed (${todoBoxData.tasks.completed.length})
+    </button>`;
+
+    // Wipe the original completed-tasks div and update
+    todoBox.querySelector('.todo-box-completed-tasks').innerHTML = '';
+
+    (todoBoxData.tasks.completed).forEach((task) => {
+
+        let taskId = Object.keys(task)[0];
+        let taskText = task[taskId].task;
+
+        addHTMLTodoTask(todoBoxId, taskId, taskText, false);
+    });
+
+    // If no completed tasks
+    if (todoBoxData.tasks.completed.length < 1) {
+        let completedDiv = todoBox.querySelector('.todo-box-completed-tasks');
+        completedDiv.remove();
+        let completedButton = todoBox.querySelector('.collapse-btn-div');
+        todoBox.removeChild(completedButton);
+    }
 }
 
 function removeTodoBox(button) {
@@ -454,29 +498,23 @@ function renameTodoBox(button) {
 
         let renameModal = bootstrap.Modal.getOrCreateInstance(document.getElementById('exampleModal'));
         renameModal.hide();
-    };
-
-    
+    };    
 }
 
-function makeRefreshingTodoBox(button) {
-    let parentTodoBox = button.parentElement.parentElement.parentElement.parentElement.parentElement;
-    let todoBoxId = parentTodoBox.id.replace('todo-box', '');
+function makeRefreshingTodoBox(todoBoxId) {
     let todoBoxData = JSON.parse(localStorage[todoBoxId]);
+    let parentTodoBox = document.querySelector(`#todo-box${todoBoxId}`);
 
     // ✨ Change the refreshing bool and update localStorage
-    todoBoxData.refreshing = !todoBoxData.refreshing;
+    todoBoxData.refreshing = true;
 
     localStorage.setItem(todoBoxId, JSON.stringify(todoBoxData));
 
     // ⛰️ Update the todo box HTML to be a refreshing / standard to-do list
-    let refreshingCheck = '';
     let refreshingTag = '';
     if (todoBoxData.refreshing) {
-        refreshingCheck = '☑';
         refreshingTag = 'Refreshing';
     }
 
-    parentTodoBox.querySelector('.refreshing-todo-box-btn').innerHTML = `Refreshing list ${refreshingCheck}`;
     parentTodoBox.querySelector('.refreshing-tag').innerHTML = refreshingTag;
 }
