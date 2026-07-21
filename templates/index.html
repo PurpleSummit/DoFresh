@@ -1,11 +1,15 @@
 {% extends "layout.html" %}
 
+{% block style %}
+<link rel="stylesheet" href="static/css/style.css">
+{% endblock %}
+
 {% block body %}
 <div style="display: flex;">
     <h1>DoFresh</h1>
 
     <button type="button" class="btn btn-outline-primary add-todo-box-btn" data-bs-toggle="modal"
-            data-bs-target="#makeTodoBoxModal">Add a List</button>
+        data-bs-target="#makeTodoBoxModal">Add a List</button>
 </div>
 
 <div class="todo-box-div"></div>
@@ -46,5 +50,7 @@
         </div>
     </div>
 </div>
+
+<script src="static/js/script.js"></script>
 
 {% endblock %}

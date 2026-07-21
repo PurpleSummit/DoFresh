@@ -1,17 +1,3 @@
-body {
-    font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
-    padding: 17px;
-}
-
-nav {
-    margin: -17px -17px 17px -17px;
-    padding-left: 8px;
-}
-
-a {
-    text-decoration: none;
-}
-
 button {
     font-size: 25px;
     background-color: rgba(0, 0, 0, 0);
@@ -23,17 +9,16 @@ button {
     margin-left: auto;
 }
 
-.edit-todo-box-btn {
-    margin-left: 10px !important;
-    margin-bottom: 5px;
-    border-radius: 100% !important;
-}
-
 .todo-box-div {
     display: flex;
+    flex-wrap: wrap;
+    overflow-x: clip;
+    overflow-y: auto;
+    min-width: 0px;
 }
 
 .todo-box {
+    flex: 0 0 auto;
     border-style: solid;
     border-color: #f8f9fa;
     border-width: 1.7px;
@@ -48,7 +33,7 @@ button {
     margin: 19px 19px 0px 19px
 }
 
-.add-task-btn {
+.add-task-btn, .edit-todo-box-btn {
     margin-left: 10px !important;
     width: 41.8px;
     height: 39.9833px;

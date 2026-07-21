@@ -1,37 +1,119 @@
 let today = new Date().toDateString();
+let lastAccessedDate = localStorage.getItem('lastAccessedDate');
 
-let lastDate = localStorage.getItem('lastAccessedDate');
+if (lastAccessedDate == null) {
+    localStorage.setItem('lastAccessedDate', today);
+}
+else {
+    if (today !== lastAccessedDate) {
 
-if (today !== lastDate) {
-    console.log("The date changed!");
+        const allTodoBoxes = Object.keys(localStorage).filter(key => Number.isInteger(+key));
+
+        const diff = (new Date(today) - new Date(lastAccessedDate)) / (1000 * 60 * 60 * 24);
+
+        // For every task that wasn't completed on lastAccessedDate
+        // If ongoing streak: the streak ended (lastAccessedDate - 1)
+        // If closed streak: nothing
+        allTodoBoxes.forEach(todoBox => {
+            let todoBoxData = JSON.parse(localStorage.getItem(todoBox));
+
+            // Only track the refreshing to-do boxes
+            if (todoBoxData && todoBoxData.refreshing && todoBoxData.tasks) {
+                // Tasks not completed
+                todoBoxData.tasks.active.forEach(task => {
+                    let taskId = Object.keys(task)[0];
+                    let taskDetails = task[taskId];
+                    if (!taskDetails || !taskDetails.completedDates) return;
+
+                    let completedDateRanges = taskDetails.completedDates;
+                    let recentCompletedPair = completedDateRanges.at(-1);
+
+                    // If there was an ongoing streak, it ended the day before lastAccessedDate (the task wasn't completed on lastAccessedDate)
+                    if (recentCompletedPair && recentCompletedPair[1] === null) {
+                        let previousDate = new Date(lastAccessedDate);
+                        previousDate.setDate(previousDate.getDate() - 1);
+
+                        recentCompletedPair[1] = previousDate.toDateString();
+                    }
+                });
+            };
+        });
+
+        // If it's been more than one day since the user entered the app at all
+        // All ongoing streaks were broken with lastAcessedDate as the final date
+        if (diff > 1) {
+            allTodoBoxes.forEach(todoBox => {
+                let todoBoxData = JSON.parse(localStorage.getItem(todoBox));
+                todoBoxData.tasks.completed.forEach(task => {
+                    let taskId = Object.keys(task)[0];
+                    let taskDetails = task[taskId];
+                    if (!taskDetails || !taskDetails.completedDates) return;
+
+                    let completedDateRanges = taskDetails.completedDates;
+                    let recentCompletedPair = completedDateRanges.at(-1);
+
+                    if (completedDateRanges.length >= 1) {
+                        // If there was a closed range of completed dates, start a new streak
+                        if (recentCompletedPair && recentCompletedPair[1] !== null) {
+                            taskDetails.completedDates.push([lastAccessedDate, null]);
+                        }
+                    }
+                });
+
+                // Refresh the completed tasks
+                todoBoxData.tasks.active = todoBoxData.tasks.active.concat(todoBoxData.tasks.completed);
+                todoBoxData.tasks.completed = [];
+
+                localStorage.setItem(todoBox, JSON.stringify(todoBoxData));
+            });
+        }
+        else {
+            allTodoBoxes.forEach(todoBox => {
+                let todoBoxData = JSON.parse(localStorage.getItem(todoBox));
+                todoBoxData.tasks.completed.forEach(task => {
+                    let taskId = Object.keys(task)[0];
+                    let taskDetails = task[taskId];
+                    if (!taskDetails || !taskDetails.completedDates) return;
+
+                    let completedDateRanges = taskDetails.completedDates;
+                    let recentCompletedPair = completedDateRanges.at(-1);
+
+                    if (completedDateRanges.length >= 1) {
+                        // If there was a closed range of completed dates, start a new streak
+                        if (recentCompletedPair && recentCompletedPair[1] !== null) {
+                            taskDetails.completedDates.push([lastAccessedDate, null]);
+                        }
+                    }
+                    // If there were no completed dates yet but the task was completed
+                    else {
+                        taskDetails.completedDates = [[lastAccessedDate, null]];
+                    }
+                });
+
+                // Refresh the completed tasks
+                todoBoxData.tasks.active = todoBoxData.tasks.active.concat(todoBoxData.tasks.completed);
+                todoBoxData.tasks.completed = [];
+
+                localStorage.setItem(todoBox, JSON.stringify(todoBoxData));
+            });
+        }
+    }
 
     localStorage.setItem('lastAccessedDate', today);
-
-    const allTodoBoxes = Object.keys(localStorage).filter(key => Number.isInteger(+key));
-
-    allTodoBoxes.forEach(todoBox => {
-        let todoBoxData = JSON.parse(localStorage.getItem(todoBox));
-
-        if (todoBoxData && todoBoxData.refreshing && todoBoxData.tasks) {
-            todoBoxData.tasks.active = todoBoxData.tasks.active.concat(todoBoxData.tasks.completed);
-
-            todoBoxData.tasks.completed = [];
-
-            localStorage.setItem(todoBox, JSON.stringify(todoBoxData));
-        }
-    });
 }
 
 document.addEventListener('DOMContentLoaded', () => {
     console.log(localStorage);
 
-    const allTodoBoxes = Object.keys(localStorage).filter(key => Number.isInteger(+key));
+    document.querySelector('#navbar-home-link').className = 'nav-link active';
 
-    allTodoBoxes.forEach(boxId => {
+    const allTodoBoxIds = Object.keys(localStorage).filter(key => Number.isInteger(+key));
+
+    allTodoBoxIds.forEach(boxId => {
         addHTMLTodoBox(boxId);
     });
 
-    if (allTodoBoxes.length < 1) {
+    if (allTodoBoxIds.length < 1) {
         fillIfBlank(document.body);
     }
 
@@ -131,13 +213,13 @@ function addTask(button) {
     }
     else {
         let boxTitle = parentTasksBox.querySelector('.todo-title')?.innerText || 'To-Do List';
-        todoBoxData = { title: boxTitle, tasks: {active: [], completed: []}, refreshing: false };
+        todoBoxData = { title: boxTitle, tasks: { active: [], completed: [] }, refreshing: false };
     }
 
     // Creating a new id for the new task
     let newTaskId = "task_" + Date.now();
 
-    todoBoxData.tasks.active.push({[newTaskId]: { task: 'New task!' }});
+    todoBoxData.tasks.active.push({ [newTaskId]: { task: 'New task!', createdDate: new Date().toDateString(), completedDates: [] } });
 
     localStorage.setItem(todoBoxId, JSON.stringify(todoBoxData));
 
@@ -178,23 +260,23 @@ function completeTask(radio) {
         if (fillInText) {
             fillInText.remove();
         }
-        
+
         taskIndex = todoBoxData.tasks.completed.indexOf(todoBoxData.tasks.completed.find(task => taskId in task));
         todoBoxData.tasks.active.push(todoBoxData.tasks.completed[taskIndex]);
         todoBoxData.tasks.completed.splice(taskIndex, 1);
-        
-        addHTMLTodoTask(todoBoxId, taskId, taskContent, active);   
+
+        addHTMLTodoTask(todoBoxId, taskId, taskContent, active);
     }
 
     // If no active tasks
     if (todoBoxData.tasks.active.length < 1) {
         fillIfBlank(parentTodoBox.querySelector('.todo-box-tasks'));
     }
-    
+
     localStorage.setItem(todoBoxId, JSON.stringify(todoBoxData));
 
     parentTodoTask.remove();
-    
+
     // Updates all the tasks in completed-tasks div & removes elements if no tasks left
     updateHTMLCollapseDiv(todoBoxId);
 
@@ -281,23 +363,23 @@ function addTodoBox() {
     else {
         newBoxId = Math.max(...taskBoxList) + 1;
     }
-    
+
     refreshingBoxButton.onclick = () => {
         refreshingBool = true;
         addBoxModal.hide();
-    
-        let todoBoxData = { title: 'To-Do List', tasks: {active: [], completed: []}, refreshing: false };
+
+        let todoBoxData = { title: 'Refreshing To-Do List', tasks: { active: [], completed: [] }, refreshing: false };
         localStorage.setItem(newBoxId, JSON.stringify(todoBoxData));
 
         addHTMLTodoBox(newBoxId);
         makeRefreshingTodoBox(newBoxId);
-        };
+    };
 
     standardBoxButton.onclick = () => {
         refreshingBool = false;
         addBoxModal.hide();
 
-        let todoBoxData = { title: 'Refreshing To-Do List', tasks: {active: [], completed: []}, refreshing: false };
+        let todoBoxData = { title: 'To-Do List', tasks: { active: [], completed: [] }, refreshing: false };
         localStorage.setItem(newBoxId, JSON.stringify(todoBoxData));
 
         addHTMLTodoBox(newBoxId);
@@ -339,7 +421,7 @@ function addHTMLTodoTask(todoBoxId, taskId, taskText, active) {
 
 function addHTMLCollapseDiv(todoBoxId) {
     const box = document.querySelector(`#todo-box${todoBoxId}`);
-    
+
     let todoBoxData = localStorage.getItem(todoBoxId);
     todoBoxData = JSON.parse(todoBoxData);
 
@@ -410,7 +492,7 @@ function addHTMLTodoBox(boxId) {
     else {
         fillIfBlank(box.querySelector('.todo-box-tasks'));
     }
- 
+
     box.appendChild(document.createElement('br'));
 
     if (todoBoxData.tasks.completed.length >= 1) {
@@ -485,7 +567,7 @@ function renameTodoBox(button) {
 
     renameModalButton.onclick = () => {
         const renamedTitle = renameModalInput.value;
-        
+
         if (renamedTitle == "" || renamedTitle == null) {
             return;
         }
@@ -498,7 +580,7 @@ function renameTodoBox(button) {
 
         let renameModal = bootstrap.Modal.getOrCreateInstance(document.getElementById('exampleModal'));
         renameModal.hide();
-    };    
+    };
 }
 
 function makeRefreshingTodoBox(todoBoxId) {
