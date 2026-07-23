@@ -17,8 +17,16 @@ else {
         allTodoBoxes.forEach(todoBox => {
             let todoBoxData = JSON.parse(localStorage.getItem(todoBox));
 
+            console.log(todoBoxData);
+
             // Only track the refreshing to-do boxes
             if (todoBoxData && todoBoxData.refreshing && todoBoxData.tasks) {
+                // Refresh the completed tasks
+                todoBoxData.tasks.active = todoBoxData.tasks.active.concat(todoBoxData.tasks.completed);
+                todoBoxData.tasks.completed = [];
+
+                localStorage.setItem(todoBox, JSON.stringify(todoBoxData));
+
                 // Tasks not completed
                 todoBoxData.tasks.active.forEach(task => {
                     let taskId = Object.keys(task)[0];
@@ -59,12 +67,6 @@ else {
                         }
                     }
                 });
-
-                // Refresh the completed tasks
-                todoBoxData.tasks.active = todoBoxData.tasks.active.concat(todoBoxData.tasks.completed);
-                todoBoxData.tasks.completed = [];
-
-                localStorage.setItem(todoBox, JSON.stringify(todoBoxData));
             });
         }
         else {

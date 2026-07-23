@@ -1,12 +1,16 @@
 {% extends "layout.html" %}
 
 {% block style %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <link rel="stylesheet" href="static/css/track.css">
+<script src="static/js/track.js"></script>
+</script>
 {% endblock %}
 
 {% block body %}
 <div style="display: flex;">
-    <button id="sidebar-open-btn" class="btn btn-light btn-close" onclick="closeNav()" aria-label="Close">&#9776;</button>
+    <button id="sidebar-open-btn" class="btn btn-light btn-close" onclick="closeNav()"
+        aria-label="Close">&#9776;</button>
     <h1 id="title">Track</h1>
     <span id="title-selected-list"></span>
 </div>
@@ -18,9 +22,11 @@
 <ul id="todo-tasks-nav" class="nav nav-pills nav-fill">
 </ul>
 
-<div id="task-content">
-
+<div id="track-chart-div">
 </div>
 
-<script src="static/js/track.js"></script>
+<div id="track-range-btn-div">
+</div>
+
+
 {% endblock %}

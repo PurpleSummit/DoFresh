@@ -78,3 +78,7 @@ body {
     margin-left: auto;
     margin-top: 10px;
 }
+
+#task-content {
+    margin-top: 3%;
+}
