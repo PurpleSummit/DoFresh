@@ -7,98 +7,80 @@ if (lastAccessedDate == null) {
 else {
     if (today !== lastAccessedDate) {
 
-        const allTodoBoxes = Object.keys(localStorage).filter(key => Number.isInteger(+key));
+        // Get all the refreshing to-do boxes
+        let todoBoxes = Object.entries(localStorage).filter((entry) => Number.isInteger(+entry[0]));
+        console.log(todoBoxes);
+        let allRefreshingTodoBoxes = [];
+        todoBoxes.forEach(boxData => {
+            if (JSON.parse(boxData[1]).refreshing) {
+                allRefreshingTodoBoxes.push(boxData[0]);
+            }
+        });
 
         const diff = (new Date(today) - new Date(lastAccessedDate)) / (1000 * 60 * 60 * 24);
+        
+        allRefreshingTodoBoxes.forEach(todoBoxId => {
+            let todoBoxData = JSON.parse(localStorage.getItem(todoBoxId));
+            // console.log(todoBoxData);
 
-        // For every task that wasn't completed on lastAccessedDate
-        // If ongoing streak: the streak ended (lastAccessedDate - 1)
-        // If closed streak: nothing
-        allTodoBoxes.forEach(todoBox => {
-            let todoBoxData = JSON.parse(localStorage.getItem(todoBox));
+            // Process the active tasks and break their streaks
+            todoBoxData.tasks.active.forEach(task => {
+                let taskId = Object.keys(task)[0];
+                let taskData = task[taskId];
+                if (!taskData || !taskData.completedDates) return;
 
-            console.log(todoBoxData);
+                let completedDateRanges = taskData.completedDates;
+                let recentCompletedPair = completedDateRanges.at(-1);
 
-            // Only track the refreshing to-do boxes
-            if (todoBoxData && todoBoxData.refreshing && todoBoxData.tasks) {
-                // Refresh the completed tasks
-                todoBoxData.tasks.active = todoBoxData.tasks.active.concat(todoBoxData.tasks.completed);
-                todoBoxData.tasks.completed = [];
+                // If there was an ongoing streak, it ended the day before lastAccessedDate (the task wasn't completed on lastAccessedDate)
+                if (recentCompletedPair && recentCompletedPair[1] === null) {
+                    let previousDate = new Date(lastAccessedDate);
+                    previousDate.setDate(previousDate.getDate() - 1);
 
-                localStorage.setItem(todoBox, JSON.stringify(todoBoxData));
+                    recentCompletedPair[1] = previousDate.toDateString();
+                }
+            });
 
-                // Tasks not completed
-                todoBoxData.tasks.active.forEach(task => {
-                    let taskId = Object.keys(task)[0];
-                    let taskDetails = task[taskId];
-                    if (!taskDetails || !taskDetails.completedDates) return;
+            // Process the completed tasks and break their streaks
+            todoBoxData.tasks.completed.forEach(task => {
+                let taskId = Object.keys(task)[0];
+                let taskData = task[taskId];
+                if (!taskData || !taskData.completedDates) return;
 
-                    let completedDateRanges = taskDetails.completedDates;
-                    let recentCompletedPair = completedDateRanges.at(-1);
+                let completedDateRanges = taskData.completedDates;
+                let recentCompletedPair = completedDateRanges.at(-1);
 
-                    // If there was an ongoing streak, it ended the day before lastAccessedDate (the task wasn't completed on lastAccessedDate)
+                // If the user didn't access the website for more than 1 day
+                // All ongoing streaks were broken with lastAccessedDate as the final date
+                if (diff > 1) {
                     if (recentCompletedPair && recentCompletedPair[1] === null) {
                         let previousDate = new Date(lastAccessedDate);
                         previousDate.setDate(previousDate.getDate() - 1);
 
                         recentCompletedPair[1] = previousDate.toDateString();
                     }
-                });
-            };
-        });
-
-        // If it's been more than one day since the user entered the app at all
-        // All ongoing streaks were broken with lastAcessedDate as the final date
-        if (diff > 1) {
-            allTodoBoxes.forEach(todoBox => {
-                let todoBoxData = JSON.parse(localStorage.getItem(todoBox));
-                todoBoxData.tasks.completed.forEach(task => {
-                    let taskId = Object.keys(task)[0];
-                    let taskDetails = task[taskId];
-                    if (!taskDetails || !taskDetails.completedDates) return;
-
-                    let completedDateRanges = taskDetails.completedDates;
-                    let recentCompletedPair = completedDateRanges.at(-1);
-
+                    taskData.completedDates.push([lastAccessedDate, lastAccessedDate]);
+                }
+                else {
                     if (completedDateRanges.length >= 1) {
                         // If there was a closed range of completed dates, start a new streak
                         if (recentCompletedPair && recentCompletedPair[1] !== null) {
-                            taskDetails.completedDates.push([lastAccessedDate, null]);
-                        }
-                    }
-                });
-            });
-        }
-        else {
-            allTodoBoxes.forEach(todoBox => {
-                let todoBoxData = JSON.parse(localStorage.getItem(todoBox));
-                todoBoxData.tasks.completed.forEach(task => {
-                    let taskId = Object.keys(task)[0];
-                    let taskDetails = task[taskId];
-                    if (!taskDetails || !taskDetails.completedDates) return;
-
-                    let completedDateRanges = taskDetails.completedDates;
-                    let recentCompletedPair = completedDateRanges.at(-1);
-
-                    if (completedDateRanges.length >= 1) {
-                        // If there was a closed range of completed dates, start a new streak
-                        if (recentCompletedPair && recentCompletedPair[1] !== null) {
-                            taskDetails.completedDates.push([lastAccessedDate, null]);
+                            taskData.completedDates.push([lastAccessedDate, null]);
                         }
                     }
                     // If there were no completed dates yet but the task was completed
                     else {
-                        taskDetails.completedDates = [[lastAccessedDate, null]];
+                        taskData.completedDates = [[lastAccessedDate, null]];
                     }
-                });
-
-                // Refresh the completed tasks
-                todoBoxData.tasks.active = todoBoxData.tasks.active.concat(todoBoxData.tasks.completed);
-                todoBoxData.tasks.completed = [];
-
-                localStorage.setItem(todoBox, JSON.stringify(todoBoxData));
+                }
             });
-        }
+
+            // Refresh the completed tasks
+            todoBoxData.tasks.active = todoBoxData.tasks.active.concat(todoBoxData.tasks.completed);
+            todoBoxData.tasks.completed = [];
+
+            localStorage.setItem(todoBoxId, JSON.stringify(todoBoxData));
+        });
     }
 
     localStorage.setItem('lastAccessedDate', today);
@@ -135,7 +117,6 @@ function setListeners() {
     let allTodoTasks = document.querySelectorAll('.todo-task-text');
 
     allTodoTasks.forEach(textarea => {
-        // TODO NEXT MORNING: FIND HOW TO DO FOCUSOUT FOR NON-OVERLAPPING
         textarea.addEventListener('focusout', () => {
             editTask(textarea);
         });
@@ -221,7 +202,13 @@ function addTask(button) {
     // Creating a new id for the new task
     let newTaskId = "task_" + Date.now();
 
-    todoBoxData.tasks.active.push({ [newTaskId]: { task: 'New task!', createdDate: new Date().toDateString(), completedDates: [] } });
+    if (todoBoxData.refreshing) {
+        todoBoxData.tasks.active.push({ [newTaskId]: { task: 'New task!', createdDate: new Date().toDateString(), completedDates: [] } });
+    }
+    else {
+        todoBoxData.tasks.active.push({ [newTaskId]: { task: 'New task!', createdDate: new Date().toDateString() } });
+    }
+
 
     localStorage.setItem(todoBoxId, JSON.stringify(todoBoxData));
 

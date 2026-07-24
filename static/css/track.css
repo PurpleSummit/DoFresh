@@ -58,22 +58,6 @@ body {
     width: 100%;
 }
 
-#todo-tasks-nav a {
-    color: black;
-    cursor: pointer;
-}
-
-#todo-tasks-nav a:hover {
-    color: rgba(0, 0, 0, 0.551);
-}
-
-#todo-tasks-nav li {
-    flex: 0 0 auto;
-    border-right-width: 1px;
-    border-right-style: solid;
-    border-right-color: rgba(0, 0, 0, 0.551);
-}
-
 #title-selected-list {
     margin-left: auto;
     margin-top: 10px;
