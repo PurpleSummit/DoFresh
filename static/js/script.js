@@ -53,13 +53,14 @@ else {
                 // If the user didn't access the website for more than 1 day
                 // All ongoing streaks were broken with lastAccessedDate as the final date
                 if (diff > 1) {
+                    // If a streak was ongoing, ended on lastAccessedDate
                     if (recentCompletedPair && recentCompletedPair[1] === null) {
-                        let previousDate = new Date(lastAccessedDate);
-                        previousDate.setDate(previousDate.getDate() - 1);
-
-                        recentCompletedPair[1] = previousDate.toDateString();
+                        recentCompletedPair[1] = lastAccessedDate;
                     }
-                    taskData.completedDates.push([lastAccessedDate, lastAccessedDate]);
+                    // If no ongoing streak, add a one-day streak
+                    else {
+                        taskData.completedDates.push([lastAccessedDate, lastAccessedDate]);
+                    }
                 }
                 else {
                     if (completedDateRanges.length >= 1) {
