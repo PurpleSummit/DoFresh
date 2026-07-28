@@ -27,10 +27,69 @@ document.addEventListener('DOMContentLoaded', () => {
         let defaultTodoBoxId = allTodoBoxIds[0];
         selectTodoList(defaultTodoBoxId);
     }
+    else {
+        whenBlankChart();
+    }
 
     // TODO: Fill-in text
 
 });
+
+function selectTodoList(boxId) {
+    let taskNavDiv = document.querySelector('#todo-tasks-nav');
+
+    let todoBoxData = JSON.parse(localStorage[`${boxId}`]);
+
+    let allTasks = todoBoxData.tasks;
+    allTasks = allTasks.completed.concat(allTasks.active);
+
+    let oldTaskNav = document.querySelector('.task-nav-btn-group');
+    if (oldTaskNav) {
+        oldTaskNav.remove();
+    }
+
+    let taskNav = document.createElement('div');
+    taskNav.className = 'task-nav-btn-group btn-group';
+    taskNav.role = 'group';
+    taskNav.ariaLabel = 'Basic radio toggle button group';
+    taskNav.style.marginLeft = '13px';
+
+    allTasks.forEach(task => {
+        let taskElement = document.createElement('input');
+        taskElement.type = 'radio';
+        taskElement.className = 'btn-check';
+        taskElement.name = 'btnradio';
+        taskElement.id = `task-select${Object.keys(task)[0].replace('task_', '')}`;
+        taskElement.autocomplete = 'off';
+        taskElement.onclick = () => {
+            selectTask(boxId, Object.keys(task)[0]);
+        };
+        taskNav.appendChild(taskElement);
+
+        let taskLabel = document.createElement('label');
+        taskLabel.className = 'btn btn-outline-primary';
+        taskLabel.htmlFor = taskElement.id;
+        taskLabel.innerText = `${Object.values(task)[0].task}`;
+        taskNav.appendChild(taskLabel);
+    });
+
+    taskNavDiv.appendChild(taskNav);
+
+    // Set the subtitle to the list title
+    document.querySelector('#title-selected-list').innerText = todoBoxData.title;
+
+    // Initialize the chart display
+    if (allTasks.length > 0) {
+        let initTaskId = Object.keys(allTasks.at(0))[0];
+
+        document.querySelector(`#task-select${initTaskId.replace('task_', '')}`).checked = true;
+
+        selectTask(boxId, initTaskId);
+    }
+    else {
+        whenBlankChart();
+    }
+}
 
 function selectTask(boxId, taskId) {
     let todoBoxData = JSON.parse(localStorage[`${boxId}`]);
@@ -86,17 +145,20 @@ function selectTask(boxId, taskId) {
     <input type='radio' class='btn-check chart-complete-btn' name='type-radio' id='chart-complete1' autocomplete='off' checked>
     <label class='btn btn-outline-primary' for='chart-complete1'>Completed</label>
     <input type='radio' class='btn-check chart-streak-btn' name='type-radio' id='chart-streak1' autocomplete='off'>
-    <label class='btn btn-outline-primary' for='chart-streak1'>Streak</label>`;
+    <label class='btn btn-outline-primary' for='chart-streak1'>Streak</label>
+    <input type='radio' class='btn-check chart-month-btn' name='type-radio' id='chart-month1' autocomplete='off'>
+    <label class='btn btn-outline-primary' for='chart-month1'>Monthly</label>`;
     chartSettingsDiv.appendChild(chartTypeDiv);
 
     // Initialize range buttons
     let completedRanges = taskData.completedDates;
     let startDate;
-    if (completedRanges[0]) {
+    if (completedRanges && completedRanges[0]) {
         startDate = new Date(completedRanges[0][0]);
     }
     else {
-        startDate = new Date(taskData.createdDate);
+        whenBlankChart();
+        return;
     }
 
     const diff = (new Date() - new Date(startDate)) / (1000 * 60 * 60 * 24);
@@ -142,6 +204,10 @@ function selectTask(boxId, taskId) {
         streakButton.onclick = () => {
             chartType = 'Streak';
         };
+        let byMonthButton = document.querySelector('.chart-month-btn');
+        byMonthButton.onclick = () => {
+            chartType = 'Month';
+        };
     }
 
     chartSettingsDiv.onclick = () => {
@@ -176,7 +242,7 @@ function chartBegin(taskData, rangeSetting, chartType) {
         startDate.setDate(startDate.getDate() - 364);
     }
     else if (rangeSetting == 'Max') {
-        if (completedRanges[0]) {
+        if (completedRanges && completedRanges[0]) {
             startDate = new Date(completedRanges[0][0]);
         }
         else {
@@ -190,6 +256,9 @@ function chartBegin(taskData, rangeSetting, chartType) {
     else if (chartType == 'Streak') {
         chartStreak(taskData, startDate, rangeSetting);
     }
+    else if (chartType == 'Month') {
+        chartMonthly(taskData, startDate, rangeSetting);
+    }
 }
 
 function chartComplete(taskData, startDate, rangeSetting) {
@@ -201,22 +270,24 @@ function chartComplete(taskData, startDate, rangeSetting) {
 
     // Fill in completedDates with dates between completedRanges's ranges
     let completedDates = [];
-    completedRanges.forEach(dateRange => {
-        let iDate = new Date(dateRange[0]);
-        let jDate = dateRange[1];
+    if (completedRanges && completedRanges[0]) {
+        completedRanges.forEach(dateRange => {
+            let iDate = new Date(dateRange[0]);
+            let jDate = dateRange[1];
 
-        if (jDate === null) {
-            jDate = new Date(yesterday);
-        }
-        else {
-            jDate = new Date(jDate);
-        }
+            if (jDate === null) {
+                jDate = new Date(yesterday);
+            }
+            else {
+                jDate = new Date(jDate);
+            }
 
-        while (iDate <= jDate) {
-            completedDates.push(iDate.toDateString());
-            iDate.setDate(iDate.getDate() + 1);
-        }
-    });
+            while (iDate <= jDate) {
+                completedDates.push(iDate.toISOString().split('T')[0]);
+                iDate.setDate(iDate.getDate() + 1);
+            }
+        });
+    }
 
     let iDate = new Date(startDate);
     let selectDate;
@@ -226,7 +297,7 @@ function chartComplete(taskData, startDate, rangeSetting) {
 
     // Record if the task was completed or not
     while (iDate <= yesterday) {
-        selectDate = iDate.toDateString();
+        selectDate = iDate.toISOString().split('T')[0];
         xValues.push(selectDate);
 
         if (completedDates.includes(selectDate)) {
@@ -240,8 +311,8 @@ function chartComplete(taskData, startDate, rangeSetting) {
     }
 
     let labeledDates = completedRanges.flat();
-    labeledDates.push(yesterday.toDateString());
-    labeledDates.push(startDate.toDateString());
+    labeledDates.push(yesterday.toISOString().split('T')[0]);
+    labeledDates.push(startDate.toISOString().split('T')[0]);
 
     // Chart of 0s and 1s, did/did not do
     taskChartInstance = new Chart('task-content', {
@@ -311,7 +382,7 @@ function chartStreak(taskData, startDate, rangeSetting) {
 
         let streakCount = 1;
         while (streakStart <= streakEnd) {
-            completedDates[`${streakStart.toDateString()}`] = streakCount;
+            completedDates[`${streakStart.toISOString().split('T')[0]}`] = streakCount;
             streakStart.setDate(streakStart.getDate() + 1);
             streakCount++;
         }
@@ -325,7 +396,7 @@ function chartStreak(taskData, startDate, rangeSetting) {
 
     // Record if the task was completed or not
     while (iDate <= yesterday) {
-        selectDate = iDate.toDateString();
+        selectDate = iDate.toISOString().split('T')[0];
         xValues.push(selectDate);
 
         if (Object.keys(completedDates).includes(selectDate)) {
@@ -338,8 +409,8 @@ function chartStreak(taskData, startDate, rangeSetting) {
         iDate.setDate(iDate.getDate() + 1);
     }
     let labeledDates = completedRanges.flat();
-    labeledDates.push(yesterday.toDateString());
-    labeledDates.push(startDate.toDateString());
+    labeledDates.push(yesterday.toISOString().split('T')[0]);
+    labeledDates.push(startDate.toISOString().split('T')[0]);
 
     // Chart of streaks
     taskChartInstance = new Chart('task-content', {
@@ -386,57 +457,127 @@ function chartStreak(taskData, startDate, rangeSetting) {
     });
 }
 
-function selectTodoList(boxId) {
-    let taskNavDiv = document.querySelector('#todo-tasks-nav');
+function chartMonthly(taskData, startDate, rangeSetting) {
+    let today = new Date();
+    let yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
 
-    let todoBoxData = JSON.parse(localStorage[`${boxId}`]);
-
-    let allTasks = todoBoxData.tasks;
-    allTasks = allTasks.completed.concat(allTasks.active);
-
-    let oldTaskNav = document.querySelector('.task-nav-btn-group');
-    if (oldTaskNav) {
-        oldTaskNav.remove();
+    // An array of all the months between startDate and yesterday
+    let monthlyArray = [];
+    let iDate = new Date(startDate);
+    while (iDate <= yesterday) {
+        let strDate = iDate.toISOString().split("T")[0];
+        let iDateMonth = strDate.split("-")[0] + "-" + strDate.split("-")[1];
+        iDate.setMonth(iDate.getMonth() + 1);
+        monthlyArray.push(iDateMonth);
     }
 
-    let taskNav = document.createElement('div');
-    taskNav.className = 'task-nav-btn-group btn-group';
-    taskNav.role = 'group';
-    taskNav.ariaLabel = 'Basic radio toggle button group';
-    taskNav.style.marginLeft = '13px';
+    let completedRanges = taskData.completedDates;
 
-    allTasks.forEach(task => {
-        let taskElement = document.createElement('input');
-        taskElement.type = 'radio';
-        taskElement.className = 'btn-check';
-        taskElement.name = 'btnradio';
-        taskElement.id = `task-select${Object.keys(task)[0].replace('task_', '')}`;
-        taskElement.autocomplete = 'off';
-        taskElement.onclick = () => {
-            selectTask(boxId, Object.keys(task)[0]);
-        };
-        taskNav.appendChild(taskElement);
+    // Fill in completedDates with dates between completedRanges's ranges
+    let completedDates = [];
+    completedRanges.forEach(dateRange => {
+        let iDate = new Date(dateRange[0]);
+        let jDate = dateRange[1];
 
-        let taskLabel = document.createElement('label');
-        taskLabel.className = 'btn btn-outline-primary';
-        taskLabel.htmlFor = taskElement.id;
-        taskLabel.innerText = `${Object.values(task)[0].task}`;
-        taskNav.appendChild(taskLabel);
+        if (jDate === null) {
+            jDate = new Date(yesterday);
+        }
+        else {
+            jDate = new Date(jDate);
+        }
+
+        while (iDate <= jDate) {
+            completedDates.push(iDate.toISOString().split('T')[0]);
+            iDate.setDate(iDate.getDate() + 1);
+        }
     });
 
-    taskNavDiv.appendChild(taskNav);
+    let xValues = [];
+    let yValues = [];
 
-    // Set the subtitle to the list title
-    document.querySelector('#title-selected-list').innerText = todoBoxData.title;
+    // Record how many times the task was completed every month
+    monthlyArray.forEach(month => {
+        let nextMonth = new Date(month);
+        nextMonth.setMonth(nextMonth.getMonth() + 1);
+        let monthCount = 0;
 
-    // Initialize the chart display
-    if (allTasks.length > 0) {
-        let initTaskId = Object.keys(allTasks.at(0))[0];
+        for (let date of completedDates) {
+            if (date.includes(month)) {
+                monthCount++;
+            }
+            date = new Date(date);
+            if (date > nextMonth) {
+                break;
+            }
+        }
 
-        document.querySelector(`#task-select${initTaskId.replace('task_', '')}`).checked = true;
+        xValues.push(month);
+        yValues.push(monthCount);
+    });
 
-        selectTask(boxId, initTaskId);
-    }
+    let labeledDates = completedRanges.flat();
+    labeledDates.push(yesterday.toISOString().split('T')[0]);
+    labeledDates.push(startDate.toISOString().split('T')[0]);
+
+    // Bar chart of each month
+    taskChartInstance = new Chart('task-content', {
+        type: 'bar',
+        data: {
+            labels: xValues,
+            datasets: [{
+                data: yValues,
+                backgroundColor: [
+                    'rgba(255, 99, 132, 0.2)',
+                    'rgba(255, 159, 64, 0.2)',
+                    'rgba(255, 205, 86, 0.2)',
+                    'rgba(75, 192, 192, 0.2)',
+                    'rgba(54, 162, 235, 0.2)',
+                    'rgba(153, 102, 255, 0.2)',
+                    'rgba(201, 203, 207, 0.2)'
+                ],
+                borderColor: [
+                    'rgb(255, 99, 132)',
+                    'rgb(255, 159, 64)',
+                    'rgb(255, 205, 86)',
+                    'rgb(75, 192, 192)',
+                    'rgb(54, 162, 235)',
+                    'rgb(153, 102, 255)',
+                    'rgb(201, 203, 207)'
+                ],
+                borderWidth: 1
+            }]
+
+        },
+        options: {
+            plugins: {
+                title: {
+                    display: true,
+                    text: `Completion Track: ${taskData.task} ${rangeSetting}`,
+                    padding: {
+                        top: 10,
+                        bottom: 30
+                    },
+                    font: {
+                        size: 19
+                    }
+                },
+                legend: { display: false },
+            },
+            scales: {
+                x: {
+                    ticks: {
+                        minRotation: 32.8,
+                        callback: function (val, index, ticks) {
+                            const label = this.getLabelForValue(val);
+
+                            return labeledDates.includes(label) ? label : null;
+                        }
+                    }
+                }
+            }
+        }
+    });
 }
 
 function openNav() {
@@ -456,4 +597,9 @@ function closeNav() {
     openBtn.className = 'btn btn-light';
     openBtn.ariaLabel = '';
     openBtn.onclick = openNav;
+}
+
+function whenBlankChart() {
+    document.querySelector('#track-chart-div').innerHTML = `<br>
+    <p>No data yet... it's time to get cracking! 🔮</p>`;
 }

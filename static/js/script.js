@@ -1,6 +1,8 @@
 // INIT code
 
-let today = new Date().toDateString();
+let fillTextArray = ['📝 a blank canvas here!\n', "goodness me, look at that! it's time to get going 🏃\n", 'you can do this! -blue 52 🐳\n', 'may the force be with you... ✊\n', 'lettuce commence. 🥬\n', 'go you! go you! 🎉\n']
+
+let today = new Date().toISOString().split('T')[0];
 let lastAccessedDate = localStorage.getItem('lastAccessedDate');
 
 if (lastAccessedDate == null) {
@@ -37,7 +39,7 @@ else {
                     let previousDate = new Date(lastAccessedDate);
                     previousDate.setDate(previousDate.getDate() - 1);
 
-                    recentCompletedPair[1] = previousDate.toDateString();
+                    recentCompletedPair[1] = previousDate.toISOString().split('T')[0];
                 }
             });
 
@@ -105,7 +107,7 @@ document.addEventListener('DOMContentLoaded', () => {
     setListeners();
 });
 
-// BACKEND logic code
+// LOGIC code
 
 function setListeners() {
     // To-do task buttons
@@ -173,7 +175,9 @@ function setListeners() {
 function fillIfBlank(todoBox) {
     const span = document.createElement('span');
     span.className = 'blank-todo-fill';
-    span.innerText = '📝 A blank canvas here! 🤩\n';
+
+    let randomText = fillTextArray[Math.floor(Math.random() * fillTextArray.length)];
+    span.innerText = randomText;
 
     todoBox.appendChild(span);
 }
@@ -272,7 +276,7 @@ function removeTodoBox(button) {
         const todoBoxesDiv = document.querySelector('.todo-box-div');
         todoBoxesDiv.removeChild(parentTodoBox);
 
-        if (Object.keys(localStorage).length < 1) {
+        if (Object.keys(localStorage).length < 2) {
             fillIfBlank(todoBoxesDiv);
         }
     };
@@ -325,10 +329,10 @@ function addTask(button) {
     let newTaskId = "task_" + Date.now();
 
     if (todoBoxData.refreshing) {
-        todoBoxData.tasks.active.push({ [newTaskId]: { task: 'New task!', createdDate: new Date().toDateString(), completedDates: [] } });
+        todoBoxData.tasks.active.push({ [newTaskId]: { task: 'New task!', createdDate: new Date().toISOString().split('T')[0], completedDates: [] } });
     }
     else {
-        todoBoxData.tasks.active.push({ [newTaskId]: { task: 'New task!', createdDate: new Date().toDateString() } });
+        todoBoxData.tasks.active.push({ [newTaskId]: { task: 'New task!', createdDate: new Date().toISOString().split('T')[0] } });
     }
 
 
@@ -415,7 +419,6 @@ function editTask(textarea) {
 
 function removeTask(button) {
     let parentTodoTask = button.parentElement;
-    console.log(parentTodoTask);
     let taskId = parentTodoTask.id;
 
     let parentTodoBox = parentTodoTask.parentElement.parentElement;
@@ -428,7 +431,7 @@ function removeTask(button) {
     const taskIndex = todoBoxData.tasks.active.indexOf(todoBoxData.tasks.active.find(task => taskId in task));
     if (taskIndex > -1) {
         todoBoxData.tasks.active.splice(taskIndex, 1); localStorage.setItem(todoBoxId, JSON.stringify(todoBoxData));
-        
+
         // ⛰️ Delete the task div from the todo box
         parentTodoTask.remove();
     }
@@ -445,7 +448,7 @@ function removeTask(button) {
 
     // DEBUG: more than one removals don't work in the completed div. More than one removals work in the active section. It must be updateHTMLCollapseDiv() or something!! Check up on it.
 
-    // If there are no tasks left, fill in the blank
+    // If there are no active tasks left, fill in the blank
     if (Object.keys(todoBoxData.tasks.active).length < 1) {
         fillIfBlank(parentTodoBox.querySelector('.todo-box-tasks'));
     }
@@ -570,6 +573,8 @@ function updateHTMLCollapseDiv(todoBoxId) {
         let completedButton = todoBox.querySelector('.collapse-btn-div');
         todoBox.removeChild(completedButton);
     }
+
+    setListeners();
 }
 
 function addHTMLTodoTask(todoBoxId, taskId, taskText, active) {
