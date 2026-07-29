@@ -70,8 +70,8 @@ label {
     box-sizing: border-box;
 }
 
-textarea {
-    font-family:'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+input[type='text'] {
+    font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
     font-size: 17px;
     max-width: 516px;
     min-height: 24px;
@@ -79,6 +79,22 @@ textarea {
     background: rgba(0, 0, 0, 0);
     margin-left: 10px;
     width: 100%;
+    box-sizing: border-box;
+    resize: none;
+    field-sizing: content;
+    margin-top: 5px;
+}
+
+textarea {
+    font-family:'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+    font-size: 13px;
+    background: rgba(0, 0, 0, 0);
+    color: rgb(93, 91, 91);
+    margin-left: 10px;
+    width: 444px;
+    max-width: 516px;
+    min-height: 24px;
+    border-style: none;
     box-sizing: border-box;
     resize: none;
     field-sizing: content;

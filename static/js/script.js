@@ -121,9 +121,17 @@ function setListeners() {
 
     let allTodoTasks = document.querySelectorAll('.todo-task-text');
 
-    allTodoTasks.forEach(textarea => {
+    allTodoTasks.forEach(textbox => {
+        textbox.addEventListener('focusout', () => {
+            editTask(textbox);
+        });
+    });
+
+    let allTodoDetails = document.querySelectorAll('.todo-task-details');
+
+    allTodoDetails.forEach(textarea => {
         textarea.addEventListener('focusout', () => {
-            editTask(textarea);
+            editTaskDetails(textarea);
         });
     });
 
@@ -329,12 +337,11 @@ function addTask(button) {
     let newTaskId = "task_" + Date.now();
 
     if (todoBoxData.refreshing) {
-        todoBoxData.tasks.active.push({ [newTaskId]: { task: 'New task!', createdDate: new Date().toISOString().split('T')[0], completedDates: [] } });
+        todoBoxData.tasks.active.push({ taskId: `${newTaskId}`, task: 'New task!', details: '', createdDate: new Date().toISOString().split('T')[0], completedDates: [] });
     }
     else {
-        todoBoxData.tasks.active.push({ [newTaskId]: { task: 'New task!', createdDate: new Date().toISOString().split('T')[0] } });
+        todoBoxData.tasks.active.push({ taskId: `${newTaskId}`, task: 'New task!', details: '', createdDate: new Date().toISOString().split('T')[0] });
     }
-
 
     localStorage.setItem(todoBoxId, JSON.stringify(todoBoxData));
 
@@ -357,37 +364,45 @@ function completeTask(radio) {
     let todoBoxData = localStorage.getItem(todoBoxId);
     todoBoxData = JSON.parse(todoBoxData);
 
+    // Find the task in localStorage
     let taskContent, active;
-    let taskIndex = todoBoxData.tasks.active.indexOf(todoBoxData.tasks.active.find(task => taskId in task));
+
+    let taskIndex = todoBoxData.tasks.active.indexOf(todoBoxData.tasks.active.find(task => task['taskId'] == taskId));
+
+    // Completing an active task
     if (taskIndex > -1) {
         taskContent = parentTodoTask.querySelector('.todo-task-text').innerHTML;
-        active = false;
 
-        todoBoxData.tasks.completed.push(todoBoxData.tasks.active[taskIndex]);
+        let task = todoBoxData.tasks.active[taskIndex];
+        todoBoxData.tasks.completed.push(task);
         todoBoxData.tasks.active.splice(taskIndex, 1);
+
+        localStorage.setItem(todoBoxId, JSON.stringify(todoBoxData));
     }
+    // Restoring a completed task to active
     else {
         taskContent = parentTodoTask.querySelector('.todo-completed-task-text').innerHTML;
         active = true;
+
+        taskIndex = todoBoxData.tasks.completed.indexOf(todoBoxData.tasks.completed.find(task => task['taskId'] == taskId));
+
+        let task = todoBoxData.tasks.completed[taskIndex];
+        todoBoxData.tasks.active.push(task);
+        todoBoxData.tasks.completed.splice(taskIndex, 1);
+
+        localStorage.setItem(todoBoxId, JSON.stringify(todoBoxData));
 
         let fillInText = parentTodoBox.querySelector('.todo-box-tasks').querySelector('.blank-todo-fill');
         if (fillInText) {
             fillInText.remove();
         }
-
-        taskIndex = todoBoxData.tasks.completed.indexOf(todoBoxData.tasks.completed.find(task => taskId in task));
-        todoBoxData.tasks.active.push(todoBoxData.tasks.completed[taskIndex]);
-        todoBoxData.tasks.completed.splice(taskIndex, 1);
-
-        addHTMLTodoTask(todoBoxId, taskId, taskContent, active);
+        addHTMLTodoTask(todoBoxId, taskId, active);
     }
 
-    // If no active tasks
+    // If no active tasks anymore
     if (todoBoxData.tasks.active.length < 1) {
         fillIfBlank(parentTodoBox.querySelector('.todo-box-tasks'));
     }
-
-    localStorage.setItem(todoBoxId, JSON.stringify(todoBoxData));
 
     parentTodoTask.remove();
 
@@ -397,8 +412,8 @@ function completeTask(radio) {
     setListeners();
 }
 
-function editTask(textarea) {
-    let parentTodoTask = textarea.parentElement;
+function editTask(textbox) {
+    let parentTodoTask = textbox.parentElement.parentElement;
     let taskId = parentTodoTask.id;
 
     let parentTodoBox = parentTodoTask.parentElement.parentElement;
@@ -408,10 +423,30 @@ function editTask(textarea) {
     let todoBoxData = localStorage.getItem(todoBoxId);
     todoBoxData = JSON.parse(todoBoxData);
 
-    let targetTaskObject = todoBoxData.tasks.active.find(task => taskId in task);
+    let targetTask = todoBoxData.tasks.active.find(task => task['taskId'] == taskId);
 
-    if (targetTaskObject) {
-        targetTaskObject[taskId].task = textarea.value;
+    if (targetTask) {
+        targetTask['task'] = textbox.value;
+    }
+
+    localStorage.setItem(todoBoxId, JSON.stringify(todoBoxData));
+}
+
+function editTaskDetails(textarea) {
+    let parentTodoTask = textarea.parentElement.parentElement;
+    let taskId = parentTodoTask.id;
+
+    let parentTodoBox = parentTodoTask.parentElement.parentElement;
+    let todoBoxId = parentTodoBox.id.replace('todo-box', '');
+
+    // ✨ Change the task's content in localStorage
+    let todoBoxData = localStorage.getItem(todoBoxId);
+    todoBoxData = JSON.parse(todoBoxData);
+
+    let targetTask = todoBoxData.tasks.active.find(task => task['taskId'] == taskId);
+
+    if (targetTask) {
+        targetTask['details'] = textarea.value;
     }
 
     localStorage.setItem(todoBoxId, JSON.stringify(todoBoxData));
@@ -428,25 +463,22 @@ function removeTask(button) {
     let todoBoxData = localStorage.getItem(todoBoxId);
     todoBoxData = JSON.parse(todoBoxData);
 
-    const taskIndex = todoBoxData.tasks.active.indexOf(todoBoxData.tasks.active.find(task => taskId in task));
+    const taskIndex = todoBoxData.tasks.active.indexOf(todoBoxData.tasks.active.find(task => task['taskId'] == taskId));
     if (taskIndex > -1) {
-        todoBoxData.tasks.active.splice(taskIndex, 1); localStorage.setItem(todoBoxId, JSON.stringify(todoBoxData));
+        todoBoxData.tasks.active.splice(taskIndex, 1);
+        localStorage.setItem(todoBoxId, JSON.stringify(todoBoxData));
 
         // ⛰️ Delete the task div from the todo box
         parentTodoTask.remove();
     }
     else {
         const taskIndex = todoBoxData.tasks.completed.indexOf(todoBoxData.tasks.completed.find(task => taskId in task));
-        if (taskIndex > -1) {
-            todoBoxData.tasks.completed.splice(taskIndex, 1);
-            localStorage.setItem(todoBoxId, JSON.stringify(todoBoxData));
+        todoBoxData.tasks.completed.splice(taskIndex, 1);
+        localStorage.setItem(todoBoxId, JSON.stringify(todoBoxData));
 
-            // ⛰️ Remove the task and fix the # of completed tasks
-            updateHTMLCollapseDiv(todoBoxId);
-        }
+        // ⛰️ Remove the task and fix the # of completed tasks
+        updateHTMLCollapseDiv(todoBoxId);
     }
-
-    // DEBUG: more than one removals don't work in the completed div. More than one removals work in the active section. It must be updateHTMLCollapseDiv() or something!! Check up on it.
 
     // If there are no active tasks left, fill in the blank
     if (Object.keys(todoBoxData.tasks.active).length < 1) {
@@ -499,8 +531,8 @@ function addHTMLTodoBox(boxId) {
 
     if (todoBoxData.tasks.active.length >= 1) {
         (todoBoxData.tasks.active).forEach((task) => {
-            let taskId = Object.keys(task)[0];
-            let taskText = task[taskId].task;
+            let taskId = task['taskId'];
+            let taskText = task['task'];
 
             addHTMLTodoTask(boxId, taskId, taskText, true);
         });
@@ -552,18 +584,15 @@ function updateHTMLCollapseDiv(todoBoxId) {
     }
 
     collapseToggle.innerHTML = `<button class="btn btn-light collapse-btn" type="button" data-bs-toggle="collapse" data-bs-target="#collapseExample${todoBoxId}" aria-expanded="false" aria-controls="collapseExample${todoBoxId}">
-        Completed (${todoBoxData.tasks.completed.length})
-    </button>`;
+        Completed (${todoBoxData.tasks.completed.length})</button>`;
 
     // Wipe the original completed-tasks div and update
     todoBox.querySelector('.todo-box-completed-tasks').innerHTML = '';
 
     (todoBoxData.tasks.completed).forEach((task) => {
-
-        let taskId = Object.keys(task)[0];
-        let taskText = task[taskId].task;
-
-        addHTMLTodoTask(todoBoxId, taskId, taskText, false);
+        let taskId = task['taskId'];
+        
+        addHTMLTodoTask(todoBoxId, taskId, false);
     });
 
     // If no completed tasks
@@ -577,10 +606,10 @@ function updateHTMLCollapseDiv(todoBoxId) {
     setListeners();
 }
 
-function addHTMLTodoTask(todoBoxId, taskId, taskText, active) {
-    const div = document.createElement('div');
-    div.id = `${taskId}`;
-    div.className = 'todo-task';
+function addHTMLTodoTask(todoBoxId, taskId, active) {
+    const task = document.createElement('div');
+    task.id = `${taskId}`;
+    task.className = 'todo-task';
 
     let checked, disabled, completed = '';
     if (!active) {
@@ -589,23 +618,47 @@ function addHTMLTodoTask(todoBoxId, taskId, taskText, active) {
         completed = "-completed";
     }
 
-    div.innerHTML = `
+    let todoBoxData = localStorage.getItem(todoBoxId);
+    todoBoxData = JSON.parse(todoBoxData);
+
+    let allTasks;
+    if (active) {
+        allTasks = todoBoxData.tasks['active'];
+    }
+    else {
+        allTasks = todoBoxData.tasks['completed'];
+    }
+
+    let taskData = allTasks.find(task => task['taskId'] == taskId);
+
+    let taskText = taskData.task;
+    let taskDetails = taskData.details;
+
+    task.innerHTML = `
     <input type='radio'${checked}>
-    <textarea class='todo${completed}-task-text'${disabled}>${taskText}</textarea>
+    <div>
+        <input type='text' class='todo${completed}-task-text' value='${taskText}'${disabled}>
+        <br>
+        <textarea class='todo${completed}-task-details'${disabled}>${taskDetails}</textarea>
+    </div>
     <button class='remove-task-btn'>
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash-fill" viewBox="0 0 16 16">
             <path d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5M8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5m3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0"/>
         </svg>
     </button>`;
 
-    let taskDiv = document.querySelector(`#todo-box${todoBoxId}`).querySelector(`.todo-box${completed}-tasks`);
-    if (!active && taskDiv === null) {
+    let tasksDiv = document.querySelector(`#todo-box${todoBoxId}`).querySelector(`.todo-box${completed}-tasks`);
+    if (!active) {
         // Adds a collapse div and all the tasks
-        addHTMLCollapseDiv(todoBoxId);
-        taskDiv = document.querySelector(`#todo-box${todoBoxId}`).querySelector(`.todo-box${completed}-tasks`);
+        if (tasksDiv === null) {
+            addHTMLCollapseDiv(todoBoxId);
+            tasksDiv = document.querySelector(`#todo-box${todoBoxId}`).querySelector(`.todo-box${completed}-tasks`);
+        }
+        else {
+            tasksDiv.prepend(task);
+        }
     }
     else {
-        taskDiv.appendChild(div);
+        tasksDiv.appendChild(task);
     }
-
 }

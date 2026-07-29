@@ -30,9 +30,6 @@ document.addEventListener('DOMContentLoaded', () => {
     else {
         whenBlankChart();
     }
-
-    // TODO: Fill-in text
-
 });
 
 function selectTodoList(boxId) {
@@ -80,6 +77,11 @@ function selectTodoList(boxId) {
 
     // Initialize the chart display
     if (allTasks.length > 0) {
+        let chartFillText = document.querySelector('#chart-fill-p');
+        if (chartFillText) {
+            chartFillText.remove();
+        }
+
         let initTaskId = Object.keys(allTasks.at(0))[0];
 
         document.querySelector(`#task-select${initTaskId.replace('task_', '')}`).checked = true;
@@ -162,9 +164,9 @@ function selectTask(boxId, taskId) {
     }
 
     const diff = (new Date() - new Date(startDate)) / (1000 * 60 * 60 * 24);
-
+    
+    let weekButton = document.querySelector('.week-range-btn');
     if (rangeDiv) {
-        let weekButton = document.querySelector('.week-range-btn');
         weekButton.onclick = () => {
             rangeSetting = 'Week';
         };
@@ -212,6 +214,18 @@ function selectTask(boxId, taskId) {
 
     chartSettingsDiv.onclick = () => {
         chartBegin(taskData, rangeSetting, chartType);
+
+        if (chartType == 'Month') {
+            weekButton.disabled = true;
+
+            if (rangeSetting == 'Week') {
+                chartBegin(taskData, 'Max', 'Month');
+                document.querySelector('.max-range-btn').checked = true;
+            }
+        }
+        else {
+            weekButton.disabled = !(diff >= 7);
+        }
     };
 
     // Initialize the chart to 'Max' 'Complete'
@@ -600,6 +614,8 @@ function closeNav() {
 }
 
 function whenBlankChart() {
-    document.querySelector('#track-chart-div').innerHTML = `<br>
-    <p>No data yet... it's time to get cracking! 🔮</p>`;
+    let fillText = document.createElement('p');
+    fillText.id = `chart-fill-p`;
+    fillText.innerText = "No data yet... it's time to get cracking! 🔮";
+    document.querySelector('#track-chart-div').prepend(fillText);
 }
