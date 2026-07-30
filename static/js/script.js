@@ -480,8 +480,10 @@ function removeTask(button) {
         updateHTMLCollapseDiv(todoBoxId);
     }
 
-    // If there are no active tasks left, fill in the blank
-    if (Object.keys(todoBoxData.tasks.active).length < 1) {
+    let fillInText = parentTodoBox.querySelector('.todo-box-tasks').querySelector('.blank-todo-fill');
+
+    // If there are no active tasks left and no fillInText yet, fill in the blank
+    if (!fillInText && Object.keys(todoBoxData.tasks.active).length < 1) {
         fillIfBlank(parentTodoBox.querySelector('.todo-box-tasks'));
     }
 }
