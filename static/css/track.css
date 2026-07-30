@@ -1,13 +1,20 @@
+#track-body {
+    transition: 0.5s;
+    margin-left: 17px;
+}
+
 .sidebar {
-    height: 100%;
+    height: 100vh;
     width: 200px;
-    position: fixed;
     z-index: 1;
     top: 0;
     left: 0;
     overflow-x: hidden;
     transition: 0.5s;
-    background-color: #f8f9fa !important;
+    margin: -17px 0px 0px -17px;
+    border-right-color: #f8f9fa;
+    border-right-style: solid;
+    border-right-width: 1px;
 }
 
 .sidebar h5 {
@@ -32,8 +39,7 @@
     background-color: rgba(0, 0, 0, 0);
     box-shadow: none !important;
     border-width: 0px;
-    border-color: rgba(0, 0, 0, 0);
-    margin: 0px 17px 0px 0px;
+    margin-right: 17px;
     background-image: none !important;
 }
 
@@ -42,12 +48,6 @@
     border-width: 1px;
     border-style: solid;
     border-radius: 25px !important;
-}
-
-body {
-    transition: margin-left .5s;
-    padding: 20px;
-    margin-left: 200px;
 }
 
 #todo-tasks-nav {

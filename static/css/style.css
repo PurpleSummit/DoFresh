@@ -50,15 +50,15 @@ button {
     margin-left: 19px;
 }
 
+.accordion-button {
+    padding: 1rem;
+}
+
 .todo-task {
-    display: flex;
+    display: block;
     margin-bottom: 5px;
     padding: 0px 19px;
     border-radius: 4px;
-}
-
-.todo-task:hover {
-    background-color: #ededed;
 }
 
 .todo-completed-task-text {
@@ -68,6 +68,11 @@ button {
 label {
     width: 100%;
     box-sizing: border-box;
+}
+
+.accordion-header {
+    width: 512px;
+    display: flex;
 }
 
 input[type='text'] {

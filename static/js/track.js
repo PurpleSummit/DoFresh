@@ -52,21 +52,23 @@ function selectTodoList(boxId) {
     taskNav.style.marginLeft = '13px';
 
     allTasks.forEach(task => {
+        let taskId = task['taskId'];
+
         let taskElement = document.createElement('input');
         taskElement.type = 'radio';
         taskElement.className = 'btn-check';
         taskElement.name = 'btnradio';
-        taskElement.id = `task-select${Object.keys(task)[0].replace('task_', '')}`;
+        taskElement.id = `task-select${taskId.replace('task_', '')}`;
         taskElement.autocomplete = 'off';
         taskElement.onclick = () => {
-            selectTask(boxId, Object.keys(task)[0]);
+            selectTask(boxId, taskId);
         };
         taskNav.appendChild(taskElement);
 
         let taskLabel = document.createElement('label');
         taskLabel.className = 'btn btn-outline-primary';
         taskLabel.htmlFor = taskElement.id;
-        taskLabel.innerText = `${Object.values(task)[0].task}`;
+        taskLabel.innerText = `${task['task']}`;
         taskNav.appendChild(taskLabel);
     });
 
@@ -82,7 +84,7 @@ function selectTodoList(boxId) {
             chartFillText.remove();
         }
 
-        let initTaskId = Object.keys(allTasks.at(0))[0];
+        let initTaskId = allTasks.at(0)['taskId'];
 
         document.querySelector(`#task-select${initTaskId.replace('task_', '')}`).checked = true;
 
@@ -98,12 +100,10 @@ function selectTask(boxId, taskId) {
     let rangeSetting = 'Max';
     let chartType = 'Complete';
 
-    let taskData = todoBoxData.tasks.active.find(task => taskId in task);
+    let taskData = todoBoxData.tasks.active.find(task => taskId == task['taskId']);
     if (!taskData) {
-        taskData = todoBoxData.tasks.completed.find(task => taskId in task);
+        taskData = todoBoxData.tasks.completed.find(task => taskId == task['taskId']);
     }
-
-    taskData = Object.values(taskData)[0];
 
     let chartSettingsDiv = document.querySelector('#chart-settings-div');
 
@@ -595,8 +595,8 @@ function chartMonthly(taskData, startDate, rangeSetting) {
 }
 
 function openNav() {
-    document.querySelector('#todo-lists-sidebar').style.width = '200px';
-    document.body.style.marginLeft = '200px';
+    let sidebarNav = document.querySelector('#todo-lists-sidebar');
+    sidebarNav.style.width = '200px';
 
     let openBtn = document.querySelector('#sidebar-open-btn');
     openBtn.className = 'btn btn-light btn-close';
@@ -605,8 +605,9 @@ function openNav() {
 }
 
 function closeNav() {
-    document.querySelector('#todo-lists-sidebar').style.width = '0px';
-    document.body.style.marginLeft = '4px';
+    let sidebarNav = document.querySelector('#todo-lists-sidebar');
+    sidebarNav.style.width = '0px';
+
     let openBtn = document.querySelector('#sidebar-open-btn');
     openBtn.className = 'btn btn-light';
     openBtn.ariaLabel = '';
@@ -614,6 +615,11 @@ function closeNav() {
 }
 
 function whenBlankChart() {
+    let oldFillText = document.querySelector('#chart-fill-p');
+    if (oldFillText) {
+        oldFillText.remove();
+    }
+
     let fillText = document.createElement('p');
     fillText.id = `chart-fill-p`;
     fillText.innerText = "No data yet... it's time to get cracking! 🔮";
