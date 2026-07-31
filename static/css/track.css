@@ -66,3 +66,7 @@
 #task-content {
     margin-top: 3%;
 }
+
+.accordion-collapse {
+    transition: 0.6s;
+}

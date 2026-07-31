@@ -454,7 +454,7 @@ function editTaskDetails(textarea) {
 }
 
 function removeTask(button) {
-    let parentTodoTask = button.parentElement.parentElement;
+    let parentTodoTask = button.parentElement.parentElement.parentElement;
     let taskId = parentTodoTask.id;
 
     let parentTodoBox = parentTodoTask.parentElement.parentElement;
@@ -642,7 +642,7 @@ function addHTMLTodoTask(todoBoxId, taskId, active) {
 
     task.innerHTML = `
     <h2 class="accordion-header">
-        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#details-${taskId}" aria-expanded="false" aria-controls="details-${taskId}">
+        <div class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#details-${taskId}" aria-expanded="false" aria-controls="details-${taskId}">
             <input type='radio'${checked}>
             <input type='text' class='todo${completed}-task-text' value='${taskText}'${disabled}>
             <button class='remove-task-btn'>
