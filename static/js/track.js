@@ -599,7 +599,7 @@ function openNav() {
     sidebarNav.style.width = '200px';
 
     let openBtn = document.querySelector('#sidebar-open-btn');
-    openBtn.className = 'btn btn-light btn-close';
+    openBtn.className = 'btn btn-light';
     openBtn.ariaLabel = 'Close';
     openBtn.onclick = closeNav;
 }
@@ -622,6 +622,6 @@ function whenBlankChart() {
 
     let fillText = document.createElement('p');
     fillText.id = `chart-fill-p`;
-    fillText.innerText = "No data yet... it's time to get cracking! 🔮";
+    fillText.innerText = "\nNo data yet... it's time to get cracking! 🔮";
     document.querySelector('#track-chart-div').prepend(fillText);
 }

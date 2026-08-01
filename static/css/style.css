@@ -128,3 +128,7 @@ textarea {
     background-color: #ededed;
     border-color: rgba(0, 0, 0, 0);
 }
+
+.accordion-collapse {
+    transition: 0.6s;
+}

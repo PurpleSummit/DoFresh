@@ -9,3 +9,7 @@ def index():
 @app.route("/track")
 def track():
     return render_template("track.html")
+
+@app.route("/advice")
+def advice():
+    return render_template("advice.html")

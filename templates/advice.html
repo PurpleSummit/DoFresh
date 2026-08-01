@@ -1,0 +1,56 @@
+{% extends "layout.html" %}
+
+{% block style %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link rel="stylesheet" href="static/css/advice.css">
+<script src="static/js/advice.js"></script>
+</script>
+{% endblock %}
+
+{% block body %}
+<div style="display: flex;">
+    <!-- <div id="conversations-sidebar" class="sidebar">
+        <p>Conversations</p>
+    </div> -->
+
+    <div id="advice-body">
+        <div style="display: flex;">
+            <!-- <button id="sidebar-open-btn" class="btn btn-light" onclick="closeNav();"
+                aria-label="Close">&#9776;</button>-->
+            <h1 id="title">Advice</h1>
+            <span id="title-selected-list"></span>
+        </div>
+
+        <div id="display-div" class="row row-cols-1 row-cols-md-3 g-4">
+            <div class="col">
+                <div class="card" style="width: 18rem;">
+                    <img src="../static/img/img3.jpg" class="card-img-top" alt="...">
+                    <div class="card-body">
+                        <h5 class="card-title">Strong Burn, Slow Burn</h5>
+                        <p class="card-text">"Why am I even doing this?" On avoiding burn-outs without a toxic, unrealistic, or competitive mindset.</p>
+                        <a href="#" class="btn btn-primary">Read more</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="card" style="width: 18rem;">
+                    <img src="../static/img/img2.jpg" class="card-img-top" alt="...">
+                    <div class="card-body">
+                        <h5 class="card-title">Aim High? How High?</h5>
+                        <p class="card-text">On practical goals, unfortunate assumptions, and fallacies of human wishes.</p>
+                        <a href="#" class="btn btn-primary">Read more</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="card" style="width: 18rem;">
+                    <img src="../static/img/img3.jpg" class="card-img-top" alt="...">
+                    <div class="card-body">
+                        <h5 class="card-title">Just Keep Swimming</h5>
+                        <p class="card-text">On motivating yourself throughout long runs.</p>
+                        <a href="#" class="btn btn-primary">Read more</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endblock %}

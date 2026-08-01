@@ -1,7 +1,6 @@
-#track-body {
+#advice-body {
     transition: 0.5s;
     margin-left: 17px;
-    width: 100%;
 }
 
 .sidebar {
@@ -53,19 +52,6 @@
     border-radius: 25px !important;
 }
 
-#todo-tasks-nav {
-    display: flex;
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    overflow-y: hidden;
-    width: 100%;
-}
-
-#title-selected-list {
-    margin-left: auto;
-    margin-top: 10px;
-}
-
-#task-content {
+#display-div {
     margin-top: 3%;
 }
