@@ -531,10 +531,20 @@ function chartMonthly(taskData, startDate, rangeSetting) {
     // An array of all the months between startDate and yesterday
     let monthlyArray = [];
     let iDate = new Date(startDate);
+
     while (iDate <= yesterday) {
-        let strDate = iDate.toISOString().split("T")[0];
-        let iDateMonth = strDate.split("-")[0] + "-" + strDate.split("-")[1];
+        iStrDate = iDate.toISOString().split("T")[0];
+        iDateMonth = iStrDate.split("-")[0] + "-" + iStrDate.split("-")[1];
+
+        monthlyArray.push(iDateMonth);
+
         iDate.setMonth(iDate.getMonth() + 1);
+    }
+
+    iStrDate = iDate.toISOString().split("T")[0];
+    iDateMonth = iStrDate.split("-")[0] + "-" + iStrDate.split("-")[1];
+
+    if (!monthlyArray.includes(iDateMonth)) {
         monthlyArray.push(iDateMonth);
     }
 
