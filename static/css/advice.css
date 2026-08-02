@@ -5,10 +5,13 @@
     width: 100%;
 }
 
-.card {
-    height: 430px;
+.advice-article-div {
+    width: 80%;
 }
 
-.advice-article-div {
-    width: 800px;
+.advice-article-div img {
+    display: block;
+    margin: 0 auto;
+    max-width: fit-content;
+    width: 91%;
 }

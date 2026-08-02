@@ -1,4 +1,5 @@
 let taskChartInstance = null;
+let rangeSetting, chartType;
 
 document.addEventListener('DOMContentLoaded', () => {
     document.querySelector('#navbar-track-link').className = 'nav-link active';
@@ -97,8 +98,6 @@ function selectTodoList(boxId) {
 
 function selectTask(boxId, taskId) {
     let todoBoxData = JSON.parse(localStorage[`${boxId}`]);
-    let rangeSetting = 'Max';
-    let chartType = 'Complete';
 
     let taskData = todoBoxData.tasks.active.find(task => taskId == task['taskId']);
     if (!taskData) {
@@ -129,10 +128,10 @@ function selectTask(boxId, taskId) {
     <input type='radio' class='btn-check month-range-btn' name='range-radio' id='vbtn-radio2' autocomplete='off' disabled>
     <label class='btn btn-outline-primary' for='vbtn-radio2'>Month</label>
     <input type='radio' class='btn-check semi-year-range-btn' name='range-radio' id='vbtn-radio3' autocomplete='off' disabled>
-    <label class='btn btn-outline-primary' for='vbtn-radio3'>6 Months</label>
+    <label class='btn btn-outline-primary' for='vbtn-radio3'>Semi-year</label>
     <input type='radio' class='btn-check year-range-btn' name='range-radio' id='vbtn-radio4' autocomplete='off' disabled>
     <label class='btn btn-outline-primary' for='vbtn-radio4'>Year</label>
-    <input type='radio' class='btn-check max-range-btn' name='range-radio' id='vbtn-radio5' autocomplete='off' checked>
+    <input type='radio' class='btn-check max-range-btn' name='range-radio' id='vbtn-radio5' autocomplete='off'>
     <label class='btn btn-outline-primary' for='vbtn-radio5'>Max</label>`;
     chartSettingsDiv.appendChild(rangeDiv);
 
@@ -144,7 +143,7 @@ function selectTask(boxId, taskId) {
     chartTypeDiv.role = 'group';
     chartTypeDiv.ariaLabel = 'Basic radio toggle button group';
     chartTypeDiv.innerHTML = `
-    <input type='radio' class='btn-check chart-complete-btn' name='type-radio' id='chart-complete1' autocomplete='off' checked>
+    <input type='radio' class='btn-check chart-complete-btn' name='type-radio' id='chart-complete1' autocomplete='off'>
     <label class='btn btn-outline-primary' for='chart-complete1'>Completed</label>
     <input type='radio' class='btn-check chart-streak-btn' name='type-radio' id='chart-streak1' autocomplete='off'>
     <label class='btn btn-outline-primary' for='chart-streak1'>Streak</label>
@@ -152,7 +151,7 @@ function selectTask(boxId, taskId) {
     <label class='btn btn-outline-primary' for='chart-month1'>Monthly</label>`;
     chartSettingsDiv.appendChild(chartTypeDiv);
 
-    // Initialize range buttons
+    // Set startDate for range buttons
     let completedRanges = taskData.completedDates;
     let startDate;
     if (completedRanges && completedRanges[0]) {
@@ -162,77 +161,96 @@ function selectTask(boxId, taskId) {
         whenBlankChart();
         return;
     }
-
-    const diff = (new Date() - new Date(startDate)) / (1000 * 60 * 60 * 24);
     
+    // Initalize range buttons
+    const diff = (new Date() - new Date(startDate)) / (1000 * 60 * 60 * 24);
     let weekButton = document.querySelector('.week-range-btn');
     if (rangeDiv) {
         weekButton.onclick = () => {
             rangeSetting = 'Week';
+            chartBegin(taskData, 'Week', chartType);
         };
         weekButton.disabled = !(diff >= 7);
 
         let monthButton = document.querySelector('.month-range-btn');
         monthButton.onclick = () => {
             rangeSetting = 'Month';
+            chartBegin(taskData, 'Month', chartType);
         };
         monthButton.disabled = !(diff >= 28);
 
         let sixMonthButton = document.querySelector('.semi-year-range-btn');
         sixMonthButton.onclick = () => {
-            rangeSetting = '6 Months';
+            rangeSetting = 'Semi-year';
+            chartBegin(taskData, 'Semi-year', chartType);
         };
         sixMonthButton.disabled = !(diff >= 182);
 
         let yearButton = document.querySelector('.year-range-btn');
         yearButton.onclick = () => {
             rangeSetting = 'Year';
+            chartBegin(taskData, 'Year', chartType);
         };
         yearButton.disabled = !(diff >= 364);
 
         let maxButton = document.querySelector('.max-range-btn');
         maxButton.onclick = () => {
             rangeSetting = 'Max';
+            chartBegin(taskData, 'Max', chartType);
         };
     }
-
+    
     // Initialize chart-type buttons
     if (chartTypeDiv) {
         let completeButton = document.querySelector('.chart-complete-btn');
         completeButton.onclick = () => {
             chartType = 'Complete';
+            chartBegin(taskData, rangeSetting, 'Complete');
         };
         let streakButton = document.querySelector('.chart-streak-btn');
         streakButton.onclick = () => {
             chartType = 'Streak';
+            chartBegin(taskData, rangeSetting, 'Streak');
         };
         let byMonthButton = document.querySelector('.chart-month-btn');
         byMonthButton.onclick = () => {
             chartType = 'Month';
+            chartBegin(taskData, rangeSetting, 'Month');
         };
     }
 
-    chartSettingsDiv.onclick = () => {
-        chartBegin(taskData, rangeSetting, chartType);
+    // Set the parameters for this graph and display
+    if (!rangeSetting) {
+        rangeSetting = 'Max';
+    }
+    if (!chartType) {
+        chartType = 'Complete';
+    }
 
-        if (chartType == 'Month') {
+    document.querySelector(`.${rangeSetting.toLowerCase()}-range-btn`).checked = true;
+    document.querySelector(`.chart-${chartType.toLowerCase()}-btn`).checked = true;
+
+    chartBegin(taskData, rangeSetting, chartType);
+
+    chartSettingsDiv.onclick = () => {
+        if (chartType && chartType == 'Month') {
             weekButton.disabled = true;
 
-            if (rangeSetting == 'Week') {
-                chartBegin(taskData, 'Max', 'Month');
+            if (rangeSetting && rangeSetting == 'Week') {
+                let rangeSetting = 'Max';
                 document.querySelector('.max-range-btn').checked = true;
             }
         }
         else {
             weekButton.disabled = !(diff >= 7);
         }
+        
+        chartBegin(taskData, rangeSetting, chartType);
     };
-
-    // Initialize the chart to 'Max' 'Complete'
-    chartBegin(taskData, 'Max', 'Complete');
 }
 
 function chartBegin(taskData, rangeSetting, chartType) {
+
     // Delete any previously existing charts
     if (taskChartInstance !== null) {
         taskChartInstance.destroy();
@@ -249,7 +267,7 @@ function chartBegin(taskData, rangeSetting, chartType) {
     else if (rangeSetting == 'Month') {
         startDate.setDate(startDate.getDate() - 28);
     }
-    else if (rangeSetting == '6 Months') {
+    else if (rangeSetting == 'Semi-year') {
         startDate.setDate(startDate.getDate() - 182);
     }
     else if (rangeSetting == 'Year') {
@@ -343,7 +361,7 @@ function chartComplete(taskData, startDate, rangeSetting) {
             plugins: {
                 title: {
                     display: true,
-                    text: `Completion Track: ${taskData.task} ${rangeSetting}`,
+                    text: `Completion Track: [${taskData.task}] ${rangeSetting}`,
                     padding: {
                         top: 10,
                         bottom: 30
@@ -441,7 +459,7 @@ function chartStreak(taskData, startDate, rangeSetting) {
             plugins: {
                 title: {
                     display: true,
-                    text: `Streak Track: ${taskData.task} ${rangeSetting}`,
+                    text: `Streak Track: [${taskData.task}] ${rangeSetting}`,
                     padding: {
                         top: 10,
                         bottom: 30
@@ -530,9 +548,18 @@ function chartMonthly(taskData, startDate, rangeSetting) {
         yValues.push(monthCount);
     });
 
-    let labeledDates = completedRanges.flat();
-    labeledDates.push(yesterday.toISOString().split('T')[0]);
-    labeledDates.push(startDate.toISOString().split('T')[0]);
+    // Arrange labeledDates
+    let labeledDates = monthlyArray.flat();
+
+    let yesterdayString = yesterday.toISOString().split('T')[0];
+    let yesterdayMonthString = yesterdayString.split("-")[0] + "-" + yesterdayString.split("-")[1];
+    labeledDates.push(yesterdayMonthString);
+
+    let startDateString = startDate.toISOString().split('T')[0];
+    let startMonthString = startDateString.split("-")[0] + "-" + startDateString.split("-")[1];
+    labeledDates.push(startMonthString);
+
+    console.log(labeledDates);
 
     // Bar chart of each month
     taskChartInstance = new Chart('task-content', {
@@ -567,7 +594,7 @@ function chartMonthly(taskData, startDate, rangeSetting) {
             plugins: {
                 title: {
                     display: true,
-                    text: `Completion Track: ${taskData.task} ${rangeSetting}`,
+                    text: `Monthly Track: [${taskData.task}] ${rangeSetting}`,
                     padding: {
                         top: 10,
                         bottom: 30

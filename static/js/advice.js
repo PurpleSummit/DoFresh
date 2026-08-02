@@ -9,7 +9,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
-
 function openNav() {
     let sidebarNav = document.querySelector('#conversations-sidebar');
     sidebarNav.style.width = '200px';
@@ -35,7 +34,6 @@ function createArticle(articleId) {
     let articleCard = document.querySelector(`#${articleId}`);
 
     let articleData = { title: articleCard.querySelector('.card-title').innerHTML, subtitle: articleCard.querySelector('.card-text').innerHTML, image: `${articleCard.querySelector('img').src}`,  };
-    console.log(articleData);
 
     adviceBody.style.display = 'flex';
 
@@ -43,6 +41,6 @@ function createArticle(articleId) {
     <div class='advice-article-div'>
         <h1>${articleData.title}</h1>
         <h6>${articleData.subtitle}</h6>
-        <img src='${articleData.image}' style='width: 600px;'>
+        <img src='${articleData.image}'>
     </div>`;
 }
