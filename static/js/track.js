@@ -352,9 +352,26 @@ function chartComplete(taskData, startDate, rangeSetting) {
         data: {
             labels: xValues,
             datasets: [{
-                backgroundColor: '#0d6efd87',
-                borderColor: 'rgba(110, 154, 225, 0.2)',
-                data: yValues
+                data: yValues,
+                backgroundColor: [
+                    'rgba(255, 99, 132, 0.2)',
+                    'rgba(255, 159, 64, 0.2)',
+                    'rgba(255, 205, 86, 0.2)',
+                    'rgba(75, 192, 192, 0.2)',
+                    'rgba(54, 162, 235, 0.2)',
+                    'rgba(153, 102, 255, 0.2)',
+                    'rgba(201, 203, 207, 0.2)'
+                ],
+                borderColor: [
+                    'rgb(255, 99, 132)',
+                    'rgb(255, 159, 64)',
+                    'rgb(255, 205, 86)',
+                    'rgb(75, 192, 192)',
+                    'rgb(54, 162, 235)',
+                    'rgb(153, 102, 255)',
+                    'rgb(201, 203, 207)'
+                ],
+                borderWidth: 1
             }]
         },
         options: {
@@ -450,9 +467,26 @@ function chartStreak(taskData, startDate, rangeSetting) {
         data: {
             labels: xValues,
             datasets: [{
-                backgroundColor: '#0d6efd87',
-                borderColor: 'rgba(110, 154, 225, 0.2)',
-                data: yValues
+                data: yValues,
+                backgroundColor: [
+                    'rgba(255, 99, 132, 0.2)',
+                    'rgba(255, 159, 64, 0.2)',
+                    'rgba(255, 205, 86, 0.2)',
+                    'rgba(75, 192, 192, 0.2)',
+                    'rgba(54, 162, 235, 0.2)',
+                    'rgba(153, 102, 255, 0.2)',
+                    'rgba(201, 203, 207, 0.2)'
+                ],
+                borderColor: [
+                    'rgb(255, 99, 132)',
+                    'rgb(255, 159, 64)',
+                    'rgb(255, 205, 86)',
+                    'rgb(75, 192, 192)',
+                    'rgb(54, 162, 235)',
+                    'rgb(153, 102, 255)',
+                    'rgb(201, 203, 207)'
+                ],
+                borderWidth: 1
             }]
         },
         options: {
@@ -559,8 +593,6 @@ function chartMonthly(taskData, startDate, rangeSetting) {
     let startMonthString = startDateString.split("-")[0] + "-" + startDateString.split("-")[1];
     labeledDates.push(startMonthString);
 
-    console.log(labeledDates);
-
     // Bar chart of each month
     taskChartInstance = new Chart('task-content', {
         type: 'bar',
@@ -588,7 +620,6 @@ function chartMonthly(taskData, startDate, rangeSetting) {
                 ],
                 borderWidth: 1
             }]
-
         },
         options: {
             plugins: {
@@ -615,6 +646,9 @@ function chartMonthly(taskData, startDate, rangeSetting) {
                             return labeledDates.includes(label) ? label : null;
                         }
                     }
+                },
+                y: {
+                    max: 31
                 }
             }
         }
