@@ -9,8 +9,7 @@ if (lastAccessedDate == null) {
     localStorage.setItem('lastAccessedDate', today);
 }
 else {
-    if (today !== lastAccessedDate) {
-
+    if (today != lastAccessedDate) {
         // Get all the refreshing to-do boxes
         let todoBoxes = Object.entries(localStorage).filter((entry) => Number.isInteger(+entry[0]));
         let allRefreshingTodoBoxes = [];
@@ -26,9 +25,7 @@ else {
             let todoBoxData = JSON.parse(localStorage.getItem(todoBoxId));
 
             // Process the active tasks and break their streaks
-            todoBoxData.tasks.active.forEach(task => {
-                let taskId = Object.keys(task)[0];
-                let taskData = task[taskId];
+            todoBoxData.tasks.active.forEach(taskData => {
                 if (!taskData || !taskData.completedDates) return;
 
                 let completedDateRanges = taskData.completedDates;
@@ -44,9 +41,7 @@ else {
             });
 
             // Process the completed tasks and break their streaks
-            todoBoxData.tasks.completed.forEach(task => {
-                let taskId = Object.keys(task)[0];
-                let taskData = task[taskId];
+            todoBoxData.tasks.completed.forEach(taskData => {
                 if (!taskData || !taskData.completedDates) return;
 
                 let completedDateRanges = taskData.completedDates;
@@ -75,6 +70,8 @@ else {
                     else {
                         taskData.completedDates = [[lastAccessedDate, null]];
                     }
+
+                    console.log(taskData.completedDates);
                 }
             });
 
@@ -84,9 +81,9 @@ else {
 
             localStorage.setItem(todoBoxId, JSON.stringify(todoBoxData));
         });
+        
+        localStorage.setItem('lastAccessedDate', today);
     }
-
-    localStorage.setItem('lastAccessedDate', today);
 }
 
 document.addEventListener('DOMContentLoaded', () => {
