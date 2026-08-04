@@ -256,6 +256,12 @@ function chartBegin(taskData, rangeSetting, chartType) {
         taskChartInstance.destroy();
     }
 
+    // Delete any filler text if needed
+    let oldFillText = document.querySelector('#chart-fill-p');
+    if (oldFillText) {
+        oldFillText.remove();
+    }
+
     let completedRanges = taskData.completedDates;
 
     let today = new Date();
@@ -352,9 +358,26 @@ function chartComplete(taskData, startDate, rangeSetting) {
         data: {
             labels: xValues,
             datasets: [{
-                backgroundColor: '#0d6efd87',
-                borderColor: 'rgba(110, 154, 225, 0.2)',
-                data: yValues
+                data: yValues,
+                backgroundColor: [
+                    'rgba(255, 99, 132, 0.2)',
+                    'rgba(255, 159, 64, 0.2)',
+                    'rgba(255, 205, 86, 0.2)',
+                    'rgba(75, 192, 192, 0.2)',
+                    'rgba(54, 162, 235, 0.2)',
+                    'rgba(153, 102, 255, 0.2)',
+                    'rgba(201, 203, 207, 0.2)'
+                ],
+                borderColor: [
+                    'rgb(255, 99, 132)',
+                    'rgb(255, 159, 64)',
+                    'rgb(255, 205, 86)',
+                    'rgb(75, 192, 192)',
+                    'rgb(54, 162, 235)',
+                    'rgb(153, 102, 255)',
+                    'rgb(201, 203, 207)'
+                ],
+                borderWidth: 1
             }]
         },
         options: {
@@ -450,9 +473,26 @@ function chartStreak(taskData, startDate, rangeSetting) {
         data: {
             labels: xValues,
             datasets: [{
-                backgroundColor: '#0d6efd87',
-                borderColor: 'rgba(110, 154, 225, 0.2)',
-                data: yValues
+                data: yValues,
+                backgroundColor: [
+                    'rgba(255, 99, 132, 0.2)',
+                    'rgba(255, 159, 64, 0.2)',
+                    'rgba(255, 205, 86, 0.2)',
+                    'rgba(75, 192, 192, 0.2)',
+                    'rgba(54, 162, 235, 0.2)',
+                    'rgba(153, 102, 255, 0.2)',
+                    'rgba(201, 203, 207, 0.2)'
+                ],
+                borderColor: [
+                    'rgb(255, 99, 132)',
+                    'rgb(255, 159, 64)',
+                    'rgb(255, 205, 86)',
+                    'rgb(75, 192, 192)',
+                    'rgb(54, 162, 235)',
+                    'rgb(153, 102, 255)',
+                    'rgb(201, 203, 207)'
+                ],
+                borderWidth: 1
             }]
         },
         options: {
@@ -497,10 +537,20 @@ function chartMonthly(taskData, startDate, rangeSetting) {
     // An array of all the months between startDate and yesterday
     let monthlyArray = [];
     let iDate = new Date(startDate);
+
     while (iDate <= yesterday) {
-        let strDate = iDate.toISOString().split("T")[0];
-        let iDateMonth = strDate.split("-")[0] + "-" + strDate.split("-")[1];
+        iStrDate = iDate.toISOString().split("T")[0];
+        iDateMonth = iStrDate.split("-")[0] + "-" + iStrDate.split("-")[1];
+
+        monthlyArray.push(iDateMonth);
+
         iDate.setMonth(iDate.getMonth() + 1);
+    }
+
+    iStrDate = iDate.toISOString().split("T")[0];
+    iDateMonth = iStrDate.split("-")[0] + "-" + iStrDate.split("-")[1];
+
+    if (!monthlyArray.includes(iDateMonth)) {
         monthlyArray.push(iDateMonth);
     }
 
@@ -559,8 +609,6 @@ function chartMonthly(taskData, startDate, rangeSetting) {
     let startMonthString = startDateString.split("-")[0] + "-" + startDateString.split("-")[1];
     labeledDates.push(startMonthString);
 
-    console.log(labeledDates);
-
     // Bar chart of each month
     taskChartInstance = new Chart('task-content', {
         type: 'bar',
@@ -588,7 +636,6 @@ function chartMonthly(taskData, startDate, rangeSetting) {
                 ],
                 borderWidth: 1
             }]
-
         },
         options: {
             plugins: {
@@ -615,6 +662,9 @@ function chartMonthly(taskData, startDate, rangeSetting) {
                             return labeledDates.includes(label) ? label : null;
                         }
                     }
+                },
+                y: {
+                    max: 31
                 }
             }
         }
@@ -642,11 +692,6 @@ function closeNav() {
 }
 
 function whenBlankChart() {
-    let oldFillText = document.querySelector('#chart-fill-p');
-    if (oldFillText) {
-        oldFillText.remove();
-    }
-
     let fillText = document.createElement('p');
     fillText.id = `chart-fill-p`;
     fillText.innerText = "\nNo data yet... it's time to get cracking! 🔮";
