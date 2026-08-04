@@ -5,11 +5,15 @@ let fillTextArray = ['📝 a blank canvas here!\n', "goodness me, look at that! 
 let today = new Date().toISOString().split('T')[0];
 let lastAccessedDate = localStorage.getItem('lastAccessedDate');
 
+// DEBUG REFRESHING
+console.log("New date?", lastAccessedDate != today);
+
 if (lastAccessedDate == null) {
     localStorage.setItem('lastAccessedDate', today);
 }
 else {
     if (today != lastAccessedDate) {
+
         // Get all the refreshing to-do boxes
         let todoBoxes = Object.entries(localStorage).filter((entry) => Number.isInteger(+entry[0]));
         let allRefreshingTodoBoxes = [];

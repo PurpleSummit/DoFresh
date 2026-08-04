@@ -1,0 +1,14 @@
+{% extends "layout.html" %}
+
+{% block style %}
+<link rel="stylesheet" href="../static/css/chat.css">
+<script src="../static/js/chat.js" defer></script>
+{% endblock %}
+
+{% block body %}
+<h1>Chat</h1>
+    <textarea id="user-input" placeholder="Ask something..." autocomplete></textarea>
+    <button id="send-btn">Generate</button>
+    <textarea id="output">AI output will appear here...</textarea>
+
+{% endblock %}
