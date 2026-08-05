@@ -4,7 +4,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const userPrompt = document.querySelector('#user-input').value;
         const outputElement = document.querySelector('#output');
     
-        outputElement.innerHTML = "<p>Thinking...</p>";
+        outputElement.textContent = "Thinking...";
     
         try {
             const response = await fetch('http://localhost:5000/api/respond-chat', {
@@ -15,9 +15,9 @@ document.addEventListener('DOMContentLoaded', () => {
     
             const data = await response.json();
         
-            outputElement.innerHTML = `<pre>${data.result}</pre>` || `<pre>${data.details}</pre>` || '<p>No response returned.</p>';
+            outputElement.textContent = `${data.result}` || `${data.details}` || '<p>No response returned.';
         } catch (error) {
-            outputElement.innerHTML = '<p>Error contacting the server.</p>';
+            outputElement.textContent = 'Error contacting the server.';
         }
     });
 });

@@ -41,9 +41,15 @@ def respond_chat():
         data = request.json
         user_message = data.get("userMessage", "")
 
+        if not user_message or len(user_message.strip()) < 1:
+            return jsonify({"result": "Hello! What's on your mind?"})
+
         response = client.chat_completion(
             model="meta-llama/Llama-3.1-8B-Instruct",
-            messages=[{"role": "user", "content": user_message}],
+            messages=[
+                {"role": "user", "content": user_message},
+                {"role": "system", "content": "You are a helpful, wise, supportive, yet practical-and-matter-of-fact friend and counselor who's considerately blunt and pragmatic about the user's mental, emotional, and physical health as well as their work productivity, integrity, and persistence. Be encouraging, supportive, and humanely empathetic while being professionally prudent, not sycophantic or blaming, and answer in short, genuine messages that give the user clear, applicable advice primed to their personal characteristics."}
+            ],
             max_tokens=500
         )
 

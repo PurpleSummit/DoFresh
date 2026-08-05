@@ -15,7 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
         let a = document.createElement('a');
         a.className = '';
         a.id = `sidebar-box${boxId}`;
-        a.innerText = todoBoxData.title;
+        a.textContent = todoBoxData.title;
 
         a.addEventListener('click', () => {
             selectTodoList(boxId);
@@ -69,14 +69,14 @@ function selectTodoList(boxId) {
         let taskLabel = document.createElement('label');
         taskLabel.className = 'btn btn-outline-primary';
         taskLabel.htmlFor = taskElement.id;
-        taskLabel.innerText = `${task['task']}`;
+        taskLabel.textContent = `${task['task']}`;
         taskNav.appendChild(taskLabel);
     });
 
     taskNavDiv.appendChild(taskNav);
 
     // Set the subtitle to the list title
-    document.querySelector('#title-selected-list').innerText = todoBoxData.title;
+    document.querySelector('#title-selected-list').textContent = todoBoxData.title;
 
     // Initialize the chart display
     if (allTasks.length > 0) {
@@ -530,28 +530,32 @@ function chartStreak(taskData, startDate, rangeSetting) {
 }
 
 function chartMonthly(taskData, startDate, rangeSetting) {
-    let today = new Date();
-    let yesterday = new Date(today);
+    startDate = new Date(startDate);
+
+    const date = new Date();
+    const offset = date.getTimezoneOffset() * 60000;
+    const today = new Date(date.getTime() - offset).toISOString().split('T')[0];
+
+    const yesterday = new Date(today);
     yesterday.setDate(yesterday.getDate() - 1);
 
     // An array of all the months between startDate and yesterday
+    // so we go from startDate month to yesterday's month
+
     let monthlyArray = [];
-    let iDate = new Date(startDate);
 
-    while (iDate <= yesterday) {
-        iStrDate = iDate.toISOString().split("T")[0];
-        iDateMonth = iStrDate.split("-")[0] + "-" + iStrDate.split("-")[1];
+    let A = new Date(startDate.getFullYear(), startDate.getMonth(), 1);
+    let B = new Date(yesterday.getFullYear(), yesterday.getMonth(), 1)
 
-        monthlyArray.push(iDateMonth);
+    while (A <= B) {
+        iStr = A.toISOString().split("T")[0];
+        iMonth = iStr.split("-")[0] + "-" + iStr.split("-")[1];
 
-        iDate.setMonth(iDate.getMonth() + 1);
-    }
+        monthlyArray.push(iMonth);
 
-    iStrDate = iDate.toISOString().split("T")[0];
-    iDateMonth = iStrDate.split("-")[0] + "-" + iStrDate.split("-")[1];
+        A.setMonth(A.getMonth() + 1);
 
-    if (!monthlyArray.includes(iDateMonth)) {
-        monthlyArray.push(iDateMonth);
+        console.log(A, iMonth);
     }
 
     let completedRanges = taskData.completedDates;
@@ -694,6 +698,6 @@ function closeNav() {
 function whenBlankChart() {
     let fillText = document.createElement('p');
     fillText.id = `chart-fill-p`;
-    fillText.innerText = "\nNo data yet... it's time to get cracking! 🔮";
+    fillText.textContent = "\nNo data yet... it's time to get cracking! 🔮";
     document.querySelector('#track-chart-div').prepend(fillText);
 }
