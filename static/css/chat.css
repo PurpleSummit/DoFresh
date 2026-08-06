@@ -1,14 +1,73 @@
-#output-container {
-    width: 90%;
+body {
+    padding: 0px;
+    transition: 0.4s;
+}
+
+nav {
+    margin: -3px 0px 17px -3px;
+}
+
+h1 {
+    margin-left: 17px;
+}
+
+#chat-div {
+    padding: 0px 152px 24px 152px;
+}
+
+#sent-messages {
+    margin-bottom: 152px;
+}
+
+#refresh-modal-btn {
+    margin-left: auto;
+    margin-right: 14px;
+    display: block;
+    border-radius: 13px;
+}
+
+.message-container {
     display: flex;
     flex-wrap: wrap;
     overflow-x: clip;
     overflow-y: auto;
-    min-width: 0px;
 }
 
-#output {
+.message-text {
     white-space: pre-wrap;
+    font-size: large;
+    font-family:'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+}
+
+.message-time {
+    width: 243px;
+    font-size: 13px;
+}
+
+.user-message {
+    background-color: aliceblue;
+    width: fit-content;
+    max-width: 80%;
+    padding: 0px 17px !important;
+    margin-left: auto !important;
+
+    border-width: 1px;
+    border-radius: 24px;
+    border-style: solid;
+    border-color: rgb(202, 202, 202);
+    margin-bottom: 16px;
+}
+
+.user-message .message-text {
+    text-align: right;
+    margin-top: 12px;
+}
+
+.user-message-time {
+    margin-left: auto;
+    display: block;
+    width: 243px;
+    font-size: 13px;
 }
 
 #user-input-container {
@@ -16,7 +75,13 @@
     left: 0px;
     bottom: 0px;
     width: 100%;
-    padding: 0px 42px 24px 42px;
+    padding: inherit;
+    padding-top: 24px;
+    padding-bottom: 0px;
+    background-color: white;
+}
+
+#user-form-container {
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -24,9 +89,11 @@
 
 #user-input {
     width: 90%;
-    border-radius: 100px;
+    border-radius: 20px;
     padding: 17px;
     height: 60px;
+    resize: none;
+    field-sizing: content;
 }
 
 #send-btn {
@@ -34,4 +101,33 @@
     width: 50px;
     height: 50px;
     text-align: center;
+}
+
+#caution-text {
+    margin-top: 6px;
+    font-size: 11px;
+    text-align: center;
+    cursor: pointer;
+}
+
+#caution-text:hover {
+    color: gray;
+}
+
+.alert {
+    position: absolute;
+    z-index: 1;
+    height: 30px;
+    font-size: 17px;
+    right: 9px;
+}
+
+.btn-close {
+    top: -9px !important;
+    right: 4px;
+    font-size: 9px;
+}
+
+.fade {
+    transition: opacity 0.5s ease-in-out;
 }
