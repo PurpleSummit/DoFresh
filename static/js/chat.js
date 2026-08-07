@@ -35,12 +35,31 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const data = await response.json();
 
-            outputText.textContent = `${data.result}` || `${data.details}` || '<p>No response returned.';
+            if (data.error) {
+                throw new Error(data.error);
+            }
+            else if (data.result) {
+                outputText.textContent = `${data.result}`;
+            }
+            else {
+                throw new Error("Error: couldn't generate a response.");
+            }
+
             document.querySelector('#sent-messages').appendChild(outputElement);
 
         } catch (error) {
-            console.log(error);
-            outputElement.textContent = 'Error contacting the server.';
+            console.log("Error message");
+            outputText.textContent = `${error}. Please try again later or let the creator know!!`;
+
+            let alertElement = document.createElement('div');
+            alertElement.className = 'fade show alert alert-danger d-flex align-items-center alert-dismissible';
+            alertElement.role = 'alert';
+            alertElement.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" style="margin-right: 10px;" fill="currentColor" class="bi bi-exclamation-triangle-fill" viewBox="0 0 16 16">
+            <path d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5m.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2"/>
+          </svg> ${error}.
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>`;
+
+            document.querySelector('#chat-title').prepend(alertElement);
         }
     });
 
@@ -78,5 +97,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         let refreshChatModal = bootstrap.Modal.getOrCreateInstance(document.getElementById('refreshChatModal'));
         refreshChatModal.hide();
-    })
+    });
+
+    // Activate link
+    document.querySelector('#sidebar-chat-link').className = 'nav-link active';
 });

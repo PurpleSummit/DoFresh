@@ -100,8 +100,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
     
-    // Setting up the webpage
-    document.querySelector('#navbar-home-link').className = 'nav-link active';
+    // Activate sidebar link
+    document.querySelector('#sidebar-home-link').className = 'nav-link active';
 
     const allTodoBoxIds = Object.keys(localStorage).filter(key => Number.isInteger(+key));
 
@@ -132,7 +132,12 @@ function setListeners() {
 
     allTodoTasks.forEach(textbox => {
         textbox.addEventListener('focusout', () => {
+            textbox.parentElement.dataset.bsToggle = 'collapse';
             editTask(textbox);
+        });
+        
+        textbox.addEventListener('focus', () => {
+            textbox.parentElement.dataset.bsToggle = 'disabled';
         });
     });
 
@@ -207,17 +212,11 @@ function fillIfBlank(parentElement) {
 // TO-DO LIST code
 
 function addTodoBox() {
-    let fillInText = document.querySelector('.blank-todo-fill:not(.todo-box .blank-todo-fill)');
-    if (fillInText) {
-        fillInText.remove();
-    }
-
     const refreshingBoxButton = document.querySelector('#add-refreshing-box-button');
     const standardBoxButton = document.querySelector('#add-standard-box-button');
 
     let refreshingBool;
     let addBoxModal = bootstrap.Modal.getOrCreateInstance(document.getElementById('makeTodoBoxModal'));
-
 
     // ✨ Initializing the data for the to-do box
     // Creating a new id number for the box
@@ -232,6 +231,11 @@ function addTodoBox() {
     }
 
     refreshingBoxButton.onclick = () => {
+        let fillInText = document.querySelector('.blank-todo-fill:not(.todo-box .blank-todo-fill)');
+        if (fillInText) {
+            fillInText.remove();
+        }
+
         refreshingBool = true;
         addBoxModal.hide();
 
@@ -243,6 +247,11 @@ function addTodoBox() {
     };
 
     standardBoxButton.onclick = () => {
+        let fillInText = document.querySelector('.blank-todo-fill:not(.todo-box .blank-todo-fill)');
+        if (fillInText) {
+            fillInText.remove();
+        }
+        
         refreshingBool = false;
         addBoxModal.hide();
 
@@ -544,10 +553,11 @@ function addHTMLTodoBox(boxId) {
             let taskId = task['taskId'];
             let taskText = task['task'];
 
-            addHTMLTodoTask(boxId, taskId, taskText, true);
+            addHTMLTodoTask(boxId, taskId, true);
         });
     }
     else {
+        console.log("Fill in");
         fillIfBlank(box.querySelector('.todo-box-tasks'));
     }
 

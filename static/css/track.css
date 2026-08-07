@@ -1,5 +1,4 @@
 #track-body {
-    margin-left: 17px;
     width: 100%;
 }
 
@@ -11,7 +10,6 @@
     left: 0;
     overflow-x: hidden;
     transition: 0.5s;
-    margin: -17px 0px 0px -17px;
     border-right-color: #f8f9fa;
     border-right-style: solid;
     border-right-width: 1px;
@@ -67,4 +65,8 @@
 
 #task-content {
     margin-top: 3%;
+}
+
+#chart-fill-p {
+    margin-top: 17px;
 }

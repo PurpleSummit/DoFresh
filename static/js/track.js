@@ -2,7 +2,8 @@ let taskChartInstance = null;
 let rangeSetting, chartType;
 
 document.addEventListener('DOMContentLoaded', () => {
-    document.querySelector('#navbar-track-link').className = 'nav-link active';
+    // Activate sidebar link
+    document.querySelector('#sidebar-track-link').className = 'nav-link active';
 
     const allTodoBoxes = Object.entries(localStorage).filter((entry) => Number.isInteger(+entry[0]) && JSON.parse(entry[1]).refreshing);
     const allTodoBoxIds = allTodoBoxes.map(data => data[0]);
@@ -230,21 +231,21 @@ function selectTask(boxId, taskId) {
     document.querySelector(`.${rangeSetting.toLowerCase()}-range-btn`).checked = true;
     document.querySelector(`.chart-${chartType.toLowerCase()}-btn`).checked = true;
 
+    if (chartType && chartType == 'Month') {
+        weekButton.disabled = true;
+
+        if (rangeSetting && rangeSetting == 'Week') {
+            let rangeSetting = 'Max';
+            document.querySelector('.max-range-btn').checked = true;
+        }
+    }
+    else {
+        weekButton.disabled = !(diff >= 7);
+    }
+
     chartBegin(taskData, rangeSetting, chartType);
 
     chartSettingsDiv.onclick = () => {
-        if (chartType && chartType == 'Month') {
-            weekButton.disabled = true;
-
-            if (rangeSetting && rangeSetting == 'Week') {
-                let rangeSetting = 'Max';
-                document.querySelector('.max-range-btn').checked = true;
-            }
-        }
-        else {
-            weekButton.disabled = !(diff >= 7);
-        }
-        
         chartBegin(taskData, rangeSetting, chartType);
     };
 }
@@ -696,8 +697,15 @@ function closeNav() {
 }
 
 function whenBlankChart() {
+    if (taskChartInstance !== null) {
+        taskChartInstance.destroy();
+    }
+
     let fillText = document.createElement('p');
     fillText.id = `chart-fill-p`;
-    fillText.textContent = "\nNo data yet... it's time to get cracking! 🔮";
+    fillText.textContent = `No data yet... it's time to get cracking! 🔮`;
+
     document.querySelector('#track-chart-div').prepend(fillText);
+
+    document.querySelector('#chart-settings-div').innerHTML = "";
 }

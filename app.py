@@ -75,7 +75,7 @@ def respond_chat():
         if not user_prompt or len(user_prompt.strip()) < 1:
             return jsonify({"result": "Hello! What's on your mind?"})
 
-        response = client.chat_completion(
+        response = client.chat_copletion(
             model="meta-llama/Llama-3.1-8B-Instruct",
             messages=[
                 {"role": "user", "content": user_prompt},
@@ -96,8 +96,12 @@ def respond_chat():
 
         return jsonify({"result": bot_reply})
     except Exception as e:
+        # Remove the user's message
+        db.session.delete(user_message)
+        db.session.commit()
+
         print(f"CRITICAL SERVER EXCEPTION: {str(e)}")
-        return jsonify({"error": "Internal Server Error", "details": str(e)}), 500
+        return jsonify({"error": "HTTP 500 Internal Server Error", "details": str(e)}), 500
 
 
 @app.route("/delete-chat", methods=["POST"])
