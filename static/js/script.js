@@ -99,7 +99,7 @@ document.addEventListener('DOMContentLoaded', () => {
             localStorage.setItem('lastAccessedDate', today);
         }
     }
-    
+
     // Activate sidebar link
     document.querySelector('#sidebar-home-link').className = 'nav-link active';
 
@@ -131,13 +131,13 @@ function setListeners() {
     let allTodoTasks = document.querySelectorAll('.todo-task-text');
 
     allTodoTasks.forEach(textbox => {
+        textbox.onfocus = () => {
+            textbox.parentElement.dataset.bsToggle = 'disabled';
+        };
+
         textbox.addEventListener('focusout', () => {
             textbox.parentElement.dataset.bsToggle = 'collapse';
             editTask(textbox);
-        });
-        
-        textbox.addEventListener('focus', () => {
-            textbox.parentElement.dataset.bsToggle = 'disabled';
         });
     });
 
@@ -186,12 +186,25 @@ function setListeners() {
         };
     });
 
-    /* let allRefreshTodoBoxButton = document.querySelectorAll('.refreshing-todo-box-btn');
-    allRefreshTodoBoxButton.forEach(button => {
-        button.onclick = () => {
-            makeRefreshingTodoBox(button);
+    // Closing accordion when clicked elsewhere
+    window.onclick = () => {
+        let openAccordions = document.querySelectorAll('.collapse.show');
+
+        openAccordions.forEach(accordion => {
+            var bsCollapse = new bootstrap.Collapse(accordion, {
+                toggle: true
+            });
+        });
+    };
+
+    let allAccordions = document.querySelectorAll('.accordion-item');
+    allAccordions.forEach(accordion => {
+        accordion.onclick = (event) => {
+            var bsCollapse = new bootstrap.Collapse(accordion, {
+                toggle: false
+            });
         };
-    }); */
+    });
 }
 
 function fillIfBlank(parentElement) {
@@ -251,7 +264,7 @@ function addTodoBox() {
         if (fillInText) {
             fillInText.remove();
         }
-        
+
         refreshingBool = false;
         addBoxModal.hide();
 
@@ -692,4 +705,6 @@ function addHTMLTodoTask(todoBoxId, taskId, active) {
     else {
         tasksDiv.appendChild(task);
     }
+
+    setListeners();
 }
