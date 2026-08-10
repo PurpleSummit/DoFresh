@@ -8,20 +8,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // Activate sidebar link
     //document.querySelector('#sidebar-home-link').className = 'nav-link active';
 
-    // Display sidebar to-do lists and add main HTML
-    const sidebarList = document.querySelector('#home-lists');
-    const allTodoBoxIds = Object.keys(localStorage).filter(key => Number.isInteger(+key));
-
-    allTodoBoxIds.forEach(boxId => {
-        addHTMLTodoBox(boxId);
-    });
-
-    if (allTodoBoxIds.length < 1) {
-        fillIfBlank(document.body);
-    }
-
-    setListeners();
-
     // Refreshing mechanism
     const date = new Date();
     const offset = date.getTimezoneOffset() * 60000;
@@ -111,6 +97,20 @@ document.addEventListener('DOMContentLoaded', () => {
             localStorage.setItem('lastAccessedDate', today);
         }
     }
+    
+    // Display sidebar to-do lists and add main HTML
+    const sidebarList = document.querySelector('#home-lists');
+    const allTodoBoxIds = Object.keys(localStorage).filter(key => Number.isInteger(+key));
+
+    allTodoBoxIds.forEach(boxId => {
+        addHTMLTodoBox(boxId);
+    });
+
+    if (allTodoBoxIds.length < 1) {
+        fillIfBlank(document.body);
+    }
+
+    setListeners();
 });
 
 // LOGIC code

@@ -2,6 +2,7 @@ body {
     padding-left: 93px;
     padding-top: 30px;
     padding-right: 17px;
+    transition: all .25s ease-in-out;
 }
 
 a {
@@ -69,14 +70,12 @@ li {
     top: 0;
     left: 76px;
     background-color: #0e2238;
-    padding: 10px;
     min-width: 15em;
     display: none;
 }
 
 #sidebar:not(.expand) .sidebar-item:hover .sidebar-dropdown {
     display: block !important;
-
 }
 
 #sidebar.expand .sidebar-link[data-bs-toggle="collapse"]::after {
@@ -89,12 +88,12 @@ li {
     right: 1.5rem;
     top: 1.4rem;
     transform: rotate(-135deg);
-    transition: all .2s ease-out;
+    transition: all .2s ease-in-out;
 }
 
 #sidebar.expand .sidebar-link[data-bs-toggle="collapse"].collapsed::after {
     transform: rotate(45deg);
-    transition: all .2s ease-out;
+    transition: all .2s ease-in-out;
 }
 
 #sidebar.expand .sidebar-logo,
@@ -149,6 +148,7 @@ a.sidebar-link {
     white-space: nowrap;
     font-weight: 700;
     border-left: 3px solid transparent;
+    color: white;
 }
 
 .sidebar-nav {
@@ -166,10 +166,23 @@ a.sidebar-link {
 a.sidebar-link:hover {
     background-color: rgba(255, 255, 255, .075);
     border-left: 3px solid #3b7ddd;
+    color: #7277f2;
 }
 
 .sidebar-item {
     position: relative;
+}
+
+.sidebar-footer a {
+    overflow: hidden;
+}
+
+.dropdown-toggle::after {
+    margin-left: 0.4em;
+}
+
+.sidebar-footer .dropdown-menu {  
+    transition: all .25s ease-in-out;
 }
 
 .main {

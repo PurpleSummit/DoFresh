@@ -6,8 +6,12 @@ h1 {
     margin-left: 17px;
 }
 
+pre {
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", "Liberation Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+}
+
 #chat-div {
-    padding: 0px 117px 24px 117px;
+    padding: 0px 17px;
 }
 
 #sent-messages {
@@ -34,7 +38,7 @@ h1 {
 }
 
 .message-time {
-    width: 243px;
+    width: 136px;
     font-size: 13px;
 }
 
@@ -50,17 +54,18 @@ h1 {
     border-style: solid;
     border-color: rgb(202, 202, 202);
     margin-bottom: 16px;
+    margin-top: 17px;
 }
 
 .user-message .message-text {
-    text-align: right;
+    margin-left: 8px;
     margin-top: 12px;
 }
 
 .user-message-time {
     margin-left: auto;
     display: block;
-    width: 243px;
+    width: 136px;
     font-size: 13px;
 }
 
@@ -72,14 +77,15 @@ h1 {
     padding-bottom: 0px;
     background-color: white;
     width: stretch;
-    padding-right: 41px;
-    padding-left: 117px;
+    padding-right: 17px;
+    padding-left: 93px;
+    transition: all .25s ease-in-out;
 }
 
 #user-form-container {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: center;
 }
 
 #user-input {
@@ -89,6 +95,7 @@ h1 {
     height: 60px;
     resize: none;
     field-sizing: content;
+    transition: all .25s ease-in-out;
 }
 
 #send-btn {
@@ -96,6 +103,7 @@ h1 {
     width: 50px;
     height: 50px;
     text-align: center;
+    margin-left: 12px;
 }
 
 #caution-text {

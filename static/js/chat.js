@@ -1,8 +1,12 @@
+let months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'July', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
 document.addEventListener('DOMContentLoaded', () => {
     // Activate sidebar link
     // document.querySelector('#sidebar-chat-link').className = 'nav-link active';
-    
+
     document.getElementById('send-btn').addEventListener('click', async () => {
+        buttonDisable();
+
         const sentMessageContainer = document.querySelector('#sent-messages');
 
         const userInput = document.querySelector('#user-input');
@@ -13,6 +17,15 @@ document.addEventListener('DOMContentLoaded', () => {
         userMsgElement.innerHTML = `<pre class='message-text'>${userPrompt}</pre>`;
         sentMessageContainer.appendChild(userMsgElement);
 
+        const userTimeElement = document.createElement('p');
+        userTimeElement.className = 'user-message-time';
+
+        let date = new Date();
+        date = `${months[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}, ${date.toLocaleString([], {hour: "2-digit",minute: "2-digit"})}`;
+
+        userTimeElement.textContent = `${date}`;
+        sentMessageContainer.appendChild(userTimeElement);
+
         // Create HTML for AI response
         const outputElement = document.createElement('div');
         outputElement.className = "message-container";
@@ -21,13 +34,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
         userInput.value = "";
 
-        const outputText = document.createElement('prev');
+        const outputText = document.createElement('pre');
         outputText.className = 'message-text';
-        outputText.textContent = 'Thinking...';
+        outputText.innerHTML = `<img src='../static/img/3-dots-bounce.svg'>`;
 
         outputElement.appendChild(outputText);
-
-        outputText.textContent = "";
 
         // fetch for Flask backend API
         try {
@@ -38,12 +49,22 @@ document.addEventListener('DOMContentLoaded', () => {
                 body: JSON.stringify({ userMessage: userPrompt })
             });
 
+            outputText.innerHTML = "";
             const data = await response.json();
 
             if (data.error) {
                 throw new Error(data.error);
             }
             else if (data.result) {
+                const botTimeElement = document.createElement('p');
+                botTimeElement.className = 'message-time';
+
+                date = new Date();
+                date = `${months[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}, ${date.toLocaleString([], {hour: "2-digit",minute: "2-digit"})}`;
+
+                botTimeElement.textContent = `${date}`;
+                sentMessageContainer.appendChild(botTimeElement);
+
                 outputText.textContent = "";
                 typeResult(outputText, data.result);
             }
@@ -106,14 +127,33 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 let i = 0;
-let speed = 88;
+let speed = 37;
 
 function typeResult(outputTextElement, result) {
-    if (i < result.length) {
-        outputTextElement.textContent += result[i];
-        setTimeout(() => {
-            typeResult(outputTextElement, result);
-        }, speed);
-        i++;
-    }
+    return new Promise((resolve) => {
+        function type() {
+            if (i < result.length) {
+                outputTextElement.textContent += result[i];
+                i++;
+                setTimeout(type, speed);
+            }
+            else {
+                i = 0;
+                resolve();
+            }
+        }
+        type();
+    });
+}
+
+function buttonDisable() {
+    const sendBtn = document.querySelector('#send-btn');
+
+    sendBtn.disabled = true;
+}
+
+function buttonEnable() {
+    const sendBtn = document.querySelector('#send-btn');
+
+    sendBtn.disabled = false;
 }

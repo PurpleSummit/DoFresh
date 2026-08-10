@@ -64,10 +64,7 @@ function selectTodoList(boxId) {
 
     // Initialize the chart display
     if (allTasks.length > 0) {
-        let chartFillText = document.querySelector('#chart-fill-p');
-        if (chartFillText) {
-            chartFillText.remove();
-        }
+        
 
         let initTaskId = allTasks.at(0)['taskId'];
 
@@ -234,16 +231,11 @@ function selectTask(boxId, taskId) {
 }
 
 function chartBegin(taskData, rangeSetting, chartType) {
+    removeFillerText();
 
     // Delete any previously existing charts
     if (taskChartInstance !== null) {
         taskChartInstance.destroy();
-    }
-
-    // Delete any filler text if needed
-    let oldFillText = document.querySelector('#chart-fill-p');
-    if (oldFillText) {
-        oldFillText.remove();
     }
 
     let completedRanges = taskData.completedDates;
@@ -661,6 +653,8 @@ function whenBlankChart() {
     if (taskChartInstance !== null) {
         taskChartInstance.destroy();
     }
+    
+    removeFillerText();
 
     let fillText = document.createElement('p');
     fillText.id = `chart-fill-p`;
@@ -669,4 +663,11 @@ function whenBlankChart() {
     document.querySelector('#track-chart-div').prepend(fillText);
 
     document.querySelector('#chart-settings-div').innerHTML = "";
+}
+
+function removeFillerText() {
+    let chartFillText = document.querySelector('#chart-fill-p');
+    if (chartFillText) {
+        chartFillText.remove();
+    }
 }

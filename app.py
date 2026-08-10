@@ -63,16 +63,22 @@ def respond_chat():
     try: 
         data = request.json
         user_prompt = data.get("userMessage", "")
+
+        # Time of the message stored as {month} {date}, {yyyy}, {h}:{min} {am/pm}
+        user_time = datetime.now().astimezone()
+        user_time = f"{user_time.strftime("%b")} {user_time.strftime("%d")}, {user_time.strftime("%Y")}, {user_time.strftime("%I")}:{user_time.strftime("%M")} {user_time.strftime("%p")}"
         
         user_message = Message(
             author="user",
             text=user_prompt,
-            created_time=datetime.now().astimezone().isoformat()
+            created_time=user_time
         )
         db.session.add(user_message)
         db.session.commit()
 
         if not user_prompt or len(user_prompt.strip()) < 1:
+            db.session.delete(user_message)
+            db.session.commit()
             return jsonify({"result": "Hello! What's on your mind?"})
 
         response = client.chat_completion(

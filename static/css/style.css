@@ -66,6 +66,10 @@ button {
     border-radius: 4px;
 }
 
+.todo-box-completed-tasks {
+    transition: 0.4s ease-in;
+}
+
 .todo-completed-task-text {
     text-decoration: line-through;
 }

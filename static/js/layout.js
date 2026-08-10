@@ -3,8 +3,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const toggler = document.querySelector('#icon');
 
     toggleBtn.addEventListener('click', () => {
-        document.querySelector('#sidebar').classList.toggle('expand');
-        //toggler.classList.toggle('');
+        const sidebar = document.querySelector('#sidebar');
+        sidebar.classList.toggle('expand');
+
+        if (sidebar.classList.contains('expand')) {
+            openSidebar();
+        }
+        else {
+            closeSidebar();
+        }
     });
 
     // home page sidebar
@@ -52,9 +59,19 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function openSidebar() {
-    const mainContent = document.querySelector('#main');
+    document.body.style.paddingLeft = '277px';
+    
+    const chatInputField = document.querySelector('#user-input-container');
+    if (chatInputField) {
+        chatInputField.style.paddingLeft = '277px';
+    }
 }
 
 function closeSidebar() {
-    const mainContent = document.querySelector('#main');
+    document.body.style.paddingLeft = '93px';
+
+    const chatInputField = document.querySelector('#user-input-container');
+    if (chatInputField) {
+        chatInputField.style.paddingLeft = '93px';
+    }
 }
