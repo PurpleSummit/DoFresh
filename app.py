@@ -75,7 +75,7 @@ def respond_chat():
         if not user_prompt or len(user_prompt.strip()) < 1:
             return jsonify({"result": "Hello! What's on your mind?"})
 
-        response = client.chat_copletion(
+        response = client.chat_completion(
             model="meta-llama/Llama-3.1-8B-Instruct",
             messages=[
                 {"role": "user", "content": user_prompt},

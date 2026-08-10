@@ -3,27 +3,10 @@ let rangeSetting, chartType;
 
 document.addEventListener('DOMContentLoaded', () => {
     // Activate sidebar link
-    document.querySelector('#sidebar-track-link').className = 'nav-link active';
+    // document.querySelector('#sidebar-track-link').className = 'nav-link active';
 
     const allTodoBoxes = Object.entries(localStorage).filter((entry) => Number.isInteger(+entry[0]) && JSON.parse(entry[1]).refreshing);
     const allTodoBoxIds = allTodoBoxes.map(data => data[0]);
-
-    const boxListSidebar = document.querySelector('#todo-lists-sidebar');
-
-    allTodoBoxIds.forEach(boxId => {
-        let todoBoxData = JSON.parse(localStorage[`${boxId}`]);
-
-        let a = document.createElement('a');
-        a.className = '';
-        a.id = `sidebar-box${boxId}`;
-        a.textContent = todoBoxData.title;
-
-        a.addEventListener('click', () => {
-            selectTodoList(boxId);
-        });
-
-        boxListSidebar.appendChild(a);
-    });
 
     if (allTodoBoxIds.length > 0) {
         let defaultTodoBoxId = allTodoBoxIds[0];
@@ -555,8 +538,6 @@ function chartMonthly(taskData, startDate, rangeSetting) {
         monthlyArray.push(iMonth);
 
         A.setMonth(A.getMonth() + 1);
-
-        console.log(A, iMonth);
     }
 
     let completedRanges = taskData.completedDates;
@@ -674,26 +655,6 @@ function chartMonthly(taskData, startDate, rangeSetting) {
             }
         }
     });
-}
-
-function openNav() {
-    let sidebarNav = document.querySelector('#todo-lists-sidebar');
-    sidebarNav.style.width = '200px';
-
-    let openBtn = document.querySelector('#sidebar-open-btn');
-    openBtn.className = 'btn btn-light';
-    openBtn.ariaLabel = 'Close';
-    openBtn.onclick = closeNav;
-}
-
-function closeNav() {
-    let sidebarNav = document.querySelector('#todo-lists-sidebar');
-    sidebarNav.style.width = '0px';
-
-    let openBtn = document.querySelector('#sidebar-open-btn');
-    openBtn.className = 'btn btn-light';
-    openBtn.ariaLabel = '';
-    openBtn.onclick = openNav;
 }
 
 function whenBlankChart() {

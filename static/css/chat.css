@@ -68,12 +68,12 @@ h1 {
     position: fixed;
     left: 0px;
     bottom: 0px;
-    padding: inherit;
     padding-top: 24px;
     padding-bottom: 0px;
     background-color: white;
-    margin-left: 312px;
     width: stretch;
+    padding-right: 41px;
+    padding-left: 117px;
 }
 
 #user-form-container {

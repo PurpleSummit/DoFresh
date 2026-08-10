@@ -1,4 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
+    // Activate sidebar link
+    // document.querySelector('#sidebar-advice-link').className = 'nav-link active';
+    
     let allReadMoreBtns = document.querySelectorAll('.advice-read-more');
 
     allReadMoreBtns.forEach((btn) => {
@@ -8,8 +11,6 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     });
 
-    // Activate link
-    document.querySelector('#sidebar-advice-link').className = 'nav-link active';
 });
 
 function createArticle(articleId) {

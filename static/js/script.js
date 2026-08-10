@@ -5,15 +5,29 @@ let fillTextArray = ['📝 a blank canvas here!\n', "goodness me, look at that! 
 document.addEventListener('DOMContentLoaded', () => {
     console.log(localStorage);
 
-    // Refreshing mechanism
+    // Activate sidebar link
+    //document.querySelector('#sidebar-home-link').className = 'nav-link active';
 
+    // Display sidebar to-do lists and add main HTML
+    const sidebarList = document.querySelector('#home-lists');
+    const allTodoBoxIds = Object.keys(localStorage).filter(key => Number.isInteger(+key));
+
+    allTodoBoxIds.forEach(boxId => {
+        addHTMLTodoBox(boxId);
+    });
+
+    if (allTodoBoxIds.length < 1) {
+        fillIfBlank(document.body);
+    }
+
+    setListeners();
+
+    // Refreshing mechanism
     const date = new Date();
     const offset = date.getTimezoneOffset() * 60000;
     const today = new Date(date.getTime() - offset).toISOString().split('T')[0]; // Formatting into local-time ISO string
 
     let lastAccessedDate = localStorage.getItem('lastAccessedDate');
-
-    console.log(today, lastAccessedDate);
 
     // DEBUG REFRESHING
     console.log("New date?", lastAccessedDate != today);
@@ -84,8 +98,6 @@ document.addEventListener('DOMContentLoaded', () => {
                         else {
                             taskData.completedDates = [[lastAccessedDate, null]];
                         }
-
-                        console.log(taskData.completedDates);
                     }
                 });
 
@@ -99,21 +111,6 @@ document.addEventListener('DOMContentLoaded', () => {
             localStorage.setItem('lastAccessedDate', today);
         }
     }
-
-    // Activate sidebar link
-    document.querySelector('#sidebar-home-link').className = 'nav-link active';
-
-    const allTodoBoxIds = Object.keys(localStorage).filter(key => Number.isInteger(+key));
-
-    allTodoBoxIds.forEach(boxId => {
-        addHTMLTodoBox(boxId);
-    });
-
-    if (allTodoBoxIds.length < 1) {
-        fillIfBlank(document.body);
-    }
-
-    setListeners();
 });
 
 // LOGIC code
@@ -203,6 +200,7 @@ function setListeners() {
             var bsCollapse = new bootstrap.Collapse(accordion, {
                 toggle: false
             });
+            event.stopPropagation();
         };
     });
 }
@@ -570,7 +568,6 @@ function addHTMLTodoBox(boxId) {
         });
     }
     else {
-        console.log("Fill in");
         fillIfBlank(box.querySelector('.todo-box-tasks'));
     }
 

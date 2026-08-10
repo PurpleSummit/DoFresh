@@ -1,4 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
+    // Activate sidebar link
+    // document.querySelector('#sidebar-chat-link').className = 'nav-link active';
+    
     document.getElementById('send-btn').addEventListener('click', async () => {
         const sentMessageContainer = document.querySelector('#sent-messages');
 
@@ -24,6 +27,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         outputElement.appendChild(outputText);
 
+        outputText.textContent = "";
+
         // fetch for Flask backend API
         try {
             console.log(JSON.stringify({ userMessage: userPrompt }));
@@ -39,13 +44,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 throw new Error(data.error);
             }
             else if (data.result) {
-                outputText.textContent = `${data.result}`;
+                outputText.textContent = "";
+                typeResult(outputText, data.result);
             }
             else {
                 throw new Error("Error: couldn't generate a response.");
             }
-
-            document.querySelector('#sent-messages').appendChild(outputElement);
 
         } catch (error) {
             console.log("Error message");
@@ -99,6 +103,17 @@ document.addEventListener('DOMContentLoaded', () => {
         refreshChatModal.hide();
     });
 
-    // Activate link
-    document.querySelector('#sidebar-chat-link').className = 'nav-link active';
 });
+
+let i = 0;
+let speed = 88;
+
+function typeResult(outputTextElement, result) {
+    if (i < result.length) {
+        outputTextElement.textContent += result[i];
+        setTimeout(() => {
+            typeResult(outputTextElement, result);
+        }, speed);
+        i++;
+    }
+}
