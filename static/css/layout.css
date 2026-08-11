@@ -13,6 +13,36 @@ li {
     list-style: none;
 }
 
+.btn-outline-purple {
+    color: #5647e1;
+    border-color: #7447e1;
+}
+
+.btn-check:checked + .btn-outline-purple,
+.btn-outline-purple:hover,
+.btn-outline-purple:active,
+.btn-outline-purple:visited {
+    background-color: #7447e1 !important;
+    color: white;
+}
+
+.btn-outline-purple.focus,
+.btn-outline-purple:focus {
+    box-shadow: 0 0 0 .2rem #7547e12b;
+}
+
+.btn-purple {
+    background-color: #7447e1;
+    color: white;
+}
+
+.btn-purple:hover,
+.btn-purple:active,
+.btn-purple:visited {
+    background-color: #8f69e6;
+    color: white;
+}
+
 .sidebar-header {
     display: flex;
     align-items: center;
@@ -125,7 +155,7 @@ li {
     background-color: transparent;
     border-left: 3px solid transparent;
     padding-left: 3.8rem;
-    color: #7277f2;
+    color: #5647e1;
 }
 
 @keyframes fadeIn {
@@ -165,7 +195,7 @@ a.sidebar-link {
 
 a.sidebar-link:hover {
     background-color: rgba(255, 255, 255, .075);
-    border-left: 3px solid #3b7ddd;
+    border-left: 3px solid #5647e1;
     color: #7277f2;
 }
 

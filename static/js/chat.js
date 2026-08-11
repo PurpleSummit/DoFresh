@@ -127,7 +127,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 let i = 0;
-let speed = 37;
+let speed = 27;
 
 function typeResult(outputTextElement, result) {
     return new Promise((resolve) => {

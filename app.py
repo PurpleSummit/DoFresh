@@ -91,11 +91,13 @@ def respond_chat():
         )
 
         bot_reply = response.choices[0].message.content
+        bot_time = datetime.now().astimezone()
+        bot_time = f"{bot_time.strftime("%b")} {bot_time.strftime("%d")}, {bot_time.strftime("%Y")}, {bot_time.strftime("%I")}:{bot_time.strftime("%M")} {bot_time.strftime("%p")}"
 
         ai_message = Message(
             author="ai",
             text=bot_reply,
-            created_time=datetime.now().astimezone().isoformat()
+            created_time=bot_time
         )
         db.session.add(ai_message)
         db.session.commit()

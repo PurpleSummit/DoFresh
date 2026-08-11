@@ -51,7 +51,7 @@ function selectTodoList(boxId) {
         taskNav.appendChild(taskElement);
 
         let taskLabel = document.createElement('label');
-        taskLabel.className = 'btn btn-outline-primary';
+        taskLabel.className = 'btn btn-outline-purple';
         taskLabel.htmlFor = taskElement.id;
         taskLabel.textContent = `${task['task']}`;
         taskNav.appendChild(taskLabel);
@@ -105,15 +105,15 @@ function selectTask(boxId, taskId) {
     rangeDiv.ariaLabel = 'Basic radio toggle button group';
     rangeDiv.innerHTML = `
     <input type='radio' class='btn-check week-range-btn' name='range-radio' id='vbtn-radio1' autocomplete='off' disabled>
-    <label class='btn btn-outline-primary' for='vbtn-radio1'>Week</label>
+    <label class='btn btn-outline-purple' for='vbtn-radio1'>Week</label>
     <input type='radio' class='btn-check month-range-btn' name='range-radio' id='vbtn-radio2' autocomplete='off' disabled>
-    <label class='btn btn-outline-primary' for='vbtn-radio2'>Month</label>
+    <label class='btn btn-outline-purple' for='vbtn-radio2'>Month</label>
     <input type='radio' class='btn-check semi-year-range-btn' name='range-radio' id='vbtn-radio3' autocomplete='off' disabled>
-    <label class='btn btn-outline-primary' for='vbtn-radio3'>Semi-year</label>
+    <label class='btn btn-outline-purple' for='vbtn-radio3'>Semi-year</label>
     <input type='radio' class='btn-check year-range-btn' name='range-radio' id='vbtn-radio4' autocomplete='off' disabled>
-    <label class='btn btn-outline-primary' for='vbtn-radio4'>Year</label>
+    <label class='btn btn-outline-purple' for='vbtn-radio4'>Year</label>
     <input type='radio' class='btn-check max-range-btn' name='range-radio' id='vbtn-radio5' autocomplete='off'>
-    <label class='btn btn-outline-primary' for='vbtn-radio5'>Max</label>`;
+    <label class='btn btn-outline-purple' for='vbtn-radio5'>Max</label>`;
     chartSettingsDiv.appendChild(rangeDiv);
 
     // Chart-type buttons
@@ -125,11 +125,11 @@ function selectTask(boxId, taskId) {
     chartTypeDiv.ariaLabel = 'Basic radio toggle button group';
     chartTypeDiv.innerHTML = `
     <input type='radio' class='btn-check chart-complete-btn' name='type-radio' id='chart-complete1' autocomplete='off'>
-    <label class='btn btn-outline-primary' for='chart-complete1'>Completed</label>
+    <label class='btn btn-outline-purple' for='chart-complete1'>Completed</label>
     <input type='radio' class='btn-check chart-streak-btn' name='type-radio' id='chart-streak1' autocomplete='off'>
-    <label class='btn btn-outline-primary' for='chart-streak1'>Streak</label>
+    <label class='btn btn-outline-purple' for='chart-streak1'>Streak</label>
     <input type='radio' class='btn-check chart-month-btn' name='type-radio' id='chart-month1' autocomplete='off'>
-    <label class='btn btn-outline-primary' for='chart-month1'>Monthly</label>`;
+    <label class='btn btn-outline-purple' for='chart-month1'>Monthly</label>`;
     chartSettingsDiv.appendChild(chartTypeDiv);
 
     // Set startDate for range buttons

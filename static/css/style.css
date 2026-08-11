@@ -13,6 +13,10 @@ button {
     margin-left: auto;
 }
 
+.blank-todo-fill {
+    margin-left: 19px;
+}
+
 .todo-box-div {
     display: flex;
     flex-wrap: wrap;
@@ -37,26 +41,32 @@ button {
     margin: 19px 19px 0px 19px
 }
 
-.add-task-btn, .edit-todo-box-btn {
+.refreshing-tag {
+    background-color: #7447e1;
+    height: 20px;
+    margin-top: 10px;
+}
+
+.add-task-btn, 
+.edit-todo-box-btn,
+.edit-todo-task-btn {
     margin-left: 10px !important;
     width: 41.8px;
     height: 39.9833px;
     border-radius: 100% !important;
 }
 
-.refreshing-tag {
-    background-color: #0d6efd;
-    height: 20px;
-    margin-top: 10px;
+.main .dropdown-item:focus {
+    background-color: #7447e1;
 }
 
-.blank-todo-fill {
-    margin-left: 19px;
+.edit-todo-task-btn {
+    margin-right: 8px;
+    background-color: transparent;
 }
 
-.accordion-button {
-    padding: 1rem;
-    border-radius: 10px !important;
+.remove-task-btn {
+    margin-top: -2px;
 }
 
 .todo-task {
@@ -74,6 +84,10 @@ button {
     text-decoration: line-through;
 }
 
+.subtask {
+    margin-left: 7%;
+}
+
 label {
     width: 100%;
     box-sizing: border-box;
@@ -82,7 +96,7 @@ label {
 input[type='text'] {
     font-size: 17px;
     max-width: 409px;
-    min-height: 24px;
+    min-height: 36px;
     border-style: none;
     background: rgba(0, 0, 0, 0);
     margin-left: 10px;
@@ -90,7 +104,26 @@ input[type='text'] {
     box-sizing: border-box;
     resize: none;
     field-sizing: content;
-    margin-top: -2px;
+}
+
+textarea {
+    font-size: 13px;
+    background: rgba(0, 0, 0, 0);
+    color: rgb(93, 91, 91);
+    max-width: 516px;
+    min-height: 24px;
+    max-height: 137px;
+    height: stretch !important;
+    border-style: none;
+    box-sizing: border-box;
+    resize: none;
+    field-sizing: content;
+    margin-top: 5px;
+}
+
+.accordion-button {
+    padding: 1rem;
+    border-radius: 10px !important;
 }
 
 .accordion-collapse {
@@ -105,23 +138,6 @@ input[type='text'] {
 .accordion-body {
     margin-left: 8%;
     margin-bottom: 3%;
-}
-
-textarea {
-    font-size: 13px;
-    background: rgba(0, 0, 0, 0);
-    color: rgb(93, 91, 91);
-    max-width: 516px;
-    min-height: 24px;
-    border-style: none;
-    box-sizing: border-box;
-    resize: none;
-    field-sizing: content;
-    margin-top: 5px;
-}
-
-.remove-task-btn {
-    margin-top: -2px;
 }
 
 .btn-group {

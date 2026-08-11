@@ -19,6 +19,7 @@ pre {
 }
 
 #refresh-modal-btn {
+    background-color: #7447e1;
     margin-left: auto;
     margin-right: 14px;
     display: block;
@@ -43,7 +44,7 @@ pre {
 }
 
 .user-message {
-    background-color: aliceblue;
+    background-color: #7447e16e;
     width: fit-content;
     max-width: 80%;
     padding: 0px 17px !important;
@@ -104,6 +105,7 @@ pre {
     height: 50px;
     text-align: center;
     margin-left: 12px;
+    background-color: #7447e1;
 }
 
 #caution-text {
@@ -114,7 +116,7 @@ pre {
 }
 
 #caution-text:hover {
-    color: gray;
+    color: #4e4661;
 }
 
 .alert {
