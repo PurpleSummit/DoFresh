@@ -34,6 +34,7 @@ button {
     width: 450px;
     min-height: 300px;
     margin: 17px;
+    height: fit-content;
 }
 
 .todo-box-heading {
@@ -62,7 +63,17 @@ button {
 
 .edit-todo-task-btn {
     margin-right: 8px;
-    background-color: transparent;
+    background-color: transparent !important;
+    opacity: 0;
+    border-color: transparent !important;
+    box-shadow: none !important;
+}
+
+.edit-todo-task-btn:focus,
+.accordion-button:hover .edit-todo-task-btn,
+.edit-todo-task-btn:hover {
+    background-color: rgba(255, 255, 255, 0.627);
+    opacity: 1;
 }
 
 .remove-task-btn {
