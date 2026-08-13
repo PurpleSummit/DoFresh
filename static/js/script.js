@@ -407,10 +407,10 @@ function addTask(button) {
 }
 
 function addSubtask(button) {
-    let parentTodoTask = button.parentElement.parentElement.parentElement.parentElement.parentElement;
-    let parentTaskId = parentTodoTask.id;
+    let taskElement = button.parentElement.parentElement.parentElement.parentElement.parentElement;
+    let parentTaskId = taskElement.id;
 
-    let parentTodoBox = parentTodoTask.parentElement.parentElement;
+    let parentTodoBox = taskElement.parentElement.parentElement;
     let todoBoxId = parentTodoBox.id.replace('todo-box', '');
 
     // Creating a new id for the new task
@@ -464,15 +464,13 @@ function addSubtask(button) {
 }
 
 function completeTask(radio) {
-    let parentTodoTask = radio.parentElement.parentElement.parentElement;
-    let taskId = parentTodoTask.id;
-    let parentTodoBox = parentTodoTask.parentElement.parentElement;
+    let taskElement = radio.parentElement.parentElement.parentElement;
+    let taskId = taskElement.id;
+    let parentTodoBox = taskElement.parentElement.parentElement;
     let todoBoxId = parentTodoBox.id.replace('todo-box', '')
 
     let todoBoxData = JSON.parse(localStorage.getItem(todoBoxId));
     if (!todoBoxData) return;
-
-    console.log("Before anything!", todoBoxData);
 
     let idsToChange = [taskId];
 
@@ -483,39 +481,54 @@ function completeTask(radio) {
         previousState = 'completed';
         taskData = todoBoxData.tasks.completed.find(t => t['taskId'] == taskId);
     }
-    
-    // If active, mainstream task, all its subtasks should be completed too
-    if (previousState == 'active' && taskData['subTasks'] && taskData['subTasks'].length > 0) {
-        taskData['subTasks'].forEach(subId => {
-            idsToChange.push(subId);
-        });
-    }
 
-    let tasksToChange = [];
-    idsToChange.forEach(id => {
-        let task = todoBoxData.tasks.active.find((t => t['taskId'] == id)) || todoBoxData.tasks.completed.find(t => t['taskId'] == id);
-        if (task) tasksToChange.push(task);
-    });
+    // If active, mainstream task, all its subtasks should be completed too
+    if (previousState === 'active' && taskData['subTasks']?.length > 0) {
+        idsToChange = [...idsToChange, ...taskData['subTasks']];
+    }
+    // If completed subtask, then its parentTask should be restored too
+    //else if (previousState === 'completed' && taskData['parentTask']) {
+    //    idsToChange.push(taskData['parentTask']);
+    //}
+
+    const allTasks = [...todoBoxData.tasks.active, ...todoBoxData.tasks.completed]
+    let tasksToChange = allTasks.filter(t => idsToChange.includes(t['taskId']));
 
     // Complete the task and possibly its subtasks
     if (previousState == 'active') {
         todoBoxData.tasks.active = todoBoxData.tasks.active.filter(t => !idsToChange.includes(t['taskId']));
-        todoBoxData.tasks.completed = todoBoxData.tasks.completed.concat(tasksToChange);
 
-        localStorage.setItem(todoBoxId, JSON.stringify(todoBoxData));
+        // Prevent duplicate entries
+        const ongoingCompleted = todoBoxData.tasks.completed.filter(t => !idsToChange.includes(t['taskId']));
+        todoBoxData.tasks.completed = ongoingCompleted.concat(tasksToChange);
     }
     // Restore tasks to active. Only one at a time, whether mainstream or subtask.
     else {
-        todoBoxData.tasks.active = todoBoxData.tasks.active.concat(tasksToChange);
+        // Prevent duplicate entries
+        const ongoingActive = todoBoxData.tasks.active.filter(t => !idsToChange.includes(t['taskId']));
+        todoBoxData.tasks.active = ongoingActive.concat(tasksToChange);
+
         todoBoxData.tasks.completed = todoBoxData.tasks.completed.filter(t => !idsToChange.includes(t['taskId']));
-
-        localStorage.setItem(todoBoxId, JSON.stringify(todoBoxData));
-
-        // Tasks are only restored one at a time
-        addHTMLTodoTask(todoBoxId, taskId, true);
     }
 
-    parentTodoTask.remove();
+    // Save changes
+    localStorage.setItem(todoBoxId, JSON.stringify(todoBoxData));
+
+    // 🗻 Update DOM elements
+    idsToChange.forEach(id => {
+        console.log(id);
+        let oldTaskElement = document.querySelector(`#${id}`);
+
+        if (oldTaskElement) {
+            oldTaskElement.remove();
+            console.log("Removing", oldTaskElement);
+        }
+
+        if (previousState === 'completed') {
+            console.log("Adding", id);
+            addHTMLTodoTask(todoBoxId, id, true);
+        }
+    });
 
     // Updates all the tasks in completed-tasks div & removes elements if no tasks left
     updateHTMLCollapseDiv(todoBoxId);
@@ -529,10 +542,10 @@ function completeTask(radio) {
 }
 
 function editTask(textbox) {
-    let parentTodoTask = textbox.parentElement.parentElement.parentElement;
-    let taskId = parentTodoTask.id;
+    let taskElement = textbox.parentElement.parentElement.parentElement;
+    let taskId = taskElement.id;
 
-    let parentTodoBox = parentTodoTask.parentElement.parentElement;
+    let parentTodoBox = taskElement.parentElement.parentElement;
     let todoBoxId = parentTodoBox.id.replace('todo-box', '');
 
     // ✨ Change the task's content in localStorage
@@ -549,10 +562,10 @@ function editTask(textbox) {
 }
 
 function editTaskDetails(textarea) {
-    let parentTodoTask = textarea.parentElement.parentElement.parentElement;
-    let taskId = parentTodoTask.id;
+    let taskElement = textarea.parentElement.parentElement.parentElement;
+    let taskId = taskElement.id;
 
-    let parentTodoBox = parentTodoTask.parentElement.parentElement;
+    let parentTodoBox = taskElement.parentElement.parentElement;
     let todoBoxId = parentTodoBox.id.replace('todo-box', '');
 
     // ✨ Change the task's content in localStorage
@@ -569,9 +582,9 @@ function editTaskDetails(textarea) {
 }
 
 function removeTask(button) {
-    let parentTodoTask = button.parentElement.parentElement.parentElement.parentElement.parentElement;
-    let taskId = parentTodoTask.id;
-    let parentTodoBox = parentTodoTask.parentElement.parentElement;
+    let taskElement = button.parentElement.parentElement.parentElement.parentElement.parentElement;
+    let taskId = taskElement.id;
+    let parentTodoBox = taskElement.parentElement.parentElement;
     let todoBoxId = parentTodoBox.id.replace('todo-box', '');
 
     let todoBoxData = JSON.parse(localStorage.getItem(todoBoxId));
@@ -702,6 +715,8 @@ function addHTMLCollapseDiv(todoBoxId) {
 }
 
 function updateHTMLCollapseDiv(todoBoxId) {
+    console.log("updating collapse div");
+
     const todoBox = document.querySelector(`#todo-box${todoBoxId}`);
 
     let todoBoxData = localStorage.getItem(todoBoxId);
@@ -737,6 +752,8 @@ function updateHTMLCollapseDiv(todoBoxId) {
 }
 
 function addHTMLTodoTask(todoBoxId, taskId, active) {
+    console.log(todoBoxId, taskId, active);
+
     let todoBoxData = localStorage.getItem(todoBoxId);
     todoBoxData = JSON.parse(todoBoxData);
 
@@ -773,7 +790,9 @@ function addHTMLTodoTask(todoBoxId, taskId, active) {
     let taskText = taskData.task;
     let taskDetails = taskData.details;
 
+    console.log("`completed`", completed);
     let tasksDiv = document.querySelector(`#todo-box${todoBoxId}`).querySelector(`.todo-box${completed}-tasks`);
+    console.log("tasksDiv is", tasksDiv);
 
     const taskElement = document.createElement('div');
     taskElement.className = 'todo-task accordion-item';
@@ -805,27 +824,24 @@ function addHTMLTodoTask(todoBoxId, taskId, active) {
             </div>
     </div>`;
 
-    // No parentTask means that it's a mainstream task
-    if (!parentTaskId) {
-        if (!active) {
-            // Adds a collapse div and all the tasks
-            if (tasksDiv === null) {
-                addHTMLCollapseDiv(todoBoxId);
-                tasksDiv = document.querySelector(`#todo-box${todoBoxId}`).querySelector(`.todo-box${completed}-tasks`);
-            }
-            else {
-                tasksDiv.prepend(taskElement);
-            }
-        }
-        else {
-            tasksDiv.appendChild(taskElement);
-        }
+    const hasMatchingParentTask = parentTaskId && (allTasks.some(t => t['taskId'] == parentTaskId) && allTasks.some(t => t['taskId'] == taskId));
+
+    if (hasMatchingParentTask) {
+        taskElement.className = 'todo-task accordion-item subtask';
+        let parentTaskElement = document.querySelector(`#${parentTaskId}`);
+        if (parentTaskElement) parentTaskElement.after(taskElement);
     }
     else {
-        taskElement.className = 'todo-task accordion-item subtask';
-
-        let parentTaskElement = document.querySelector(`#${parentTaskId}`);
-        parentTaskElement.after(taskElement);
+        if (!active && !tasksDiv) {
+            addHTMLCollapseDiv(todoBoxId);
+            
+            // Set tasksDiv again
+            tasksDiv = document.querySelector(`#todo-box${todoBoxId}`).querySelector(`.todo-box-completed-tasks`);
+        }
+        console.log("Adding", taskElement, "to", tasksDiv);
+        if (tasksDiv) {
+            tasksDiv.prepend(taskElement);
+        }
     }
 
     setListeners();

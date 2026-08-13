@@ -104,6 +104,10 @@ label {
     box-sizing: border-box;
 }
 
+input[type='radio'] {
+    cursor: pointer;
+}
+
 input[type='text'] {
     font-size: 17px;
     max-width: 409px;
