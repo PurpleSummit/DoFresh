@@ -47,7 +47,8 @@ pre {
     background-color: #7447e16e;
     width: fit-content;
     max-width: 80%;
-    padding: 0px 17px !important;
+    padding-right: 17px;
+    padding-left: 7px;
     margin-left: auto !important;
 
     border-width: 1px;
@@ -76,7 +77,7 @@ pre {
     bottom: 0px;
     padding-top: 24px;
     padding-bottom: 0px;
-    background-color: white;
+    background-color: transparent;
     width: stretch;
     padding-right: 17px;
     padding-left: 93px;

@@ -35,11 +35,16 @@ button {
     min-height: 300px;
     margin: 17px;
     height: fit-content;
+
+    background: rgba(255, 255, 255, 0.20);
+    backdrop-filter: blur(24px) saturate(180%);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
 }
 
 .todo-box-heading {
     display: flex;
-    margin: 19px 19px 0px 19px
+    margin: 19px 19px 13px 19px
 }
 
 .refreshing-tag {
@@ -48,7 +53,7 @@ button {
     margin-top: 10px;
 }
 
-.add-task-btn, 
+.add-task-btn,
 .edit-todo-box-btn,
 .edit-todo-task-btn {
     margin-left: 10px !important;
@@ -57,23 +62,41 @@ button {
     border-radius: 100% !important;
 }
 
-.main .dropdown-item:focus {
-    background-color: #7447e1;
+.main .dropdown-item:focus,
+.main .dropdown-item:hover {
+    background-color: #7547e174 !important;
 }
 
 .edit-todo-task-btn {
     margin-right: 8px;
-    background-color: transparent !important;
+    background-color: transparent;
     opacity: 0;
     border-color: transparent !important;
     box-shadow: none !important;
+    padding: 3px 0px;
+    height: min-content;
 }
 
 .edit-todo-task-btn:focus,
 .accordion-button:hover .edit-todo-task-btn,
 .edit-todo-task-btn:hover {
-    background-color: rgba(255, 255, 255, 0.627);
     opacity: 1;
+}
+
+.edit-todo-task-btn:focus,
+.edit-todo-task-btn:hover {
+    transition: 0.5s;
+    background-color: rgba(252, 252, 252, 0.604) !important;
+}
+
+.task-edit-dropdown {
+    opacity: 1;
+    overflow: hidden;
+    transition: max-height 0.3s ease, opacity 0.3s ease;
+}
+
+.task-edit-dropdown.collapsed {
+    opacity: 0;
 }
 
 .remove-task-btn {
@@ -84,7 +107,13 @@ button {
     display: block;
     margin-bottom: 5px;
     padding: 0px 19px;
-    border-radius: 4px;
+    background-color: transparent;
+    border-radius: 13px !important;
+    border: none;
+}
+
+.todo-task:hover {
+    background-color: rgba(252, 252, 252, 0.52);
 }
 
 .todo-box-completed-tasks {
@@ -96,7 +125,11 @@ button {
 }
 
 .subtask {
-    margin-left: 7%;
+    padding-left: 11%;
+}
+
+.subtask input[type='text'] {
+    max-width: 269px;
 }
 
 label {
@@ -110,7 +143,7 @@ input[type='radio'] {
 
 input[type='text'] {
     font-size: 17px;
-    max-width: 409px;
+    max-width: 305px;
     min-height: 36px;
     border-style: none;
     background: rgba(0, 0, 0, 0);
@@ -119,6 +152,7 @@ input[type='text'] {
     box-sizing: border-box;
     resize: none;
     field-sizing: content;
+    cursor: default;
 }
 
 textarea {
@@ -136,18 +170,20 @@ textarea {
     margin-top: 5px;
 }
 
+.accordion-header {
+    display: flex;
+}
+
 .accordion-button {
     padding: 1rem;
     border-radius: 10px !important;
+    background-color: transparent !important;
+    box-shadow: none !important;
 }
 
 .accordion-collapse {
     transition: 0.25s;
-    transition-timing-function: cubic-bezier(0.4,0,0.2,1);
-}
-
-.accordion-header {
-    display: flex;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .accordion-body {
@@ -173,6 +209,5 @@ textarea {
 }
 
 .collapse-btn:hover {
-    background-color: #ededed;
     border-color: rgba(0, 0, 0, 0);
 }

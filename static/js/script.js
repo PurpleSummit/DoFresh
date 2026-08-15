@@ -209,11 +209,12 @@ function setListeners() {
     allEditTaskBtns.forEach(btn => {
         btn.onfocus = () => {
             btn.parentElement.dataset.bsToggle = 'disabled';
-            event.stopPropagation();
+            btn.parentElement.querySelector('.dropdown-menu').classList.toggle('collapsed');
         };
 
         btn.onblur = () => {
             btn.parentElement.dataset.bsToggle = 'collapse';
+            btn.parentElement.querySelector('.dropdown-menu').classList.toggle('collapsed');
         };
     });
 
@@ -653,8 +654,8 @@ function addHTMLTodoBox(boxId) {
         <h2 class='todo-title'>${boxTitle}</h2>
         <div class="btn-group">
             <span class="badge text-bg-primary refreshing-tag">${refreshingTag}</span>
-            <button class='btn-light add-task-btn'>+</button>
-            <button type="button" class="btn btn-light edit-todo-box-btn" data-bs-toggle="dropdown" aria-expanded="false" data-toggle="dropdown">
+            <button class='add-task-btn'>+</button>
+            <button type="button" class="edit-todo-box-btn" data-bs-toggle="dropdown" aria-expanded="false" data-toggle="dropdown">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-three-dots-vertical" viewBox="0 0 16 16">
                     <path d="M9.5 13a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0m0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0m0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0"/>
                 </svg>
@@ -703,7 +704,7 @@ function addHTMLCollapseDiv(todoBoxId) {
 
     let collapseToggle = document.createElement('div');
     collapseToggle.className = 'collapse-btn-div d-inline-flex gap-1';
-    collapseToggle.innerHTML = `<button class="btn btn-light collapse-btn" type="button" data-bs-toggle="collapse" data-bs-target="#collapseExample${todoBoxId}" aria-expanded="false" aria-controls="collapseExample${todoBoxId}">
+    collapseToggle.innerHTML = `<button class="btn collapse-btn" type="button" data-bs-toggle="collapse" data-bs-target="#collapseExample${todoBoxId}" aria-expanded="false" aria-controls="collapseExample${todoBoxId}">
         Completed (${todoBoxData.tasks.completed.length})
     </button>`;
     box.appendChild(collapseToggle);
@@ -715,7 +716,6 @@ function addHTMLCollapseDiv(todoBoxId) {
 }
 
 function updateHTMLCollapseDiv(todoBoxId) {
-    console.log("updating collapse div");
 
     const todoBox = document.querySelector(`#todo-box${todoBoxId}`);
 
@@ -728,7 +728,7 @@ function updateHTMLCollapseDiv(todoBoxId) {
         collapseToggle = todoBox.querySelector('.collapse-btn-div');
     }
 
-    collapseToggle.innerHTML = `<button class="btn btn-light collapse-btn" type="button" data-bs-toggle="collapse" data-bs-target="#collapseExample${todoBoxId}" aria-expanded="false" aria-controls="collapseExample${todoBoxId}">
+    collapseToggle.innerHTML = `<button class="btn collapse-btn" type="button" data-bs-toggle="collapse" data-bs-target="#collapseExample${todoBoxId}" aria-expanded="false" aria-controls="collapseExample${todoBoxId}">
         Completed (${todoBoxData.tasks.completed.length})</button>`;
 
     // Wipe the original completed-tasks div and update
@@ -752,8 +752,6 @@ function updateHTMLCollapseDiv(todoBoxId) {
 }
 
 function addHTMLTodoTask(todoBoxId, taskId, active) {
-    console.log(todoBoxId, taskId, active);
-
     let todoBoxData = localStorage.getItem(todoBoxId);
     todoBoxData = JSON.parse(todoBoxData);
 
@@ -790,9 +788,7 @@ function addHTMLTodoTask(todoBoxId, taskId, active) {
     let taskText = taskData.task;
     let taskDetails = taskData.details;
 
-    console.log("`completed`", completed);
     let tasksDiv = document.querySelector(`#todo-box${todoBoxId}`).querySelector(`.todo-box${completed}-tasks`);
-    console.log("tasksDiv is", tasksDiv);
 
     const taskElement = document.createElement('div');
     taskElement.className = 'todo-task accordion-item';
@@ -802,12 +798,12 @@ function addHTMLTodoTask(todoBoxId, taskId, active) {
             <div class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#details-${taskId}" aria-expanded="false" aria-controls="details-${taskId}">
                 <input type='radio'${checked}>
                 <input type='text' class='todo${completed}-task-text' value='${taskText}'${disabled}>
-                <button type="button" class="btn btn-light edit-todo-task-btn" data-bs-toggle="dropdown" aria-expanded="false" data-toggle="dropdown">
+                <button type="button" class="btn edit-todo-task-btn" data-bs-toggle="dropdown" aria-expanded="false" data-toggle="dropdown">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-three-dots-vertical" viewBox="0 0 16 16">
                         <path d="M9.5 13a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0m0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0m0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0"/>
                     </svg>
                 </button>
-                <ul class="dropdown-menu dropdown-menu-end">
+                <ul class="task-edit-dropdown dropdown-menu dropdown-menu-end collapsed">
                     <li><a class='dropdown-item remove-task-btn'>
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash-fill" viewBox="0 0 16 16">
                             <path d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5M8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5m3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0"/>
@@ -838,7 +834,6 @@ function addHTMLTodoTask(todoBoxId, taskId, active) {
             // Set tasksDiv again
             tasksDiv = document.querySelector(`#todo-box${todoBoxId}`).querySelector(`.todo-box-completed-tasks`);
         }
-        console.log("Adding", taskElement, "to", tasksDiv);
         if (tasksDiv) {
             tasksDiv.prepend(taskElement);
         }

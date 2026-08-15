@@ -15,3 +15,9 @@
     max-width: fit-content;
     width: 91%;
 }
+
+.card {
+    padding: 0px;
+    margin-left: 12px;
+    width: 31%;
+}
