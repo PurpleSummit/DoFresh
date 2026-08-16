@@ -1,6 +1,21 @@
 let taskChartInstance = null;
 let rangeSetting, chartType;
 
+const borderWidth = 3;
+const backgroundColor = 'rgba(117, 71, 225, 0.11)';
+const pointBorderWidth = 1;
+const chartColors = [
+    '#c8b4e7',
+    '#a88fdc',
+    '#8f6fbb',
+    '#745aaa',
+    '#5a3d8a',
+    '#4b2e75',
+    '#3d1e5a',
+    '#2f0f43',
+    '#1f0a30'
+];
+
 document.addEventListener('DOMContentLoaded', () => {
     // Activate sidebar link
     // document.querySelector('#sidebar-track-link').className = 'nav-link active';
@@ -36,25 +51,67 @@ function selectTodoList(boxId) {
     taskNav.ariaLabel = 'Basic radio toggle button group';
     taskNav.style.marginLeft = '13px';
 
-    allTasks.forEach(task => {
-        let taskId = task['taskId'];
+    let dropdownTriggers = [];
 
-        let taskElement = document.createElement('input');
-        taskElement.type = 'radio';
-        taskElement.className = 'btn-check';
-        taskElement.name = 'btnradio';
-        taskElement.id = `task-select${taskId.replace('task_', '')}`;
-        taskElement.autocomplete = 'off';
-        taskElement.onclick = () => {
-            selectTask(boxId, taskId);
-        };
-        taskNav.appendChild(taskElement);
+    allTasks.forEach(taskData => {
+        let subtasks = taskData['subTasks'];
+        if (subtasks) {
+            let taskId = taskData['taskId'];
+            const cleanId = taskId.replace('task_', '');
 
-        let taskLabel = document.createElement('label');
-        taskLabel.className = 'btn btn-outline-purple';
-        taskLabel.htmlFor = taskElement.id;
-        taskLabel.textContent = `${task['task']}`;
-        taskNav.appendChild(taskLabel);
+            let taskElement = document.createElement('input');
+            taskElement.type = 'radio';
+            taskElement.name = 'rad';
+            taskElement.className = 'btn-check';
+            taskElement.id = `task-select${cleanId}`;
+            taskElement.autocomplete = 'off';
+            taskElement.onclick = () => selectTask(boxId, taskId);
+            taskNav.appendChild(taskElement);
+
+            if (subtasks && subtasks.length > 0) {
+                const btnGroupWrapper = document.createElement('div');
+                btnGroupWrapper.classList.add('dropdown', 'd-inline-block');
+
+                let taskLabel = document.createElement('button');
+                taskLabel.className = 'btn btn-outline-purple dropdown-toggle';
+                taskLabel.type = 'button';
+                taskLabel.textContent = `${taskData['task']}`;
+                taskLabel.setAttribute('aria-expanded', 'false');
+                taskLabel.onclick = (event) => {
+                    selectTask(boxId, taskId);
+                    event.preventDefault();
+                    event.stopPropagation();
+                };
+
+                let subtaskDropdown = document.createElement('ul');
+                subtaskDropdown.className = 'dropdown-menu';
+
+                subtasks.forEach(subtaskId => {
+                    let subtaskData = allTasks.find(t => t['taskId'] == subtaskId);
+                    let subtaskCleanId = subtaskId.replace('task_', '');
+
+                    let subtaskElement = document.createElement('li');
+                    subtaskElement.innerHTML = `<a class='dropdown-item'>${subtaskData['task']}</a>`;
+                    subtaskElement.id = `task-select${subtaskCleanId}`;
+                    subtaskElement.onclick = () => selectTask(boxId, subtaskId);
+                    subtaskDropdown.appendChild(subtaskElement);
+                });
+
+                btnGroupWrapper.appendChild(taskLabel);
+                btnGroupWrapper.appendChild(subtaskDropdown);
+                taskNav.appendChild(btnGroupWrapper);
+
+                dropdownTriggers.push(taskLabel);
+            }
+            else {
+                let taskLabel = document.createElement('label');
+                taskLabel.className = 'btn btn-outline-purple';
+                taskLabel.htmlFor = taskElement.id;
+                taskLabel.textContent = `${taskData['task']}`;
+
+                taskNav.appendChild(taskLabel);
+            }
+        }
     });
 
     taskNavDiv.appendChild(taskNav);
@@ -64,11 +121,8 @@ function selectTodoList(boxId) {
 
     // Initialize the chart display
     if (allTasks.length > 0) {
-        
 
         let initTaskId = allTasks.at(0)['taskId'];
-
-        document.querySelector(`#task-select${initTaskId.replace('task_', '')}`).checked = true;
 
         selectTask(boxId, initTaskId);
     }
@@ -78,6 +132,12 @@ function selectTodoList(boxId) {
 }
 
 function selectTask(boxId, taskId) {
+    console.log('selected', taskId);
+
+    // Check the task button
+    document.querySelector(`#task-select${taskId.replace('task_', '')}`).checked = true;
+
+    // Gather data
     let todoBoxData = JSON.parse(localStorage[`${boxId}`]);
 
     let taskData = todoBoxData.tasks.active.find(task => taskId == task['taskId']);
@@ -85,64 +145,27 @@ function selectTask(boxId, taskId) {
         taskData = todoBoxData.tasks.completed.find(task => taskId == task['taskId']);
     }
 
+    // Update the settings panel
     let chartSettingsDiv = document.querySelector('#chart-settings-div');
 
-    // Update the settings panel
-    let oldRangeBtns = document.querySelector('.track-range-btn-group');
-    if (oldRangeBtns) {
-        chartSettingsDiv.removeChild(oldRangeBtns);
-    }
-    let oldChartTypeBtns = document.querySelector('.chart-types-btn-group');
-    if (oldChartTypeBtns) {
-        chartSettingsDiv.removeChild(oldChartTypeBtns);
-    }
-
     // Range buttons
-    let rangeDiv = document.createElement('div');
-    rangeDiv.className = 'track-range-btn-group btn-group';
-    rangeDiv.style.marginTop = '3%';
-    rangeDiv.role = 'group';
-    rangeDiv.ariaLabel = 'Basic radio toggle button group';
-    rangeDiv.innerHTML = `
-    <input type='radio' class='btn-check week-range-btn' name='range-radio' id='vbtn-radio1' autocomplete='off' disabled>
-    <label class='btn btn-outline-purple' for='vbtn-radio1'>Week</label>
-    <input type='radio' class='btn-check month-range-btn' name='range-radio' id='vbtn-radio2' autocomplete='off' disabled>
-    <label class='btn btn-outline-purple' for='vbtn-radio2'>Month</label>
-    <input type='radio' class='btn-check semi-year-range-btn' name='range-radio' id='vbtn-radio3' autocomplete='off' disabled>
-    <label class='btn btn-outline-purple' for='vbtn-radio3'>Semi-year</label>
-    <input type='radio' class='btn-check year-range-btn' name='range-radio' id='vbtn-radio4' autocomplete='off' disabled>
-    <label class='btn btn-outline-purple' for='vbtn-radio4'>Year</label>
-    <input type='radio' class='btn-check max-range-btn' name='range-radio' id='vbtn-radio5' autocomplete='off'>
-    <label class='btn btn-outline-purple' for='vbtn-radio5'>Max</label>`;
-    chartSettingsDiv.appendChild(rangeDiv);
+    let rangeDiv = document.querySelector('.track-range-btn-group');
 
     // Chart-type buttons
-    let chartTypeDiv = document.createElement('div');
-    chartTypeDiv.className = 'chart-types-btn-group btn-group';
-    chartTypeDiv.style.marginTop = '3%';
-    chartTypeDiv.style.marginLeft = 'auto';
-    chartTypeDiv.role = 'group';
-    chartTypeDiv.ariaLabel = 'Basic radio toggle button group';
-    chartTypeDiv.innerHTML = `
-    <input type='radio' class='btn-check chart-complete-btn' name='type-radio' id='chart-complete1' autocomplete='off'>
-    <label class='btn btn-outline-purple' for='chart-complete1'>Completed</label>
-    <input type='radio' class='btn-check chart-streak-btn' name='type-radio' id='chart-streak1' autocomplete='off'>
-    <label class='btn btn-outline-purple' for='chart-streak1'>Streak</label>
-    <input type='radio' class='btn-check chart-month-btn' name='type-radio' id='chart-month1' autocomplete='off'>
-    <label class='btn btn-outline-purple' for='chart-month1'>Monthly</label>`;
-    chartSettingsDiv.appendChild(chartTypeDiv);
+    let chartTypeDiv = document.querySelector('.chart-types-btn-group');
 
     // Set startDate for range buttons
     let completedRanges = taskData.completedDates;
     let startDate;
     if (completedRanges && completedRanges[0]) {
         startDate = new Date(completedRanges[0][0]);
+        document.querySelector('#chart-settings-div').style.opacity = 1;
     }
     else {
         whenBlankChart();
         return;
     }
-    
+
     // Initalize range buttons
     const diff = (new Date() - new Date(startDate)) / (1000 * 60 * 60 * 24);
     let weekButton = document.querySelector('.week-range-btn');
@@ -180,23 +203,30 @@ function selectTask(boxId, taskId) {
             chartBegin(taskData, 'Max', chartType);
         };
     }
-    
+
     // Initialize chart-type buttons
     if (chartTypeDiv) {
         let completeButton = document.querySelector('.chart-complete-btn');
         completeButton.onclick = () => {
             chartType = 'Complete';
-            chartBegin(taskData, rangeSetting, 'Complete');
+            chartBegin(taskData, rangeSetting, chartType);
+
+            weekButton.disabled = !(diff >= 7);
         };
         let streakButton = document.querySelector('.chart-streak-btn');
         streakButton.onclick = () => {
             chartType = 'Streak';
-            chartBegin(taskData, rangeSetting, 'Streak');
+            chartBegin(taskData, rangeSetting, chartType);
+
+            weekButton.disabled = !(diff >= 7);
         };
         let byMonthButton = document.querySelector('.chart-month-btn');
         byMonthButton.onclick = () => {
             chartType = 'Month';
-            chartBegin(taskData, rangeSetting, 'Month');
+
+            weekButton.disabled = true;
+
+            chartBegin(taskData, rangeSetting, chartType);
         };
     }
 
@@ -208,30 +238,23 @@ function selectTask(boxId, taskId) {
         chartType = 'Complete';
     }
 
-    document.querySelector(`.${rangeSetting.toLowerCase()}-range-btn`).checked = true;
-    document.querySelector(`.chart-${chartType.toLowerCase()}-btn`).checked = true;
-
-    if (chartType && chartType == 'Month') {
+    if (chartType == 'Month') {
         weekButton.disabled = true;
-
-        if (rangeSetting && rangeSetting == 'Week') {
-            let rangeSetting = 'Max';
-            document.querySelector('.max-range-btn').checked = true;
-        }
-    }
-    else {
-        weekButton.disabled = !(diff >= 7);
     }
 
     chartBegin(taskData, rangeSetting, chartType);
-
-    chartSettingsDiv.onclick = () => {
-        chartBegin(taskData, rangeSetting, chartType);
-    };
 }
 
 function chartBegin(taskData, rangeSetting, chartType) {
+    if (rangeSetting == 'Week' && chartType == 'Month') {
+        rangeSetting = 'Max';
+        document.querySelector('.max-range-btn').checked = true;
+    }
+
     removeFillerText();
+
+    document.querySelector(`.${rangeSetting.toLowerCase()}-range-btn`).checked = true;
+    document.querySelector(`.chart-${chartType.toLowerCase()}-btn`).checked = true;
 
     // Delete any previously existing charts
     if (taskChartInstance !== null) {
@@ -335,25 +358,11 @@ function chartComplete(taskData, startDate, rangeSetting) {
             labels: xValues,
             datasets: [{
                 data: yValues,
-                backgroundColor: [
-                    'rgba(255, 99, 132, 0.2)',
-                    'rgba(255, 159, 64, 0.2)',
-                    'rgba(255, 205, 86, 0.2)',
-                    'rgba(75, 192, 192, 0.2)',
-                    'rgba(54, 162, 235, 0.2)',
-                    'rgba(153, 102, 255, 0.2)',
-                    'rgba(201, 203, 207, 0.2)'
-                ],
-                borderColor: [
-                    'rgb(255, 99, 132)',
-                    'rgb(255, 159, 64)',
-                    'rgb(255, 205, 86)',
-                    'rgb(75, 192, 192)',
-                    'rgb(54, 162, 235)',
-                    'rgb(153, 102, 255)',
-                    'rgb(201, 203, 207)'
-                ],
-                borderWidth: 1
+                borderColor: chartColors,
+                borderWidth: borderWidth,
+                pointBorderWidth: pointBorderWidth,
+                fill: true,
+                backgroundColor: backgroundColor
             }]
         },
         options: {
@@ -383,7 +392,7 @@ function chartComplete(taskData, startDate, rangeSetting) {
                     }
                 },
                 y: {
-                    min: -0.01,
+                    min: 0,
                     max: 1.61803398875,
                 },
             }
@@ -450,25 +459,11 @@ function chartStreak(taskData, startDate, rangeSetting) {
             labels: xValues,
             datasets: [{
                 data: yValues,
-                backgroundColor: [
-                    'rgba(255, 99, 132, 0.2)',
-                    'rgba(255, 159, 64, 0.2)',
-                    'rgba(255, 205, 86, 0.2)',
-                    'rgba(75, 192, 192, 0.2)',
-                    'rgba(54, 162, 235, 0.2)',
-                    'rgba(153, 102, 255, 0.2)',
-                    'rgba(201, 203, 207, 0.2)'
-                ],
-                borderColor: [
-                    'rgb(255, 99, 132)',
-                    'rgb(255, 159, 64)',
-                    'rgb(255, 205, 86)',
-                    'rgb(75, 192, 192)',
-                    'rgb(54, 162, 235)',
-                    'rgb(153, 102, 255)',
-                    'rgb(201, 203, 207)'
-                ],
-                borderWidth: 1
+                borderColor: chartColors,
+                borderWidth: borderWidth,
+                pointBorderWidth: pointBorderWidth,
+                fill: true,
+                backgroundColor: backgroundColor
             }]
         },
         options: {
@@ -595,24 +590,18 @@ function chartMonthly(taskData, startDate, rangeSetting) {
             datasets: [{
                 data: yValues,
                 backgroundColor: [
-                    'rgba(255, 99, 132, 0.2)',
-                    'rgba(255, 159, 64, 0.2)',
-                    'rgba(255, 205, 86, 0.2)',
-                    'rgba(75, 192, 192, 0.2)',
-                    'rgba(54, 162, 235, 0.2)',
-                    'rgba(153, 102, 255, 0.2)',
-                    'rgba(201, 203, 207, 0.2)'
+                    'rgba(200, 180, 231, 0.25)',
+                    'rgba(168, 143, 220, 0.25)',
+                    'rgba(143, 111, 187, 0.25)',
+                    'rgba(116, 90, 170, 0.25)',
+                    'rgba(90, 61, 138, 0.25)',
+                    'rgba(75, 46, 117, 0.25)',
+                    'rgba(61, 30, 90, 0.25)',
+                    'rgba(47, 15, 67, 0.25)',
+                    'rgba(31, 10, 48, 0.25)'
                 ],
-                borderColor: [
-                    'rgb(255, 99, 132)',
-                    'rgb(255, 159, 64)',
-                    'rgb(255, 205, 86)',
-                    'rgb(75, 192, 192)',
-                    'rgb(54, 162, 235)',
-                    'rgb(153, 102, 255)',
-                    'rgb(201, 203, 207)'
-                ],
-                borderWidth: 1
+                borderColor: chartColors,
+                borderWidth: borderWidth
             }]
         },
         options: {
@@ -653,7 +642,7 @@ function whenBlankChart() {
     if (taskChartInstance !== null) {
         taskChartInstance.destroy();
     }
-    
+
     removeFillerText();
 
     let fillText = document.createElement('p');
@@ -662,7 +651,7 @@ function whenBlankChart() {
 
     document.querySelector('#track-chart-div').prepend(fillText);
 
-    document.querySelector('#chart-settings-div').innerHTML = "";
+    document.querySelector('#chart-settings-div').style.opacity = 0;
 }
 
 function removeFillerText() {

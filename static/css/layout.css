@@ -54,6 +54,13 @@ li {
     color: white;
 }
 
+.main .dropdown-item:focus,
+.main .dropdown-item:hover {
+    background-color: #7447e1 !important;
+    color: white;
+}
+
+
 .sidebar-header {
     display: flex;
     align-items: center;

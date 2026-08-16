@@ -517,16 +517,13 @@ function completeTask(radio) {
 
     // 🗻 Update DOM elements
     idsToChange.forEach(id => {
-        console.log(id);
         let oldTaskElement = document.querySelector(`#${id}`);
 
         if (oldTaskElement) {
             oldTaskElement.remove();
-            console.log("Removing", oldTaskElement);
         }
 
         if (previousState === 'completed') {
-            console.log("Adding", id);
             addHTMLTodoTask(todoBoxId, id, true);
         }
     });

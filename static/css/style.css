@@ -62,11 +62,6 @@ button {
     border-radius: 100% !important;
 }
 
-.main .dropdown-item:focus,
-.main .dropdown-item:hover {
-    background-color: #7547e174 !important;
-}
-
 .edit-todo-task-btn {
     margin-right: 8px;
     background-color: transparent;

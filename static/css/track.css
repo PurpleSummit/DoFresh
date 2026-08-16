@@ -13,8 +13,18 @@
     display: flex;
     flex-wrap: nowrap;
     overflow-x: auto;
-    overflow-y: hidden;
+    overflow-y: visible;
     width: 100%;
+    max-height: 300px;
+}
+
+.dropdown-menu {
+    position: fixed !important;
+}
+
+.dropdown:hover .dropdown-menu {
+    display: block;
+    margin-top: 0;
 }
 
 #title-selected-list {
