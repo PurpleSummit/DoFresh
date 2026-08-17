@@ -394,6 +394,9 @@ function chartComplete(taskData, startDate, rangeSetting) {
                 y: {
                     min: 0,
                     max: 1.61803398875,
+                    ticks: {
+                        stepSize: 1
+                    }
                 },
             }
         }
@@ -493,7 +496,10 @@ function chartStreak(taskData, startDate, rangeSetting) {
                     }
                 },
                 y: {
-                    min: 0
+                    min: 0,
+                    ticks: {
+                        stepSize: 1
+                    }
                 },
             }
         }

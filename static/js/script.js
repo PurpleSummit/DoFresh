@@ -22,17 +22,21 @@ document.addEventListener('DOMContentLoaded', () => {
         localStorage.setItem('lastAccessedDate', today);
     }
     else {
-        if (today != lastAccessedDate) {
+            let totalTasksNum = 0;
+            let totalTasksCompleted = 0;
 
             // Get all the refreshing to-do boxes
             let todoBoxes = Object.entries(localStorage).filter((entry) => Number.isInteger(+entry[0]));
             let allRefreshingTodoBoxes = [];
             todoBoxes.forEach(boxData => {
+                console.log(boxData);
+                totalTasksNum += JSON.parse(boxData[1]).tasks.active.length + JSON.parse(boxData[1]).tasks.completed.length;
                 if (JSON.parse(boxData[1]).refreshing) {
                     allRefreshingTodoBoxes.push(boxData[0]);
                 }
             });
-
+            
+            if (today != lastAccessedDate) {
             const diff = (new Date(today) - new Date(lastAccessedDate)) / (1000 * 60 * 60 * 24);
 
             allRefreshingTodoBoxes.forEach(todoBoxId => {
@@ -89,6 +93,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 // Refresh the completed tasks
                 todoBoxData.tasks.active = todoBoxData.tasks.active.concat(todoBoxData.tasks.completed);
+
+                totalTasksCompleted += todoBoxData.tasks.completed.length;
+
                 todoBoxData.tasks.completed = [];
 
                 localStorage.setItem(todoBoxId, JSON.stringify(todoBoxData));
@@ -96,6 +103,45 @@ document.addEventListener('DOMContentLoaded', () => {
 
             localStorage.setItem('lastAccessedDate', today);
         }
+
+        let notifModal = new bootstrap.Modal(document.getElementById('refreshNotifModal'), {});
+        notifModal.show();
+
+        document.querySelector('#task-completion-circle').dataset.percent = totalTasksCompleted / totalTasksNum * 100;
+
+        const progressCircles = document.querySelectorAll('.progress-circle');
+        const animateCircle = (progressCircle) => {
+            const circle = progressCircle.querySelector('.progress');
+            const percent = progressCircle.dataset.percent;
+            const percentText = progressCircle.querySelector('.progress-text-percentage');
+
+            const radius = circle.r.baseVal.value;
+            const circumference = radius * 2 * Math.PI;
+            const offset = circumference - (percent / 100) * circumference;
+            circle.style.strokeDashoffset = offset;
+
+            let count = 0;
+            const timer = setInterval(() => {
+                if (count >= percent) {
+                    clearInterval(timer);
+                }
+                else {
+                    count++;
+                    percentText.textContent = `${count}%`;
+                }
+            }, 15);
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('show');
+                    animateCircle(entry.target);
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.5 });
+        progressCircles.forEach(progressCircle => observer.observe(progressCircle));
     }
 
     // Display sidebar to-do lists and add main HTML
@@ -394,7 +440,7 @@ function addTask(button) {
         todoBoxData.tasks.active.push({ taskId: `${newTaskId}`, task: 'New task!', details: '', subTasks: [], createdDate: new Date().toISOString().split('T')[0], completedDates: [] });
     }
     else {
-        todoBoxData.tasks.active.push({ taskId: `${newTaskId}`, task: 'New task!', details: '', subTasks: [], createdDate: new Date().toISOString().split('T')[0] });
+        todoBoxData.tasks.active.push({ taskId: `${newTaskId}`, task: 'New task!', details: '', subTasks: [], createdDate: new Date().toISOString().split('T')[0], completedDate: ''});
     }
 
     localStorage.setItem(todoBoxId, JSON.stringify(todoBoxData));
@@ -446,7 +492,7 @@ function addSubtask(button) {
         newSubtaskObject = { taskId: `${newTaskId}`, task: 'New task!', details: '', parentTask: `${parentTaskId}`, createdDate: new Date().toISOString().split('T')[0], completedDates: [] };
     }
     else {
-        newSubtaskObject = { taskId: `${newTaskId}`, task: 'New task!', details: '', parentTask: `${parentTaskId}`, createdDate: new Date().toISOString().split('T')[0] };
+        newSubtaskObject = { taskId: `${newTaskId}`, task: 'New task!', details: '', parentTask: `${parentTaskId}`, createdDate: new Date().toISOString().split('T')[0], completedDate: '' };
     }
     todoBoxData.tasks['active'].push(newSubtaskObject);
 
@@ -499,6 +545,10 @@ function completeTask(radio) {
     if (previousState == 'active') {
         todoBoxData.tasks.active = todoBoxData.tasks.active.filter(t => !idsToChange.includes(t['taskId']));
 
+        tasksToChange.forEach(task => {
+            task.completedDate = `${new Date().toISOString().split('T')[0]}`;
+        });
+
         // Prevent duplicate entries
         const ongoingCompleted = todoBoxData.tasks.completed.filter(t => !idsToChange.includes(t['taskId']));
         todoBoxData.tasks.completed = ongoingCompleted.concat(tasksToChange);
@@ -508,6 +558,10 @@ function completeTask(radio) {
         // Prevent duplicate entries
         const ongoingActive = todoBoxData.tasks.active.filter(t => !idsToChange.includes(t['taskId']));
         todoBoxData.tasks.active = ongoingActive.concat(tasksToChange);
+
+        tasksToChange.forEach(task => {
+            task.completedDate = '';
+        });
 
         todoBoxData.tasks.completed = todoBoxData.tasks.completed.filter(t => !idsToChange.includes(t['taskId']));
     }
@@ -827,7 +881,7 @@ function addHTMLTodoTask(todoBoxId, taskId, active) {
     else {
         if (!active && !tasksDiv) {
             addHTMLCollapseDiv(todoBoxId);
-            
+
             // Set tasksDiv again
             tasksDiv = document.querySelector(`#todo-box${todoBoxId}`).querySelector(`.todo-box-completed-tasks`);
         }

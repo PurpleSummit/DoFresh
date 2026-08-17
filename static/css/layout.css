@@ -24,8 +24,12 @@ li {
     list-style: none;
 }
 
+button:not(.dropdown-toggle) {
+    border-radius: 13px;
+}
+
 .btn-outline-purple {
-    color: #5647e1;
+    color: #463ab7;
     border-color: #7447e1;
 }
 
@@ -42,7 +46,7 @@ li {
     box-shadow: 0 0 0 .2rem #7547e12b;
 }
 
-.btn-purple {
+.btn-purple:not(.dropdown-toggle) {
     background-color: #7447e1 !important;
     color: white;
 }
@@ -60,7 +64,6 @@ li {
     color: white;
 }
 
-
 .sidebar-header {
     display: flex;
     align-items: center;
@@ -68,6 +71,7 @@ li {
     padding: 0 15px;
     margin-top: 15px;
     overflow: hidden;
+    height: 102px;
 }
 
 .toggle-btn {
@@ -120,10 +124,6 @@ li {
     background-color: #0e2238;
     min-width: 15em;
     display: none;
-}
-
-#sidebar:not(.expand) .sidebar-item:hover .sidebar-dropdown {
-    display: block !important;
 }
 
 #sidebar.expand .sidebar-link[data-bs-toggle="collapse"]::after {
@@ -199,6 +199,11 @@ a.sidebar-link {
     color: white;
 }
 
+.sidebar-tooltip {
+    --bs-tooltip-bg: var(--bd-violet-bg);
+    --bs-tooltip-color: var(--bs-white);
+}
+
 .sidebar-nav {
     padding: 0.7rem 0;
     flex: 11 auto;
@@ -209,6 +214,7 @@ a.sidebar-link {
 .dropdown-item svg {
     font-size: 1.1rem;
     margin-right: 0.75rem;
+    margin-bottom: 3px;
 }
 
 a.sidebar-link:hover {
@@ -225,6 +231,11 @@ a.sidebar-link:hover {
     overflow: hidden;
 }
 
+.sidebar-footer img {
+    margin-left: -6px;
+    margin-right: 16px !important;
+}
+
 .dropdown-toggle::after {
     margin-left: 0.4em;
 }
@@ -237,4 +248,10 @@ a.sidebar-link:hover {
     min-height: 100vh;
     width: 100%;
     overflow: hidden;
+}
+
+.btn-close {
+    font-size: 9px;
+    position: absolute;
+    right: 14px;
 }

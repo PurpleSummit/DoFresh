@@ -14,6 +14,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
+    const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
+
     // home page sidebar
     const homeSidebarList = document.querySelector('#home-lists');
     let allTodoBoxIds = Object.keys(localStorage).filter(key => Number.isInteger(+key));
@@ -36,22 +39,21 @@ document.addEventListener('DOMContentLoaded', () => {
     if (trackSidebarList) {
         trackTodoBoxIds.forEach(boxId => {
             let todoBoxData = JSON.parse(localStorage[`${boxId}`]);
-    
+
             let listLabel = document.createElement('li');
             listLabel.innerHTML = `<a class='sidebar-link' style='cursor: pointer;'>${todoBoxData.title}</a>`
-    
+
             // If in the track page
             // Else travel to the track page and run this
             listLabel.addEventListener('click', () => {
-                if (typeof selectTodoList === 'function')
-                {
+                if (typeof selectTodoList === 'function') {
                     selectTodoList(boxId);
                 }
                 else {
                     window.location.href = '/track';
                 }
             });
-    
+
             trackSidebarList.appendChild(listLabel);
         });
     }
@@ -60,7 +62,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 function openSidebar() {
     document.body.style.paddingLeft = '277px';
-    
+
     const chatInputField = document.querySelector('#user-input-container');
     if (chatInputField) {
         chatInputField.style.paddingLeft = '277px';

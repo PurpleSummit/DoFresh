@@ -72,4 +72,35 @@
     </div>
 </div>
 
+<div class="modal fade" id="refreshNotifModal" tabindex="-1" aria-labelledby="refreshNotifModalLabel"
+    aria-hidden="false">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-body">
+
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <h5>It's a new day!</h5>
+
+                <div class="widget-container-div">
+                    <div id="task-completion-circle" class="progress-circle animated" data-percent="80">
+                        <svg class="progress-circle-svg">
+                            <circle class="bg" cx="70" cy="70" r="70"></circle>
+                            <circle class="progress" cx="70" cy="70" r="70"></circle>
+                        </svg>
+                        <div class="progress-text">
+                            <div class="progress-text-percentage">0%</div>
+                        </div>
+                        <div class="progress-text-name">Tasks completed</div>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-purple" data-bs-dismiss="modal">Let's go!</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 {% endblock %}
