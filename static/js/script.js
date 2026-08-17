@@ -22,21 +22,25 @@ document.addEventListener('DOMContentLoaded', () => {
         localStorage.setItem('lastAccessedDate', today);
     }
     else {
-            let totalTasksNum = 0;
-            let totalTasksCompleted = 0;
+        let totalTasksNum = 0;
+        let totalTasksCompleted = 0;
 
-            // Get all the refreshing to-do boxes
-            let todoBoxes = Object.entries(localStorage).filter((entry) => Number.isInteger(+entry[0]));
-            let allRefreshingTodoBoxes = [];
-            todoBoxes.forEach(boxData => {
-                console.log(boxData);
-                totalTasksNum += JSON.parse(boxData[1]).tasks.active.length + JSON.parse(boxData[1]).tasks.completed.length;
-                if (JSON.parse(boxData[1]).refreshing) {
-                    allRefreshingTodoBoxes.push(boxData[0]);
-                }
-            });
-            
-            if (today != lastAccessedDate) {
+        // Get all the refreshing to-do boxes
+        let todoBoxes = Object.entries(localStorage).filter((entry) => Number.isInteger(+entry[0]));
+        let allRefreshingTodoBoxes = [];
+        todoBoxes.forEach(boxData => {
+            boxData = JSON.parse(boxData[1]);
+            totalTasksNum += boxData.tasks.active.length + boxData.tasks.completed.length;
+            totalTasksCompleted += boxData.tasks.completed.filter(t => (t.completedDate && t.completedDate == lastAccessedDate) || (t.completedDates && lastAccessedDate in t.completedDates)).length;
+
+            if (boxData.refreshing) {
+                allRefreshingTodoBoxes.push(boxData[0]);
+            }
+        });
+
+        console.log(totalTasksNum);
+
+        if (today != lastAccessedDate) {
             const diff = (new Date(today) - new Date(lastAccessedDate)) / (1000 * 60 * 60 * 24);
 
             allRefreshingTodoBoxes.forEach(todoBoxId => {
@@ -94,8 +98,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Refresh the completed tasks
                 todoBoxData.tasks.active = todoBoxData.tasks.active.concat(todoBoxData.tasks.completed);
 
-                totalTasksCompleted += todoBoxData.tasks.completed.length;
-
                 todoBoxData.tasks.completed = [];
 
                 localStorage.setItem(todoBoxId, JSON.stringify(todoBoxData));
@@ -107,7 +109,7 @@ document.addEventListener('DOMContentLoaded', () => {
         let notifModal = new bootstrap.Modal(document.getElementById('refreshNotifModal'), {});
         notifModal.show();
 
-        document.querySelector('#task-completion-circle').dataset.percent = totalTasksCompleted / totalTasksNum * 100;
+        //document.querySelector('#task-completion-circle').dataset.percent = totalTasksCompleted / totalTasksNum * 100;
 
         const progressCircles = document.querySelectorAll('.progress-circle');
         const animateCircle = (progressCircle) => {
@@ -440,7 +442,7 @@ function addTask(button) {
         todoBoxData.tasks.active.push({ taskId: `${newTaskId}`, task: 'New task!', details: '', subTasks: [], createdDate: new Date().toISOString().split('T')[0], completedDates: [] });
     }
     else {
-        todoBoxData.tasks.active.push({ taskId: `${newTaskId}`, task: 'New task!', details: '', subTasks: [], createdDate: new Date().toISOString().split('T')[0], completedDate: ''});
+        todoBoxData.tasks.active.push({ taskId: `${newTaskId}`, task: 'New task!', details: '', subTasks: [], createdDate: new Date().toISOString().split('T')[0], completedDate: '' });
     }
 
     localStorage.setItem(todoBoxId, JSON.stringify(todoBoxData));
@@ -546,7 +548,7 @@ function completeTask(radio) {
         todoBoxData.tasks.active = todoBoxData.tasks.active.filter(t => !idsToChange.includes(t['taskId']));
 
         tasksToChange.forEach(task => {
-            task.completedDate = `${new Date().toISOString().split('T')[0]}`;
+            if (task.completedDate) task.completedDate = `${new Date().toISOString().split('T')[0]}`;
         });
 
         // Prevent duplicate entries
@@ -560,7 +562,7 @@ function completeTask(radio) {
         todoBoxData.tasks.active = ongoingActive.concat(tasksToChange);
 
         tasksToChange.forEach(task => {
-            task.completedDate = '';
+            if (task.completedDate) task.completedDate = '';
         });
 
         todoBoxData.tasks.completed = todoBoxData.tasks.completed.filter(t => !idsToChange.includes(t['taskId']));

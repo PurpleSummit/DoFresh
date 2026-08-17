@@ -79,20 +79,36 @@
             <div class="modal-body">
 
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                <h5>It's a new day!</h5>
+                <h5>It's a new day! 🌱</h5>
 
-                <div class="widget-container-div">
-                    <div id="task-completion-circle" class="progress-circle animated" data-percent="80">
+                <p>Yesterday, you had...</p>
+
+                <div class="widget-container-div" style="display: flex;">
+                    <div id="task-completion-circle" class="progress-circle animated" data-percent="52">
                         <svg class="progress-circle-svg">
                             <circle class="bg" cx="70" cy="70" r="70"></circle>
                             <circle class="progress" cx="70" cy="70" r="70"></circle>
                         </svg>
                         <div class="progress-text">
-                            <div class="progress-text-percentage">0%</div>
+                            <div class="progress-text-percentage">52%</div>
+                        </div>
+                        <div class="progress-text-name">Tasks completed</div>
+                    </div>
+
+                    <div id="task-completion-circle" class="progress-circle animated" data-percent="80" style="margin-left: 85px;">
+                        <svg class="progress-circle-svg">
+                            <circle class="bg" cx="70" cy="70" r="70"></circle>
+                            <circle class="progress" cx="70" cy="70" r="70"></circle>
+                        </svg>
+                        <div class="progress-text">
+                            <div class="progress-text-percentage">80%</div>
                         </div>
                         <div class="progress-text-name">Tasks completed</div>
                     </div>
                 </div>
+            
+                <br>
+                <p>Welcome to Today™!</p>
 
             </div>
 
