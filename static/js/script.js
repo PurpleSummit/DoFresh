@@ -1,3 +1,5 @@
+import {lumiStaticImg, lumiJump} from './lumi.js';
+
 // INIT code
 
 let fillTextArray = ['📝 a blank canvas here!\n', "goodness me, look at that! it's time to get going 🏃\n", 'you can do this! — blue 52 🐳\n', 'may the force be with you... ✊\n', 'lettuce commence. 🥬\n', 'go you! go you! 🎉\n']
@@ -188,14 +190,14 @@ function setListeners() {
 
     let allTodoTasks = document.querySelectorAll('.todo-task-text');
 
-    allTodoTasks.forEach(textbox => {
-        textbox.onfocus = () => {
-            textbox.parentElement.dataset.bsToggle = 'disabled';
+    allTodoTasks.forEach(textarea => {
+        textarea.onfocus = () => {
+            textarea.parentElement.dataset.bsToggle = 'disabled';
         };
 
-        textbox.addEventListener('focusout', () => {
-            textbox.parentElement.dataset.bsToggle = 'collapse';
-            editTask(textbox);
+        textarea.addEventListener('focusout', () => {
+            textarea.parentElement.dataset.bsToggle = 'collapse';
+            editTask(textarea);
         });
     });
 
@@ -525,6 +527,9 @@ function addSubtask(button) {
 }
 
 function completeTask(radio) {
+    // Change Lumi's costume
+    lumiJump();
+
     let taskElement = radio.parentElement.parentElement.parentElement;
     let taskId = taskElement.id;
     let parentTodoBox = taskElement.parentElement.parentElement;
@@ -862,7 +867,7 @@ function addHTMLTodoTask(todoBoxId, taskId, active) {
         <h2 class="accordion-header">
             <div class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#details-${taskId}" aria-expanded="false" aria-controls="details-${taskId}">
                 <input type='radio'${checked}>
-                <input type='text' class='todo${completed}-task-text' value='${taskText}'${disabled}>
+                <textarea name='task-textarea' class='todo${completed}-task-text'${disabled}>${taskText}</textarea>
                 <button type="button" class="btn edit-todo-task-btn" data-bs-toggle="dropdown" aria-expanded="false" data-toggle="dropdown">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-three-dots-vertical" viewBox="0 0 16 16">
                         <path d="M9.5 13a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0m0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0m0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0"/>

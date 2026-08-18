@@ -61,7 +61,7 @@ button {
     border-color: #f8f9fa;
     border-width: 1px;
     border-radius: 17px;
-    width: 450px;
+    width: 515px;
     min-height: 300px;
     margin: 17px;
     padding-bottom: 23px;
@@ -92,6 +92,16 @@ button {
     border-radius: 100% !important;
 }
 
+.task-edit-dropdown {
+    opacity: 1;
+    overflow: hidden;
+    transition: max-height 0.3s ease, opacity 0.3s ease;
+}
+
+.task-edit-dropdown.collapsed {
+    opacity: 0;
+}
+
 .edit-todo-task-btn {
     margin-right: 8px;
     background-color: transparent;
@@ -114,85 +124,8 @@ button {
     background-color: rgba(252, 252, 252, 0.604) !important;
 }
 
-.task-edit-dropdown {
-    opacity: 1;
-    overflow: hidden;
-    transition: max-height 0.3s ease, opacity 0.3s ease;
-}
-
-.task-edit-dropdown.collapsed {
-    opacity: 0;
-}
-
 .remove-task-btn {
     margin-top: -2px;
-}
-
-.todo-task {
-    display: block;
-    margin-bottom: 5px;
-    padding: 0px 19px;
-    background-color: transparent;
-    border-radius: 13px !important;
-    border: none;
-}
-
-.todo-task:hover {
-    background-color: rgba(252, 252, 252, 0.52);
-}
-
-.todo-box-completed-tasks {
-    transition: 0.4s ease-in;
-}
-
-.todo-completed-task-text {
-    text-decoration: line-through;
-}
-
-.subtask {
-    padding-left: 11%;
-}
-
-.subtask input[type='text'] {
-    max-width: 269px;
-}
-
-label {
-    width: 100%;
-    box-sizing: border-box;
-}
-
-input[type='radio'] {
-    cursor: pointer;
-}
-
-input[type='text'] {
-    font-size: 17px;
-    max-width: 305px;
-    min-height: 36px;
-    border-style: none;
-    background: rgba(0, 0, 0, 0);
-    margin-left: 10px;
-    width: 100%;
-    box-sizing: border-box;
-    resize: none;
-    field-sizing: content;
-    cursor: default;
-}
-
-textarea {
-    font-size: 13px;
-    background: rgba(0, 0, 0, 0);
-    color: rgb(93, 91, 91);
-    max-width: 516px;
-    min-height: 24px;
-    max-height: 137px;
-    height: stretch !important;
-    border-style: none;
-    box-sizing: border-box;
-    resize: none;
-    field-sizing: content;
-    margin-top: 5px;
 }
 
 .accordion-header {
@@ -236,6 +169,97 @@ textarea {
 .collapse-btn:hover {
     border-color: rgba(0, 0, 0, 0);
 }
+
+.todo-task {
+    display: block;
+    margin-bottom: 5px;
+    padding: 3px 19px;
+    background-color: transparent;
+    border-radius: 13px !important;
+    border: none;
+}
+
+.todo-task:hover {
+    background-color: rgba(252, 252, 252, 0.52);
+}
+
+input[type='radio'] {
+    cursor: pointer;
+}
+
+.todo-task-text,
+.todo-completed-task-text {
+    margin-left: 10px;
+    padding: 8px 6px;
+
+    font-size: 17px;
+    cursor: default;
+    border-style: none;
+    background: rgba(0, 0, 0, 0);
+    
+    width: 100%;
+    min-height: 36px;
+
+    box-sizing: border-box;
+    field-sizing: content;
+    overflow: hidden;
+    resize: none;
+}
+
+.todo-task-text::-webkit-scrollbar {
+    display: none;
+}
+
+.todo-task-details {
+    font-size: 13px;
+    background: rgba(0, 0, 0, 0);
+    color: rgb(93, 91, 91);
+    max-width: 516px;
+    min-height: 24px;
+    max-height: 137px;
+    height: stretch !important;
+    border-style: none;
+    box-sizing: border-box;
+    resize: none;
+    field-sizing: content;
+    margin-top: 5px;
+}
+
+.todo-box-completed-tasks {
+    transition: 0.4s ease-in;
+}
+
+.todo-completed-task-text {
+    text-decoration: line-through;
+}
+
+.subtask {
+    padding-left: 11%;
+}
+
+.subtask textarea {
+    max-width: 80%;
+}
+
+label {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+input[type='text'] {
+    margin-left: 10px;
+    padding: 0px;
+
+    font-size: 17px;
+    cursor: default;
+    border-style: none;
+    background: rgba(0, 0, 0, 0);
+    
+    width: 100%;
+    max-width: 286px;
+    min-height: 36px;
+}
+
 
 .progress-circle {
     position: relative;
@@ -295,4 +319,20 @@ textarea {
     font-size: 0.9rem;
     margin-top: 5px;
     text-align: center;
+}
+
+#lumi {
+    width: 114px;
+    position: absolute;
+    z-index: 10000;
+    left: 515px;
+    top: 0px;
+    transition: opacity 0.15s ease-in-out, transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+    opacity: 1;
+    transform: scale(1);
+}
+
+#lumi.lumi-swapping {
+    opacity: 0;
+    transform: scale(0.85);
 }
