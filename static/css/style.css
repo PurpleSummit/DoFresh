@@ -64,7 +64,7 @@ button {
     width: 450px;
     min-height: 300px;
     margin: 17px;
-    height: fit-content;
+    padding-bottom: 23px;
 
     background: rgba(255, 255, 255, 0.20);
     backdrop-filter: blur(24px) saturate(180%);

@@ -57,7 +57,6 @@ document.addEventListener('DOMContentLoaded', () => {
             trackSidebarList.appendChild(listLabel);
         });
     }
-
 });
 
 function openSidebar() {

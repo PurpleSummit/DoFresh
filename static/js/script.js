@@ -22,27 +22,36 @@ document.addEventListener('DOMContentLoaded', () => {
         localStorage.setItem('lastAccessedDate', today);
     }
     else {
-        let totalTasksNum = 0;
-        let totalTasksCompleted = 0;
-
-        // Get all the refreshing to-do boxes
-        let todoBoxes = Object.entries(localStorage).filter((entry) => Number.isInteger(+entry[0]));
-        let allRefreshingTodoBoxes = [];
-        todoBoxes.forEach(boxData => {
-            boxData = JSON.parse(boxData[1]);
-            totalTasksNum += boxData.tasks.active.length + boxData.tasks.completed.length;
-            totalTasksCompleted += boxData.tasks.completed.filter(t => (t.completedDate && t.completedDate == lastAccessedDate) || (t.completedDates && lastAccessedDate in t.completedDates)).length;
-
-            if (boxData.refreshing) {
-                allRefreshingTodoBoxes.push(boxData[0]);
-            }
-        });
-
-        console.log(totalTasksNum);
-
         if (today != lastAccessedDate) {
+            let totalTasksNum = 0;
+            let totalTasksCompleted = 0;
+            let totalListsCompleted = 0;
+
+            // Get all the refreshing to-do boxes
+            let todoBoxes = Object.entries(localStorage).filter((entry) => Number.isInteger(+entry[0]));
+            let allRefreshingTodoBoxes = [];
+            todoBoxes.forEach(boxData => {
+                boxId = boxData[0];
+                boxData = JSON.parse(boxData[1]);
+
+                // Gather data from last time for display
+                totalTasksNum += boxData.tasks.active.length + boxData.tasks.completed.length;
+                totalTasksCompleted += boxData.tasks.completed.filter(t => (t.completedDate && t.completedDate == lastAccessedDate)).length;
+
+                if (boxData.refreshing) {
+                    allRefreshingTodoBoxes.push(boxId);
+
+                    totalTasksCompleted += boxData.tasks.completed.length;
+                }
+
+                if (totalTasksCompleted > 0) {
+                    totalListsCompleted++;
+                }
+            });
+
             const diff = (new Date(today) - new Date(lastAccessedDate)) / (1000 * 60 * 60 * 24);
 
+            // Record streaks
             allRefreshingTodoBoxes.forEach(todoBoxId => {
                 let todoBoxData = JSON.parse(localStorage.getItem(todoBoxId));
 
@@ -101,49 +110,52 @@ document.addEventListener('DOMContentLoaded', () => {
                 todoBoxData.tasks.completed = [];
 
                 localStorage.setItem(todoBoxId, JSON.stringify(todoBoxData));
-            });
+            }); 
 
+            // Set lastAccessedDate
             localStorage.setItem('lastAccessedDate', today);
+
+            // Display the refresh notification w/ information
+            let notifModal = new bootstrap.Modal(document.getElementById('refreshNotifModal'), {});
+            notifModal.show();
+
+            document.querySelector('#task-completion-circle').dataset.percent = totalTasksCompleted / totalTasksNum * 100;
+            document.querySelector('#list-completion-circle').dataset.percent = totalListsCompleted / todoBoxes.length * 100; 
+
+            const progressCircles = document.querySelectorAll('.progress-circle');
+            const animateCircle = (progressCircle) => {
+                const circle = progressCircle.querySelector('.progress');
+                const percent = progressCircle.dataset.percent;
+                const percentText = progressCircle.querySelector('.progress-text-percentage');
+
+                const radius = circle.r.baseVal.value;
+                const circumference = radius * 2 * Math.PI;
+                const offset = circumference - (percent / 100) * circumference;
+                circle.style.strokeDashoffset = offset;
+
+                let count = 0;
+                const timer = setInterval(() => {
+                    if (count >= percent) {
+                        clearInterval(timer);
+                    }
+                    else {
+                        count++;
+                        percentText.textContent = `${count}%`;
+                    }
+                }, 15);
+            };
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('show');
+                        animateCircle(entry.target);
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, { threshold: 0.5 });
+            progressCircles.forEach(progressCircle => observer.observe(progressCircle));
         }
-
-        let notifModal = new bootstrap.Modal(document.getElementById('refreshNotifModal'), {});
-        notifModal.show();
-
-        //document.querySelector('#task-completion-circle').dataset.percent = totalTasksCompleted / totalTasksNum * 100;
-
-        const progressCircles = document.querySelectorAll('.progress-circle');
-        const animateCircle = (progressCircle) => {
-            const circle = progressCircle.querySelector('.progress');
-            const percent = progressCircle.dataset.percent;
-            const percentText = progressCircle.querySelector('.progress-text-percentage');
-
-            const radius = circle.r.baseVal.value;
-            const circumference = radius * 2 * Math.PI;
-            const offset = circumference - (percent / 100) * circumference;
-            circle.style.strokeDashoffset = offset;
-
-            let count = 0;
-            const timer = setInterval(() => {
-                if (count >= percent) {
-                    clearInterval(timer);
-                }
-                else {
-                    count++;
-                    percentText.textContent = `${count}%`;
-                }
-            }, 15);
-        };
-
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.classList.add('show');
-                    animateCircle(entry.target);
-                    observer.unobserve(entry.target);
-                }
-            });
-        }, { threshold: 0.5 });
-        progressCircles.forEach(progressCircle => observer.observe(progressCircle));
     }
 
     // Display sidebar to-do lists and add main HTML
