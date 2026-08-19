@@ -33,7 +33,7 @@ document.addEventListener('DOMContentLoaded', () => {
             let todoBoxes = Object.entries(localStorage).filter((entry) => Number.isInteger(+entry[0]));
             let allRefreshingTodoBoxes = [];
             todoBoxes.forEach(boxData => {
-                boxId = boxData[0];
+                let boxId = boxData[0];
                 boxData = JSON.parse(boxData[1]);
 
                 // Gather data from last time for display

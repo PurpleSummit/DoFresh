@@ -1,3 +1,5 @@
+let lumiTimeout;
+
 document.addEventListener("DOMContentLoaded", () => {
     const lumi = document.createElement("div");
     lumi.id = "lumi";
@@ -5,24 +7,45 @@ document.addEventListener("DOMContentLoaded", () => {
         <img src="" alt="Lumi character">
     </object>`;
 
-    document.body.prepend(lumi);
+    if (localStorage.length >= 2) {
+        lumi.style.left = '515px';
+        const todoBox = document.body.querySelector('.todo-box-div');
 
-    lumiStaticImg();
+        if (todoBox) {
+            todoBox.prepend(lumi);
+        }
+    } else {
+        document.body.prepend(lumi);
+    }
+
+    lumiMainBlink();
 });
 
 function setLumiCostume(svgPath) {
     const lumi = document.querySelector('#lumi');
     const objectTag = lumi.querySelector('object');
 
-    lumi.classList.add('lumi-swapping');
+    let previousSvgPath = objectTag.querySelector('img').src;
+
+    if (previousSvgPath && previousSvgPath.includes(svgPath.replace('.', ''))) {
+        lumi.classList.add('lumi-swapping');
+    }
 
     setTimeout(() => {
         if (objectTag) {
             objectTag.setAttribute('data', svgPath);
-            //objectTag.querySelector('img').src = svgPath;
+            objectTag.querySelector('img').src = svgPath;
         }
         lumi.classList.remove('lumi-swapping');
     }, 150);
+}
+
+export function lumiMainBlink() {
+    setLumiCostume('../static/img/lumi_blink_passive.svg');
+
+    lumiTimeout = setTimeout(() => {
+        lumiMainBlink();
+    }, Math.floor(Math.random() * (10000 - 5000 + 1)) + 5000);
 }
 
 export function lumiStaticImg() {
@@ -32,9 +55,11 @@ export function lumiStaticImg() {
 }
 
 export function lumiJump() {
+    clearTimeout(lumiTimeout);
+
     setLumiCostume('../static/img/lumi_jumping.svg');
 
     setTimeout(() => {
-        lumiStaticImg();
+        lumiMainBlink();
     }, 5600);
 }

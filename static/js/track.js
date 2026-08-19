@@ -20,19 +20,146 @@ document.addEventListener('DOMContentLoaded', () => {
     // Activate sidebar link
     // document.querySelector('#sidebar-track-link').className = 'nav-link active';
 
-    const allTodoBoxes = Object.entries(localStorage).filter((entry) => Number.isInteger(+entry[0]) && JSON.parse(entry[1]).refreshing);
-    const allTodoBoxIds = allTodoBoxes.map(data => data[0]);
+    const allTodoBoxes = Object.entries(localStorage).filter(([key, value]) => {
+        if (!Number.isInteger(+key) || !value) return false;
+        try {
+            return JSON.parse(value).refreshing;
+        } catch (e) {
+            return false;
+        }
+    });
+    // const allTodoBoxIds = Object.keys(localStorage).filter((entry) => Number.isInteger(+entry[0]) && JSON.parse(entry[1]).refreshing);
 
-    if (allTodoBoxIds.length > 0) {
-        let defaultTodoBoxId = allTodoBoxIds[0];
-        selectTodoList(defaultTodoBoxId);
-    }
-    else {
-        whenBlankChart();
-    }
+    let allTasks = [];
+    allTodoBoxes.forEach(todoData => {
+        let todoBox = JSON.parse(todoData[1]);
+        allTasks = allTasks.concat(todoBox.tasks.active).concat(todoBox.tasks.completed);
+    });
+
+    chartCompletion(allTasks);
 });
 
-function selectTodoList(boxId) {
+function chartCompletion(allTasks) {
+    let today = new Date();
+    let yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+
+    let completionData = {};
+
+    allTasks.forEach(taskData => {
+        let completedRanges = taskData.completedDates;
+        let completedDates = [];
+
+        // Get the full array of completed dates
+        if (completedRanges && completedRanges[0]) {
+            completedRanges.forEach(dateRange => {
+                let iDate = new Date(dateRange[0]);
+                let jDate = dateRange[1];
+
+                if (jDate === null) {
+                    jDate = new Date(yesterday);
+                }
+                else {
+                    jDate = new Date(jDate);
+                }
+
+                while (iDate <= jDate) {
+                    completedDates.push(iDate.toISOString().split('T')[0]);
+                    iDate.setDate(iDate.getDate() + 1);
+                }
+            });
+        }
+
+        completedDates.forEach(completedDate => {
+            if (Object.keys(completionData).includes(completedDate)) {
+                completionData[completedDate]++;
+            } else {
+                completionData[completedDate] = 1;
+            }
+        });
+    });
+
+    let xValues = Object.keys(completionData);
+    let yValues = [];
+
+    // Fill in xValues with dates with no completions
+    let iDate = new Date(xValues[0]);
+    while (iDate <= yesterday) {
+        selectDate = iDate.toISOString().split('T')[0];
+
+        if (!xValues.includes(selectDate)) {
+            xValues.push(selectDate);
+        }
+
+        iDate.setDate(iDate.getDate() + 1);
+    }
+
+    xValues = xValues.sort();
+
+    let labels = [];
+
+    // Fill in yValues and labels
+    xValues.forEach(date => {
+        if (completionData[date]) {
+            yValues.push(completionData[date]);
+        } else {
+            yValues.push(0);
+        }
+
+        let labelDate = new Date(date);
+        labelDate = labelDate.toDateString().split(" ");
+        labelDate = `${labelDate[1]} ${labelDate[2]}`;
+        labels.push(labelDate);
+    });
+
+    taskChartInstance = new Chart('days-completion-canvas', {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                data: yValues,
+                borderColor: chartColors,
+                borderWidth: borderWidth,
+                tension: 0.4,
+                pointBorderWidth: pointBorderWidth,
+                fill: true,
+                backgroundColor: backgroundColor
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                title: {
+                    display: true,
+                    padding: {
+                        top: 10,
+                        bottom: 30
+                    },
+                    font: {
+                        size: 19
+                    }
+                },
+                legend: { display: false },
+            },
+            scales: {
+                x: {
+                    ticks: {
+                        maxRotation: 0
+                    }
+                },
+                y: {
+                    min: 0,
+                    ticks: {
+                        stepSize: 1
+                    }
+                },
+            }
+        }
+    });
+}
+
+/* function selectTodoList(boxId) {
     let taskNavDiv = document.querySelector('#todo-tasks-nav');
 
     let todoBoxData = JSON.parse(localStorage[`${boxId}`]);
@@ -129,9 +256,9 @@ function selectTodoList(boxId) {
     else {
         whenBlankChart();
     }
-}
+} */
 
-function selectTask(boxId, taskId) {
+/* function selectTask(boxId, taskId) {
     console.log('selected', taskId);
 
     // Check the task button
@@ -243,9 +370,9 @@ function selectTask(boxId, taskId) {
     }
 
     chartBegin(taskData, rangeSetting, chartType);
-}
+} */
 
-function chartBegin(taskData, rangeSetting, chartType) {
+/* function chartBegin(taskData, rangeSetting, chartType) {
     if (rangeSetting == 'Week' && chartType == 'Month') {
         rangeSetting = 'Max';
         document.querySelector('.max-range-btn').checked = true;
@@ -296,9 +423,9 @@ function chartBegin(taskData, rangeSetting, chartType) {
     else if (chartType == 'Month') {
         chartMonthly(taskData, startDate, rangeSetting);
     }
-}
+} */
 
-function chartComplete(taskData, startDate, rangeSetting) {
+/* function chartComplete(taskData, startDate, rangeSetting) {
     let today = new Date();
     let yesterday = new Date(today);
     yesterday.setDate(yesterday.getDate() - 1);
@@ -401,9 +528,9 @@ function chartComplete(taskData, startDate, rangeSetting) {
             }
         }
     });
-}
+} */
 
-function chartStreak(taskData, startDate, rangeSetting) {
+/* function chartStreak(taskData, startDate, rangeSetting) {
     let today = new Date();
     let yesterday = new Date(today);
     yesterday.setDate(yesterday.getDate() - 1);
@@ -504,9 +631,9 @@ function chartStreak(taskData, startDate, rangeSetting) {
             }
         }
     });
-}
+} */
 
-function chartMonthly(taskData, startDate, rangeSetting) {
+/* function chartMonthly(taskData, startDate, rangeSetting) {
     startDate = new Date(startDate);
 
     const date = new Date();
@@ -642,7 +769,7 @@ function chartMonthly(taskData, startDate, rangeSetting) {
             }
         }
     });
-}
+} */
 
 function whenBlankChart() {
     if (taskChartInstance !== null) {
@@ -655,7 +782,7 @@ function whenBlankChart() {
     fillText.id = `chart-fill-p`;
     fillText.textContent = `No data yet... it's time to get cracking! 🔮`;
 
-    document.querySelector('#track-chart-div').prepend(fillText);
+    document.querySelector('#track-dashboard').prepend(fillText);
 
     document.querySelector('#chart-settings-div').style.opacity = 0;
 }
