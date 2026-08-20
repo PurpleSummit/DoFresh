@@ -1,7 +1,9 @@
-let taskChartInstance = null;
-let rangeSetting, chartType;
+//let taskChartInstance = null;
+// let rangeSetting, chartType;
 
-const borderWidth = 3;
+let months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'July', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+const borderWidth = 4;
 const backgroundColor = 'rgba(117, 71, 225, 0.11)';
 const pointBorderWidth = 1;
 const chartColors = [
@@ -20,65 +22,68 @@ document.addEventListener('DOMContentLoaded', () => {
     // Activate sidebar link
     // document.querySelector('#sidebar-track-link').className = 'nav-link active';
 
-    const allTodoBoxes = Object.entries(localStorage).filter(([key, value]) => {
-        if (!Number.isInteger(+key) || !value) return false;
-        try {
-            return JSON.parse(value).refreshing;
-        } catch (e) {
-            return false;
-        }
-    });
     // const allTodoBoxIds = Object.keys(localStorage).filter((entry) => Number.isInteger(+entry[0]) && JSON.parse(entry[1]).refreshing);
 
-    let allTasks = [];
-    allTodoBoxes.forEach(todoData => {
-        let todoBox = JSON.parse(todoData[1]);
-        allTasks = allTasks.concat(todoBox.tasks.active).concat(todoBox.tasks.completed);
-    });
-
-    chartCompletion(allTasks);
+    chartCompletion();
+    activityHeatmap();
 });
 
-function chartCompletion(allTasks) {
-    let today = new Date();
-    let yesterday = new Date(today);
-    yesterday.setDate(yesterday.getDate() - 1);
+let today = new Date();
+let yesterday = new Date(today);
+yesterday.setDate(yesterday.getDate() - 1);
 
-    let completionData = {};
+const allTodoBoxes = Object.entries(localStorage).filter(([key, value]) => {
+    if (!Number.isInteger(+key) || !value) return false;
+    try {
+        return JSON.parse(value).refreshing;
+    } catch (e) {
+        return false;
+    }
+});
 
-    allTasks.forEach(taskData => {
-        let completedRanges = taskData.completedDates;
-        let completedDates = [];
+let allTasks = [];
+allTodoBoxes.forEach(todoData => {
+    let todoBox = JSON.parse(todoData[1]);
+    allTasks = allTasks.concat(todoBox.tasks.active).concat(todoBox.tasks.completed);
+});
 
-        // Get the full array of completed dates
-        if (completedRanges && completedRanges[0]) {
-            completedRanges.forEach(dateRange => {
-                let iDate = new Date(dateRange[0]);
-                let jDate = dateRange[1];
+// Get data about completion. date: # of tasks completed
+let completionData = {};
 
-                if (jDate === null) {
-                    jDate = new Date(yesterday);
-                }
-                else {
-                    jDate = new Date(jDate);
-                }
+allTasks.forEach(taskData => {
+    let completedRanges = taskData.completedDates;
+    let completedDates = [];
 
-                while (iDate <= jDate) {
-                    completedDates.push(iDate.toISOString().split('T')[0]);
-                    iDate.setDate(iDate.getDate() + 1);
-                }
-            });
-        }
+    // Get the full array of completed dates
+    if (completedRanges && completedRanges[0]) {
+        completedRanges.forEach(dateRange => {
+            let iDate = new Date(dateRange[0]);
+            let jDate = dateRange[1];
 
-        completedDates.forEach(completedDate => {
-            if (Object.keys(completionData).includes(completedDate)) {
-                completionData[completedDate]++;
-            } else {
-                completionData[completedDate] = 1;
+            if (jDate === null) {
+                jDate = new Date(yesterday);
+            }
+            else {
+                jDate = new Date(jDate);
+            }
+
+            while (iDate <= jDate) {
+                completedDates.push(iDate.toISOString().split('T')[0]);
+                iDate.setDate(iDate.getDate() + 1);
             }
         });
-    });
+    }
 
+    completedDates.forEach(completedDate => {
+        if (Object.keys(completionData).includes(completedDate)) {
+            completionData[completedDate].push(taskData.task);
+        } else {
+            completionData[completedDate] = [taskData.task];
+        }
+    });
+});
+
+function chartCompletion() {
     let xValues = Object.keys(completionData);
     let yValues = [];
 
@@ -101,7 +106,7 @@ function chartCompletion(allTasks) {
     // Fill in yValues and labels
     xValues.forEach(date => {
         if (completionData[date]) {
-            yValues.push(completionData[date]);
+            yValues.push(completionData[date].length);
         } else {
             yValues.push(0);
         }
@@ -118,42 +123,141 @@ function chartCompletion(allTasks) {
             labels: labels,
             datasets: [{
                 data: yValues,
-                borderColor: chartColors,
-                borderWidth: borderWidth,
-                tension: 0.4,
-                pointBorderWidth: pointBorderWidth,
                 fill: true,
-                backgroundColor: backgroundColor
+                tension: 0.43,
+
+                backgroundColor: backgroundColor,
+                borderColor: chartColors[1],
+                borderWidth: borderWidth,
+
+                pointBorderWidth: pointBorderWidth,
+                radius: 1,
+                hoverRadius: 5,
+                hitRadius: 15,
             }]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
             plugins: {
-                title: {
-                    display: true,
-                    padding: {
-                        top: 10,
-                        bottom: 30
-                    },
-                    font: {
-                        size: 19
-                    }
-                },
                 legend: { display: false },
+                tooltip: {
+                    backgroundColor: '#0d0a1ac1',
+                    padding: 8,
+                    cornerRadius: 8,
+                    titleFont: { weight: 'bold', size: 14 },
+
+                    usePointStyle: true,
+                    callbacks: {
+                        label: function (context) {
+                            let label = ' ' + context.parsed.y || '';
+
+                            if (label && label == 1) {
+                                label += ' task';
+                            } else if (label) {
+                                label += ' tasks';
+                            } else {
+                                label = '0 tasks';
+                            }
+
+                            return label;
+                        },
+                        labelTextColor: function (context) {
+                            return '#ebebff';
+                        },
+                        labelPointStyle: function (context) {
+                            return {
+                                pointStyle: 'circle',
+                                rotation: 0
+                            };
+                        }
+                    }
+                }
             },
             scales: {
                 x: {
                     ticks: {
-                        maxRotation: 0
-                    }
+                        color: '#2D264B', font: { weight: 500, size: 12 }, maxRotation: 0
+                    },
+                    grid: { display: false }
                 },
                 y: {
                     min: 0,
                     ticks: {
                         stepSize: 1
-                    }
+                    },
+                    grid: { color: 'rgba(45, 38, 75, 0.08)' }
                 },
+            }
+        }
+    });
+}
+
+function activityHeatmap() {
+    let xValues = Object.keys(completionData);
+    let yValues = [];
+
+    // Fill in xValues with dates with no completions
+    let iDate = new Date(xValues.sort()[0]);
+    // Find the Monday before/on the first date of completion
+    // Source - https://stackoverflow.com/a/46544455
+    // Retrieved 2026-08-20, License - CC BY-SA 3.0
+    iDate.setDate(iDate.getDate() - (iDate.getDay() + 6) % 7);
+
+    while (iDate <= yesterday) {
+        selectDate = iDate.toISOString().split('T')[0];
+
+        if (!xValues.includes(selectDate)) {
+            xValues.push(selectDate);
+        }
+
+        iDate.setDate(iDate.getDate() + 1);
+    }
+
+    xValues = xValues.sort();
+
+    let heatmapColors = {
+        0: '#EAE3F7',
+        1: '#CBB3ED',
+        2: '#A37BE6',
+        3: '#7C43D8',
+        4: '#531CB3'
+    }
+
+    // Fill in yValues and labels
+    xValues.forEach(date => {
+        let yValue = completionData[date] || '';
+        yValue = yValue.length;
+        yValues.push(yValue);
+
+        // HTML svg heatmap squares
+        let weekday = new Date(date);
+
+        let squareColor;
+        if (yValue < 5) {
+            squareColor = heatmapColors[yValue];
+        } else {
+            squareColor = '#320A78';
+        }
+
+        let heatmapSquare = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        heatmapSquare.classList.add('heatmap-tile');
+        heatmapSquare.dataset.bsToggle = 'tooltip';
+        heatmapSquare.dataset.bsHtml = 'true';
+        heatmapSquare.dataset.bsPlacement = 'right';
+        heatmapSquare.dataset.bsTitle = `${weekday.toDateString()} • ${yValue} tasks`;
+
+        heatmapSquare.innerHTML = `<rect width="20" height="21" rx="3" ry="3" fill="${squareColor}cc" />`;
+        document.querySelector(`#heatmap-row-${weekday.getDay()}`).appendChild(heatmapSquare);
+
+        if (weekday.getDay() == 1) {
+            let weekLabel = document.createElement('span');
+            weekLabel.textContent = months[weekday.getMonth()];
+
+            document.querySelector('#heatmap-weeks').append(weekLabel);
+
+            if (weekLabel.previousElementSibling && weekLabel.previousElementSibling.textContent == weekLabel.textContent) {
+                weekLabel.style.opacity = '0';
             }
         }
     });

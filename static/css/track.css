@@ -18,15 +18,6 @@
     max-height: 300px;
 }
 
-.dropdown-menu {
-    position: fixed !important;
-}
-
-.dropdown:hover .dropdown-menu {
-    display: block;
-    margin-top: 0;
-}
-
 #title-selected-list {
     margin-left: auto;
     margin-top: 10px;
@@ -56,15 +47,91 @@
     padding: 20px;
     padding-bottom: 23px;
 
-    background: rgba(255, 255, 255, 0.20);
+    background: rgba(255, 255, 255, 0.42);
     backdrop-filter: blur(24px) saturate(180%);
     -webkit-backdrop-filter: blur(24px) saturate(180%);
-
 }
 
-.track-chart canvas {
+.chart-title {
+    font-weight: bold;
+    font-size: 19px;
+}
+
+.full-length-chart.track-chart canvas {
     width: 100% !important;
     height: 100% !important;
     max-width: 1100px;
     justify-self: center;
+}
+
+#heatmap-div {
+    height: fit-content;
+    width: 60%;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    backdrop-filter: blur(12px);
+}
+
+#heatmap-weekdays {
+    position: fixed;
+}
+
+.label-space {
+    height: 19px;
+    margin-bottom: 6px;
+}
+
+#heatmap-weekdays p {
+    font-weight: 600;
+    color: #2D264B;
+    font-size: 14px;
+    width: 30px;
+    text-align: right;
+    margin-top: 2px;
+    margin-bottom: 9px;
+}
+
+#heatmap-weekdays,
+#heatmap {
+    margin-top: 17px;
+}
+
+#heatmap {
+    margin-left: 47px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    white-space: nowrap;
+    width: calc(100% - 57px);
+}
+
+#heatmap-weeks {
+    display: flex;
+    gap: 2px;
+}
+
+#heatmap-weeks span {
+    font-size: 8px;
+    display: flex;
+    width: 23px;
+    flex-shrink: 0;
+    justify-content: center;
+}
+
+.heatmap-row {
+    height: 21px;
+    margin-bottom: 9px;
+}
+
+.heatmap-tile {
+    margin: 0px 2px;
+    width: 21px;
+    height: 21px;
+    border: 1px solid rgba(124, 77, 255, 0.08);
+    border-radius: 3px;
+    transition: transform 0.1s ease, filter 0.1s ease;
+}
+
+.heatmap-tile:hover {
+    transform: scale(1.25);
+    cursor: pointer;
+    z-index: 2;
 }

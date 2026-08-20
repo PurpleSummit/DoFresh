@@ -42,10 +42,6 @@ function setLumiCostume(svgPath) {
 
 export function lumiMainBlink() {
     setLumiCostume('../static/img/lumi_blink_passive.svg');
-
-    lumiTimeout = setTimeout(() => {
-        lumiMainBlink();
-    }, Math.floor(Math.random() * (10000 - 5000 + 1)) + 5000);
 }
 
 export function lumiStaticImg() {

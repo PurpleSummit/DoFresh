@@ -52,8 +52,72 @@
 
         <div id="track-dashboard" class="container">
             <div class="row">
-                <div id="days-completion-div" class="col track-chart">
-                    <canvas id="days-completion-canvas">
+
+                <div id="heatmap-div" class="col track-chart">
+                    <div class="chart-title">Activity Heatmap</div>
+                    <div id="heatmap-weekdays">
+                        <div class="label-spacer"></div>
+                        <p>Mon</p>
+                        <p>Tue</p>
+                        <p>Wed</p>
+                        <p>Thu</p>
+                        <p>Fri</p>
+                        <p>Sat</p>
+                        <p>Sun</p>
+                    </div>
+
+                    <div id="heatmap">
+                        <div id="heatmap-weeks-container">
+                            <div id="heatmap-weeks"></div>
+                        </div>
+
+                        <div id="heatmap-row-1" class="heatmap-row"></div>
+                        <div id="heatmap-row-2" class="heatmap-row"></div>
+                        <div id="heatmap-row-3" class="heatmap-row"></div>
+                        <div id="heatmap-row-4" class="heatmap-row"></div>
+                        <div id="heatmap-row-5" class="heatmap-row"></div>
+                        <div id="heatmap-row-6" class="heatmap-row"></div>
+                        <div id="heatmap-row-0" class="heatmap-row"></div>
+                    </div>
+
+                    <div id="heatmap-legend">
+                        <span style="font-size: 13px;">Less</span>
+                        <svg class="heatmap-tile" data-bs-toggle="tooltip" data-bs-html="true" data-bs-placement="right"
+                            data-bs-title="No tasks completed... 🥲" data-bs-original-title="" title="">
+                            <rect width="20" height="21" rx="3" ry="3" fill="#EAE3F7"></rect>
+                        </svg>
+                        <svg class="heatmap-tile" data-bs-toggle="tooltip" data-bs-html="true" data-bs-placement="right"
+                            data-bs-title="1 task! 🟪" data-bs-original-title="" title="">
+                            <rect width="20" height="21" rx="3" ry="3" fill="#CBB3ED"></rect>
+                        </svg>
+                        <svg class="heatmap-tile" data-bs-toggle="tooltip" data-bs-html="true" data-bs-placement="right"
+                            data-bs-title="2 tasks completed 🟣" data-bs-original-title="" title="">
+                            <rect width="20" height="21" rx="3" ry="3" fill="#A37BE6"></rect>
+                        </svg>
+                        <svg class="heatmap-tile" data-bs-toggle="tooltip" data-bs-html="true" data-bs-placement="right"
+                            data-bs-title="3 tasks 🪻" data-bs-original-title="" title="">
+                            <rect width="20" height="21" rx="3" ry="3" fill="#7C43D8"></rect>
+                        </svg>
+                        <svg class="heatmap-tile" data-bs-toggle="tooltip" data-bs-html="true" data-bs-placement="right"
+                            data-bs-title="4 tasks 💟" data-bs-original-title="" title="">
+                            <rect width="20" height="21" rx="3" ry="3" fill="#531CB3"></rect>
+                        </svg>
+                        <svg class="heatmap-tile" data-bs-toggle="tooltip" data-bs-html="true" data-bs-placement="right"
+                            data-bs-title="5+ tasks 💜" data-bs-original-title="" title="">
+                            <rect width="20" height="21" rx="3" ry="3" fill="#320A78"></rect>
+                        </svg>
+                        <span style="font-size: 13px;">More</span>
+                    </div>
+                </div>
+
+            </div>
+            <div class="row">
+                <div id="days-completion-div" class="col track-chart full-length-chart">
+                    <div class="chart-title">Task Completion</div>
+                    <canvas role="img" id="days-completion-canvas"
+                        aria-label="Line chart showing daily completion of tasks.">
+                        <!-- Fallback content inside canvas for screen readers -->
+                        <p>Task completion history chart showing daily activity over time.</p>
                     </canvas>
                 </div>
             </div>
