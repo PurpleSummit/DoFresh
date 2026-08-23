@@ -2,6 +2,7 @@
 
 {% block style %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
 <link rel="stylesheet" href="../static/css/track.css">
 <script src="../static/js/track.js"></script>
 {% endblock %}
@@ -118,6 +119,16 @@
                         aria-label="Line chart showing daily completion of tasks.">
                         <!-- Fallback content inside canvas for screen readers -->
                         <p>Task completion history chart showing daily activity over time.</p>
+                    </canvas>
+                </div>
+            </div>
+            <div class="row">
+                <div id="streak-timeline-div" class="col track-chart full-length-chart">
+                    <div class="chart-title">Streak Activity</div>
+                    <canvas role="img" id="streak-timeline-canvas"
+                        aria-label="Horizontal stacked floating bar chart showing streak activity of tasks.">
+                        <!-- Fallback content inside canvas for screen readers -->
+                        <p>Horizontal stacked floating bar chart showing streak activity of tasks.</p>
                     </canvas>
                 </div>
             </div>

@@ -1,6 +1,4 @@
-//let taskChartInstance = null;
-// let rangeSetting, chartType;
-
+// Initializing chart constants
 let months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'July', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
 const borderWidth = 4;
@@ -26,9 +24,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     chartCompletion();
     activityHeatmap();
+    streakActivity();
+    longestStreak();
 });
 
+// Declaring task data globally
 let today = new Date();
+let todayStr = today.toISOString().split('T')[0];
 let yesterday = new Date(today);
 yesterday.setDate(yesterday.getDate() - 1);
 
@@ -47,7 +49,7 @@ allTodoBoxes.forEach(todoData => {
     allTasks = allTasks.concat(todoBox.tasks.active).concat(todoBox.tasks.completed);
 });
 
-// Get data about completion. date: # of tasks completed
+// Get data about completion. date: array of completed tasks (names) 
 let completionData = {};
 
 allTasks.forEach(taskData => {
@@ -57,14 +59,14 @@ allTasks.forEach(taskData => {
     // Get the full array of completed dates
     if (completedRanges && completedRanges[0]) {
         completedRanges.forEach(dateRange => {
-            let iDate = new Date(dateRange[0]);
+            let iDate = newDateFromISO(dateRange[0]);
             let jDate = dateRange[1];
 
             if (jDate === null) {
                 jDate = new Date(yesterday);
             }
             else {
-                jDate = new Date(jDate);
+                jDate = newDateFromISO(jDate);
             }
 
             while (iDate <= jDate) {
@@ -83,60 +85,188 @@ allTasks.forEach(taskData => {
     });
 });
 
+// Data about streaks. task: arrays of ranges
+let streakData = {};
+
+allTasks.forEach(taskData => {
+    let completedRanges = taskData.completedDates;
+
+    streakData[taskData.task] = completedRanges;
+});
+
+let dateRanges = Object.values(streakData);
+
+let startDates = dateRanges.flatMap((ranges, taskIndex) => {
+    return ranges[0] === undefined ? todayStr : ranges[0];
+});
+let startDate = Math.min(...startDates.map(date => new Date(date)));
+
+
 function chartCompletion() {
-    let xValues = Object.keys(completionData);
-    let yValues = [];
+    let formattedData = [];
 
-    // Fill in xValues with dates with no completions
-    let iDate = new Date(xValues[0]);
-    while (iDate <= yesterday) {
-        selectDate = iDate.toISOString().split('T')[0];
+    let completedDates = Object.keys(completionData);
 
-        if (!xValues.includes(selectDate)) {
-            xValues.push(selectDate);
+    // Fill in the data with dates with no completions
+    let iDate = newDateFromISO(completedDates.sort()[0]);
+    while (iDate < yesterday) {
+        let date = iDate.toISOString().split('T')[0];
+
+        if (completedDates.includes(date)) {
+            formattedData.push({ x: date, y: completionData[date].length });
+        }
+        else {
+            formattedData.push({ x: date, y: 0 });
         }
 
         iDate.setDate(iDate.getDate() + 1);
     }
 
-    xValues = xValues.sort();
-
     let labels = [];
 
-    // Fill in yValues and labels
-    xValues.forEach(date => {
-        if (completionData[date]) {
-            yValues.push(completionData[date].length);
-        } else {
-            yValues.push(0);
-        }
-
-        let labelDate = new Date(date);
-        labelDate = labelDate.toDateString().split(" ");
-        labelDate = `${labelDate[1]} ${labelDate[2]}`;
-        labels.push(labelDate);
+    completedDates.forEach(date => {
+        labels.push(ISOToDateString(date, false));
     });
+
+    // Task data
+    const data = {
+        labels: labels,
+        datasets: [{
+            data: formattedData,
+            fill: true,
+            tension: 0.4,
+
+            backgroundColor: backgroundColor,
+            borderColor: chartColors[1],
+            borderWidth: borderWidth,
+
+            pointBorderWidth: pointBorderWidth,
+            radius: 1,
+            hoverRadius: 5,
+            hitRadius: 15,
+        }]
+    };
+    const scales = {
+        x: {
+            ticks: {
+                color: '#2D264B', font: { weight: 500, size: 12 }, maxRotation: 0
+            },
+            grid: { display: false },
+
+            type: 'time',
+            time: {
+                unit: 'day'
+            },
+            reverse: false,
+            min: startDate,
+            max: todayStr
+        },
+        y: {
+            min: 0,
+            ticks: {
+                stepSize: 1
+            },
+            grid: { color: 'rgba(45, 38, 75, 0.08)' }
+        },
+    };
+    const options = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: { display: false },
+            tooltip: {
+                backgroundColor: '#0d0a1ac1',
+                padding: 8,
+                cornerRadius: 8,
+                titleFont: { weight: 'bold', size: 14 },
+
+                usePointStyle: true,
+                callbacks: {
+                    title: function (context) {
+                        return ISOToDateString(context[0].raw.x, true);
+                    },
+                    label: function (context) {
+                        let label = ' ' + context.parsed.y || '';
+
+                        if (label && label == 1) {
+                            label += ' task';
+                        } else if (label) {
+                            label += ' tasks';
+                        } else {
+                            label = '0 tasks';
+                        }
+
+                        completionData[context.raw.x]?.forEach(taskName => {
+                            label += `${taskName}\n`;
+                        });
+
+                        return label;
+                    },
+                    labelTextColor: function (context) {
+                        return '#ebebff';
+                    },
+                    labelPointStyle: function (context) {
+                        return {
+                            pointStyle: 'circle',
+                            rotation: 0
+                        };
+                    }
+                }
+            }
+        },
+        scales: scales
+    };
 
     taskChartInstance = new Chart('days-completion-canvas', {
         type: 'line',
+        data: data,
+        options: options
+    });
+}
+
+function streakActivity() {
+
+    let taskNames = Object.keys(streakData);
+
+    const formattedRanges = dateRanges.flatMap((ranges, taskIndex) => {
+        const taskName = taskNames[taskIndex];
+
+        if (!ranges || ranges.length === 0) return [];
+
+        return ranges.map(range => {
+            const startDate = range[0];
+            const endDate = range[1] === null ? todayStr : range[1];
+
+            return {
+                x: [startDate, endDate],
+                y: taskName
+            }
+        })
+    });
+
+    taskChartInstance = new Chart('streak-timeline-canvas', {
+        type: 'bar',
         data: {
-            labels: labels,
+            labels: taskNames,
             datasets: [{
-                data: yValues,
-                fill: true,
-                tension: 0.43,
-
-                backgroundColor: backgroundColor,
-                borderColor: chartColors[1],
+                data: formattedRanges,
+                backgroundColor: 'rgba(124, 77, 255, 0.35)',
+                borderColor: '#7C43D8',
+                borderRadius: 5,
                 borderWidth: borderWidth,
-
-                pointBorderWidth: pointBorderWidth,
-                radius: 1,
-                hoverRadius: 5,
-                hitRadius: 15,
+                borderSkipped: function (ctx) {
+                    if (ctx.raw.x[1] == todayStr) {
+                        return 'right';
+                    }
+                    else {
+                        return false;
+                    }
+                },
+                barPercentage: 1.1,
             }]
         },
         options: {
+            indexAxis: 'y',
             responsive: true,
             maintainAspectRatio: false,
             plugins: {
@@ -150,17 +280,9 @@ function chartCompletion() {
                     usePointStyle: true,
                     callbacks: {
                         label: function (context) {
-                            let label = ' ' + context.parsed.y || '';
+                            let currentRange = context.raw.x;
 
-                            if (label && label == 1) {
-                                label += ' task';
-                            } else if (label) {
-                                label += ' tasks';
-                            } else {
-                                label = '0 tasks';
-                            }
-
-                            return label;
+                            return `${ISOToDateString(currentRange[0], true)} ~ ${ISOToDateString(currentRange[1], true)}`;
                         },
                         labelTextColor: function (context) {
                             return '#ebebff';
@@ -176,17 +298,21 @@ function chartCompletion() {
             },
             scales: {
                 x: {
+                    type: 'time',
+                    time: {
+                        unit: 'day'
+                    },
+                    reverse: false,
+                    min: startDate,
+                    max: todayStr,
+                    stacked: true,
                     ticks: {
                         color: '#2D264B', font: { weight: 500, size: 12 }, maxRotation: 0
-                    },
-                    grid: { display: false }
+                    }
                 },
                 y: {
-                    min: 0,
-                    ticks: {
-                        stepSize: 1
-                    },
-                    grid: { color: 'rgba(45, 38, 75, 0.08)' }
+                    grid: { color: 'rgba(45, 38, 75, 0.08)' },
+                    grid: { display: false }
                 },
             }
         }
@@ -198,13 +324,13 @@ function activityHeatmap() {
     let yValues = [];
 
     // Fill in xValues with dates with no completions
-    let iDate = new Date(xValues.sort()[0]);
+    let iDate = newDateFromISO(xValues.sort()[0]);
     // Find the Monday before/on the first date of completion
     // Source - https://stackoverflow.com/a/46544455
     // Retrieved 2026-08-20, License - CC BY-SA 3.0
     iDate.setDate(iDate.getDate() - (iDate.getDay() + 6) % 7);
 
-    while (iDate <= yesterday) {
+    while (iDate < yesterday) {
         selectDate = iDate.toISOString().split('T')[0];
 
         if (!xValues.includes(selectDate)) {
@@ -231,7 +357,7 @@ function activityHeatmap() {
         yValues.push(yValue);
 
         // HTML svg heatmap squares
-        let weekday = new Date(date);
+        let weekday = newDateFromISO(date);
 
         let squareColor;
         if (yValue < 5) {
@@ -263,33 +389,56 @@ function activityHeatmap() {
     });
 }
 
+function longestStreak() {
+    let maxStreak = 0;
+    let maxStreakTask = 'No streak yet... 🪻';
+
+    allTasks.forEach(taskData => {
+        let completedRanges = taskData.completedDates;
+
+        completedRanges.forEach(range => {
+            let streak = Math.floor(newDateFromISO(range[1]) - newDateFromISO(range[0])) / (1000 * 60 * 60 * 24) + 1;
+
+            if (streak > maxStreak) {
+                maxStreak = streak;
+                maxStreakTask = taskData.task;
+            }
+        });
+    });
+
+    console.log(maxStreak, maxStreakTask);
+}
+
+//let taskChartInstance = null;
+// let rangeSetting, chartType;
+
 /* function selectTodoList(boxId) {
     let taskNavDiv = document.querySelector('#todo-tasks-nav');
-
+ 
     let todoBoxData = JSON.parse(localStorage[`${boxId}`]);
-
+ 
     let allTasks = todoBoxData.tasks;
     allTasks = allTasks.completed.concat(allTasks.active);
-
+ 
     let oldTaskNav = document.querySelector('.task-nav-btn-group');
     if (oldTaskNav) {
         oldTaskNav.remove();
     }
-
+ 
     let taskNav = document.createElement('div');
     taskNav.className = 'task-nav-btn-group btn-group';
     taskNav.role = 'group';
     taskNav.ariaLabel = 'Basic radio toggle button group';
     taskNav.style.marginLeft = '13px';
-
+ 
     let dropdownTriggers = [];
-
+ 
     allTasks.forEach(taskData => {
         let subtasks = taskData['subTasks'];
         if (subtasks) {
             let taskId = taskData['taskId'];
             const cleanId = taskId.replace('task_', '');
-
+ 
             let taskElement = document.createElement('input');
             taskElement.type = 'radio';
             taskElement.name = 'rad';
@@ -298,11 +447,11 @@ function activityHeatmap() {
             taskElement.autocomplete = 'off';
             taskElement.onclick = () => selectTask(boxId, taskId);
             taskNav.appendChild(taskElement);
-
+ 
             if (subtasks && subtasks.length > 0) {
                 const btnGroupWrapper = document.createElement('div');
                 btnGroupWrapper.classList.add('dropdown', 'd-inline-block');
-
+ 
                 let taskLabel = document.createElement('button');
                 taskLabel.className = 'btn btn-outline-purple dropdown-toggle';
                 taskLabel.type = 'button';
@@ -313,25 +462,25 @@ function activityHeatmap() {
                     event.preventDefault();
                     event.stopPropagation();
                 };
-
+ 
                 let subtaskDropdown = document.createElement('ul');
                 subtaskDropdown.className = 'dropdown-menu';
-
+ 
                 subtasks.forEach(subtaskId => {
                     let subtaskData = allTasks.find(t => t['taskId'] == subtaskId);
                     let subtaskCleanId = subtaskId.replace('task_', '');
-
+ 
                     let subtaskElement = document.createElement('li');
                     subtaskElement.innerHTML = `<a class='dropdown-item'>${subtaskData['task']}</a>`;
                     subtaskElement.id = `task-select${subtaskCleanId}`;
                     subtaskElement.onclick = () => selectTask(boxId, subtaskId);
                     subtaskDropdown.appendChild(subtaskElement);
                 });
-
+ 
                 btnGroupWrapper.appendChild(taskLabel);
                 btnGroupWrapper.appendChild(subtaskDropdown);
                 taskNav.appendChild(btnGroupWrapper);
-
+ 
                 dropdownTriggers.push(taskLabel);
             }
             else {
@@ -339,22 +488,22 @@ function activityHeatmap() {
                 taskLabel.className = 'btn btn-outline-purple';
                 taskLabel.htmlFor = taskElement.id;
                 taskLabel.textContent = `${taskData['task']}`;
-
+ 
                 taskNav.appendChild(taskLabel);
             }
         }
     });
-
+ 
     taskNavDiv.appendChild(taskNav);
-
+ 
     // Set the subtitle to the list title
     document.querySelector('#title-selected-list').textContent = todoBoxData.title;
-
+ 
     // Initialize the chart display
     if (allTasks.length > 0) {
-
+ 
         let initTaskId = allTasks.at(0)['taskId'];
-
+ 
         selectTask(boxId, initTaskId);
     }
     else {
@@ -364,27 +513,27 @@ function activityHeatmap() {
 
 /* function selectTask(boxId, taskId) {
     console.log('selected', taskId);
-
+ 
     // Check the task button
     document.querySelector(`#task-select${taskId.replace('task_', '')}`).checked = true;
-
+ 
     // Gather data
     let todoBoxData = JSON.parse(localStorage[`${boxId}`]);
-
+ 
     let taskData = todoBoxData.tasks.active.find(task => taskId == task['taskId']);
     if (!taskData) {
         taskData = todoBoxData.tasks.completed.find(task => taskId == task['taskId']);
     }
-
+ 
     // Update the settings panel
     let chartSettingsDiv = document.querySelector('#chart-settings-div');
-
+ 
     // Range buttons
     let rangeDiv = document.querySelector('.track-range-btn-group');
-
+ 
     // Chart-type buttons
     let chartTypeDiv = document.querySelector('.chart-types-btn-group');
-
+ 
     // Set startDate for range buttons
     let completedRanges = taskData.completedDates;
     let startDate;
@@ -396,7 +545,7 @@ function activityHeatmap() {
         whenBlankChart();
         return;
     }
-
+ 
     // Initalize range buttons
     const diff = (new Date() - new Date(startDate)) / (1000 * 60 * 60 * 24);
     let weekButton = document.querySelector('.week-range-btn');
@@ -406,61 +555,61 @@ function activityHeatmap() {
             chartBegin(taskData, 'Week', chartType);
         };
         weekButton.disabled = !(diff >= 7);
-
+ 
         let monthButton = document.querySelector('.month-range-btn');
         monthButton.onclick = () => {
             rangeSetting = 'Month';
             chartBegin(taskData, 'Month', chartType);
         };
         monthButton.disabled = !(diff >= 28);
-
+ 
         let sixMonthButton = document.querySelector('.semi-year-range-btn');
         sixMonthButton.onclick = () => {
             rangeSetting = 'Semi-year';
             chartBegin(taskData, 'Semi-year', chartType);
         };
         sixMonthButton.disabled = !(diff >= 182);
-
+ 
         let yearButton = document.querySelector('.year-range-btn');
         yearButton.onclick = () => {
             rangeSetting = 'Year';
             chartBegin(taskData, 'Year', chartType);
         };
         yearButton.disabled = !(diff >= 364);
-
+ 
         let maxButton = document.querySelector('.max-range-btn');
         maxButton.onclick = () => {
             rangeSetting = 'Max';
             chartBegin(taskData, 'Max', chartType);
         };
     }
-
+ 
     // Initialize chart-type buttons
     if (chartTypeDiv) {
         let completeButton = document.querySelector('.chart-complete-btn');
         completeButton.onclick = () => {
             chartType = 'Complete';
             chartBegin(taskData, rangeSetting, chartType);
-
+ 
             weekButton.disabled = !(diff >= 7);
         };
         let streakButton = document.querySelector('.chart-streak-btn');
         streakButton.onclick = () => {
             chartType = 'Streak';
             chartBegin(taskData, rangeSetting, chartType);
-
+ 
             weekButton.disabled = !(diff >= 7);
         };
         let byMonthButton = document.querySelector('.chart-month-btn');
         byMonthButton.onclick = () => {
             chartType = 'Month';
-
+ 
             weekButton.disabled = true;
-
+ 
             chartBegin(taskData, rangeSetting, chartType);
         };
     }
-
+ 
     // Set the parameters for this graph and display
     if (!rangeSetting) {
         rangeSetting = 'Max';
@@ -468,11 +617,11 @@ function activityHeatmap() {
     if (!chartType) {
         chartType = 'Complete';
     }
-
+ 
     if (chartType == 'Month') {
         weekButton.disabled = true;
     }
-
+ 
     chartBegin(taskData, rangeSetting, chartType);
 } */
 
@@ -481,22 +630,22 @@ function activityHeatmap() {
         rangeSetting = 'Max';
         document.querySelector('.max-range-btn').checked = true;
     }
-
+ 
     removeFillerText();
-
+ 
     document.querySelector(`.${rangeSetting.toLowerCase()}-range-btn`).checked = true;
     document.querySelector(`.chart-${chartType.toLowerCase()}-btn`).checked = true;
-
+ 
     // Delete any previously existing charts
     if (taskChartInstance !== null) {
         taskChartInstance.destroy();
     }
-
+ 
     let completedRanges = taskData.completedDates;
-
+ 
     let today = new Date();
     let startDate = new Date(today);
-
+ 
     if (rangeSetting == 'Week') {
         startDate.setDate(startDate.getDate() - 7);
     }
@@ -517,7 +666,7 @@ function activityHeatmap() {
             startDate = new Date(taskData.createdDate);
         }
     }
-
+ 
     if (chartType == 'Complete') {
         chartComplete(taskData, startDate, rangeSetting);
     }
@@ -533,55 +682,55 @@ function activityHeatmap() {
     let today = new Date();
     let yesterday = new Date(today);
     yesterday.setDate(yesterday.getDate() - 1);
-
+ 
     let completedRanges = taskData.completedDates;
-
+ 
     // Fill in completedDates with dates between completedRanges's ranges
     let completedDates = [];
     if (completedRanges && completedRanges[0]) {
         completedRanges.forEach(dateRange => {
             let iDate = new Date(dateRange[0]);
             let jDate = dateRange[1];
-
+ 
             if (jDate === null) {
                 jDate = new Date(yesterday);
             }
             else {
                 jDate = new Date(jDate);
             }
-
+ 
             while (iDate <= jDate) {
                 completedDates.push(iDate.toISOString().split('T')[0]);
                 iDate.setDate(iDate.getDate() + 1);
             }
         });
     }
-
+ 
     let iDate = new Date(startDate);
     let selectDate;
-
+ 
     let xValues = [];
     let yValues = [];
-
+ 
     // Record if the task was completed or not
     while (iDate <= yesterday) {
         selectDate = iDate.toISOString().split('T')[0];
         xValues.push(selectDate);
-
+ 
         if (completedDates.includes(selectDate)) {
             yValues.push(1);
         }
         else {
             yValues.push(0);
         }
-
+ 
         iDate.setDate(iDate.getDate() + 1);
     }
-
+ 
     let labeledDates = completedRanges.flat();
     labeledDates.push(yesterday.toISOString().split('T')[0]);
     labeledDates.push(startDate.toISOString().split('T')[0]);
-
+ 
     // Chart of 0s and 1s, did/did not do
     taskChartInstance = new Chart('task-content', {
         type: 'line',
@@ -617,7 +766,7 @@ function activityHeatmap() {
                         minRotation: 32.8,
                         callback: function (val, index, ticks) {
                             const label = this.getLabelForValue(val);
-
+ 
                             return labeledDates.includes(label) ? label : null;
                         }
                     }
@@ -638,22 +787,22 @@ function activityHeatmap() {
     let today = new Date();
     let yesterday = new Date(today);
     yesterday.setDate(yesterday.getDate() - 1);
-
+ 
     let completedRanges = taskData.completedDates;
-
+ 
     // Fill in completedDates as {'completedDate' : currentStreak}
     let completedDates = {};
     completedRanges.forEach(range => {
         let streakStart = new Date(range[0]);
         let streakEnd = range[1];
-
+ 
         if (streakEnd === null) {
             streakEnd = new Date(yesterday);
         }
         else {
             streakEnd = new Date(streakEnd);
         }
-
+ 
         let streakCount = 1;
         while (streakStart <= streakEnd) {
             completedDates[`${streakStart.toISOString().split('T')[0]}`] = streakCount;
@@ -661,31 +810,31 @@ function activityHeatmap() {
             streakCount++;
         }
     });
-
+ 
     let iDate = new Date(startDate);
     let selectDate;
-
+ 
     let xValues = [];
     let yValues = [];
-
+ 
     // Record if the task was completed or not
     while (iDate <= yesterday) {
         selectDate = iDate.toISOString().split('T')[0];
         xValues.push(selectDate);
-
+ 
         if (Object.keys(completedDates).includes(selectDate)) {
             yValues.push(completedDates[selectDate]);
         }
         else {
             yValues.push(0);
         }
-
+ 
         iDate.setDate(iDate.getDate() + 1);
     }
     let labeledDates = completedRanges.flat();
     labeledDates.push(yesterday.toISOString().split('T')[0]);
     labeledDates.push(startDate.toISOString().split('T')[0]);
-
+ 
     // Chart of streaks
     taskChartInstance = new Chart('task-content', {
         type: 'line',
@@ -721,7 +870,7 @@ function activityHeatmap() {
                         minRotation: 32.8,
                         callback: function (val, index, ticks) {
                             const label = this.getLabelForValue(val);
-
+ 
                             return labeledDates.includes(label) ? label : null;
                         }
                     }
@@ -739,61 +888,61 @@ function activityHeatmap() {
 
 /* function chartMonthly(taskData, startDate, rangeSetting) {
     startDate = new Date(startDate);
-
+ 
     const date = new Date();
     const offset = date.getTimezoneOffset() * 60000;
     const today = new Date(date.getTime() - offset).toISOString().split('T')[0];
-
+ 
     const yesterday = new Date(today);
     yesterday.setDate(yesterday.getDate() - 1);
-
+ 
     // An array of all the months between startDate and yesterday
     // so we go from startDate month to yesterday's month
-
+ 
     let monthlyArray = [];
-
+ 
     let A = new Date(startDate.getFullYear(), startDate.getMonth(), 1);
     let B = new Date(yesterday.getFullYear(), yesterday.getMonth(), 1)
-
+ 
     while (A <= B) {
         iStr = A.toISOString().split("T")[0];
         iMonth = iStr.split("-")[0] + "-" + iStr.split("-")[1];
-
+ 
         monthlyArray.push(iMonth);
-
+ 
         A.setMonth(A.getMonth() + 1);
     }
-
+ 
     let completedRanges = taskData.completedDates;
-
+ 
     // Fill in completedDates with dates between completedRanges's ranges
     let completedDates = [];
     completedRanges.forEach(dateRange => {
         let iDate = new Date(dateRange[0]);
         let jDate = dateRange[1];
-
+ 
         if (jDate === null) {
             jDate = new Date(yesterday);
         }
         else {
             jDate = new Date(jDate);
         }
-
+ 
         while (iDate <= jDate) {
             completedDates.push(iDate.toISOString().split('T')[0]);
             iDate.setDate(iDate.getDate() + 1);
         }
     });
-
+ 
     let xValues = [];
     let yValues = [];
-
+ 
     // Record how many times the task was completed every month
     monthlyArray.forEach(month => {
         let nextMonth = new Date(month);
         nextMonth.setMonth(nextMonth.getMonth() + 1);
         let monthCount = 0;
-
+ 
         for (let date of completedDates) {
             if (date.includes(month)) {
                 monthCount++;
@@ -803,22 +952,22 @@ function activityHeatmap() {
                 break;
             }
         }
-
+ 
         xValues.push(month);
         yValues.push(monthCount);
     });
-
+ 
     // Arrange labeledDates
     let labeledDates = monthlyArray.flat();
-
+ 
     let yesterdayString = yesterday.toISOString().split('T')[0];
     let yesterdayMonthString = yesterdayString.split("-")[0] + "-" + yesterdayString.split("-")[1];
     labeledDates.push(yesterdayMonthString);
-
+ 
     let startDateString = startDate.toISOString().split('T')[0];
     let startMonthString = startDateString.split("-")[0] + "-" + startDateString.split("-")[1];
     labeledDates.push(startMonthString);
-
+ 
     // Bar chart of each month
     taskChartInstance = new Chart('task-content', {
         type: 'bar',
@@ -862,7 +1011,7 @@ function activityHeatmap() {
                         minRotation: 32.8,
                         callback: function (val, index, ticks) {
                             const label = this.getLabelForValue(val);
-
+ 
                             return labeledDates.includes(label) ? label : null;
                         }
                     }
@@ -896,4 +1045,27 @@ function removeFillerText() {
     if (chartFillText) {
         chartFillText.remove();
     }
+}
+
+function newDateFromISO(dateStr) {
+    let dateParts = dateStr.split('-');
+
+    let yearPart = dateParts[0];
+    let monthPart = dateParts[1] - 1;
+    let dayPart = dateParts[2];
+
+    return new Date(yearPart, monthPart, dayPart);
+}
+
+// 2026-08-01 to Month Date, YY
+function ISOToDateString(ISOString, yearIncluded) {
+    let dateParts = ISOString.split('-');
+
+    labelDate = `${months[dateParts[1] - 1]} ${dateParts[2]}`;
+
+    if (yearIncluded) {
+        labelDate += `, ${dateParts[0]}`;
+    }
+
+    return labelDate;
 }

@@ -1,6 +1,155 @@
 document.addEventListener('DOMContentLoaded', () => {
+    // Refreshing mechanism
+    const date = new Date();
+    const offset = date.getTimezoneOffset() * 60000;
+    const today = new Date(date.getTime() - offset).toISOString().split('T')[0]; // Formatting into local-time ISO string
+
+    let lastAccessedDate = localStorage.getItem('lastAccessedDate');
+
+    // DEBUG REFRESHING ☑️
+    console.log("New date?", lastAccessedDate != today);
+
+    if (lastAccessedDate == null) {
+        localStorage.setItem('lastAccessedDate', today);
+    }
+    else {
+        if (today != lastAccessedDate) {
+            let totalTasksNum = 0;
+            let totalTasksCompleted = 0;
+            let totalListsCompleted = 0;
+
+            // Get all the refreshing to-do boxes
+            let todoBoxes = Object.entries(localStorage).filter((entry) => Number.isInteger(+entry[0]));
+            let allRefreshingTodoBoxes = [];
+            todoBoxes.forEach(boxData => {
+                let boxId = boxData[0];
+                boxData = JSON.parse(boxData[1]);
+
+                // Gather data from last time for display
+                totalTasksNum += boxData.tasks.active.length + boxData.tasks.completed.length;
+                totalTasksCompleted += boxData.tasks.completed.filter(t => (t.completedDate && t.completedDate == lastAccessedDate)).length;
+
+                if (boxData.refreshing) {
+                    allRefreshingTodoBoxes.push(boxId);
+
+                    totalTasksCompleted += boxData.tasks.completed.length;
+                }
+
+                if (totalTasksCompleted > 0) {
+                    totalListsCompleted++;
+                }
+            });
+
+            const diff = (new Date(today) - new Date(lastAccessedDate)) / (1000 * 60 * 60 * 24);
+
+            // Record streaks
+            allRefreshingTodoBoxes.forEach(todoBoxId => {
+                let todoBoxData = JSON.parse(localStorage.getItem(todoBoxId));
+
+                // Process the active tasks and break their streaks
+                todoBoxData.tasks.active.forEach(taskData => {
+                    if (!taskData || !taskData.completedDates) return;
+
+                    let completedDateRanges = taskData.completedDates;
+                    let recentCompletedPair = completedDateRanges.at(-1);
+
+                    // If there was an ongoing streak, it ended the day before lastAccessedDate (the task wasn't completed on lastAccessedDate)
+                    if (recentCompletedPair && recentCompletedPair[1] === null) {
+                        let previousDate = new Date(lastAccessedDate);
+                        previousDate.setDate(previousDate.getDate() - 1);
+
+                        recentCompletedPair[1] = previousDate.toISOString().split('T')[0];
+                    }
+                });
+
+                // Process the completed tasks and break their streaks
+                todoBoxData.tasks.completed.forEach(taskData => {
+                    if (!taskData || !taskData.completedDates) return;
+
+                    let completedDateRanges = taskData.completedDates;
+                    let recentCompletedPair = completedDateRanges.at(-1);
+
+                    // If the user didn't access the website for more than 1 day
+                    // All ongoing streaks were broken with lastAccessedDate as the final date
+                    if (diff > 1) {
+                        // If a streak was ongoing, ended on lastAccessedDate
+                        if (recentCompletedPair && recentCompletedPair[1] === null) {
+                            recentCompletedPair[1] = lastAccessedDate;
+                        }
+                        // If no ongoing streak, add a one-day streak
+                        else {
+                            taskData.completedDates.push([lastAccessedDate, lastAccessedDate]);
+                        }
+                    }
+                    else {
+                        if (completedDateRanges.length >= 1) {
+                            // If there was a closed streak, start a new streak
+                            if (recentCompletedPair && recentCompletedPair[1] !== null) {
+                                taskData.completedDates.push([lastAccessedDate, null]);
+                            }
+                        }
+                        // If there were no completed dates yet but the task was completed
+                        else {
+                            taskData.completedDates = [[lastAccessedDate, null]];
+                        }
+                    }
+                });
+
+                // Refresh the completed tasks
+                todoBoxData.tasks.active = todoBoxData.tasks.active.concat(todoBoxData.tasks.completed);
+
+                todoBoxData.tasks.completed = [];
+
+                localStorage.setItem(todoBoxId, JSON.stringify(todoBoxData));
+            }); 
+
+            // Set lastAccessedDate
+            localStorage.setItem('lastAccessedDate', today);
+
+            // Display the refresh notification w/ information
+            let notifModal = new bootstrap.Modal(document.getElementById('refreshNotifModal'), {});
+            notifModal.show();
+
+            document.querySelector('#task-completion-circle').dataset.percent = totalTasksCompleted / totalTasksNum * 100;
+            document.querySelector('#list-completion-circle').dataset.percent = totalListsCompleted / todoBoxes.length * 100; 
+
+            const progressCircles = document.querySelectorAll('.progress-circle');
+            const animateCircle = (progressCircle) => {
+                const circle = progressCircle.querySelector('.progress');
+                const percent = progressCircle.dataset.percent;
+                const percentText = progressCircle.querySelector('.progress-text-percentage');
+
+                const radius = circle.r.baseVal.value;
+                const circumference = radius * 2 * Math.PI;
+                const offset = circumference - (percent / 100) * circumference;
+                circle.style.strokeDashoffset = offset;
+
+                let count = 0;
+                const timer = setInterval(() => {
+                    if (count >= percent) {
+                        clearInterval(timer);
+                    }
+                    else {
+                        count++;
+                        percentText.textContent = `${count}%`;
+                    }
+                }, 15);
+            };
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('show');
+                        animateCircle(entry.target);
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, { threshold: 0.5 });
+            progressCircles.forEach(progressCircle => observer.observe(progressCircle));
+        }
+    }
+
     const toggleBtn = document.querySelector('.toggle-btn');
-    const toggler = document.querySelector('#icon');
 
     toggleBtn.addEventListener('click', () => {
         const sidebar = document.querySelector('#sidebar');
