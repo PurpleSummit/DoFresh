@@ -65,8 +65,10 @@
 }
 
 #heatmap-div {
-    height: fit-content;
-    width: 60%;
+    height: stretch;
+    max-width: 73%;
+    min-width: 60%;
+    width: max-content;
     border: 1px solid rgba(255, 255, 255, 0.5);
     backdrop-filter: blur(12px);
 }
@@ -134,4 +136,17 @@
     transform: scale(1.25);
     cursor: pointer;
     z-index: 2;
+}
+
+#longest-active-streak-div,
+#longest-streak-div {
+    margin-left: 0px;
+    margin-right: 0px;
+}
+
+#longest-active-streak-task,
+#longest-active-streak-num,
+#longest-streak-task,
+#longest-streak-num {
+    text-align: center;
 }

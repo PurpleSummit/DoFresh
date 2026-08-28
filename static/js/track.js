@@ -26,6 +26,7 @@ document.addEventListener('DOMContentLoaded', () => {
     activityHeatmap();
     streakActivity();
     longestStreak();
+    longestActiveStreak();
 });
 
 // Declaring task data globally
@@ -96,10 +97,16 @@ allTasks.forEach(taskData => {
 
 let dateRanges = Object.values(streakData);
 
-let startDates = dateRanges.flatMap((ranges, taskIndex) => {
-    return ranges[0] === undefined ? todayStr : ranges[0];
+let startDates = dateRanges.flatMap((task) => {
+    return task.map(range => {
+        return (range === undefined || range[1] === null) ? todayStr : range[0];
+    });
 });
-let startDate = Math.min(...startDates.map(date => new Date(date)));
+
+let timestamps = startDates.map(date => new Date(date).getTime()).filter(time => !isNaN(time) && time > 0);
+
+let startDate = timestamps.length > 0 ? new Date(Math.min(...timestamps)) : new Date();
+startDate = startDate.toISOString().split('T')[0];
 
 
 function chartCompletion() {
@@ -244,12 +251,15 @@ function streakActivity() {
         })
     });
 
+    console.log(formattedRanges);
+
     taskChartInstance = new Chart('streak-timeline-canvas', {
         type: 'bar',
         data: {
             labels: taskNames,
             datasets: [{
                 data: formattedRanges,
+                minBarLength: 3.5,
                 backgroundColor: 'rgba(124, 77, 255, 0.35)',
                 borderColor: '#7C43D8',
                 borderRadius: 5,
@@ -262,7 +272,6 @@ function streakActivity() {
                         return false;
                     }
                 },
-                barPercentage: 1.1,
             }]
         },
         options: {
@@ -397,7 +406,10 @@ function longestStreak() {
         let completedRanges = taskData.completedDates;
 
         completedRanges.forEach(range => {
-            let streak = Math.floor(newDateFromISO(range[1]) - newDateFromISO(range[0])) / (1000 * 60 * 60 * 24) + 1;
+            let rangeEndDate = range[1] === null ? todayStr : range[1];
+            let rangeStartDate = range[0];
+
+            let streak = Math.floor(newDateFromISO(rangeEndDate) - newDateFromISO(rangeStartDate)) / (1000 * 60 * 60 * 24) + 1;
 
             if (streak > maxStreak) {
                 maxStreak = streak;
@@ -406,7 +418,34 @@ function longestStreak() {
         });
     });
 
-    console.log(maxStreak, maxStreakTask);
+    document.querySelector('#longest-streak-num').textContent = maxStreak;
+    document.querySelector('#longest-streak-task').textContent = maxStreakTask;
+}
+
+function longestActiveStreak() {
+    let maxStreak = 0;
+    let maxStreakTask = 'No streak now... 🪻';
+
+    allTasks.forEach(taskData => {
+        let completedRanges = taskData.completedDates;
+
+        completedRanges.forEach(range => {
+            let rangeEndDate = range[1] === null ? todayStr : range[1];
+            if (rangeEndDate == todayStr) {
+                let rangeStartDate = range[0];
+
+                let streak = Math.floor(newDateFromISO(rangeEndDate) - newDateFromISO(rangeStartDate)) / (1000 * 60 * 60 * 24) + 1;
+
+                if (streak > maxStreak) {
+                    maxStreak = streak;
+                    maxStreakTask = taskData.task;
+                }
+            }
+        });
+    });
+
+    document.querySelector('#longest-active-streak-num').textContent = maxStreak;
+    document.querySelector('#longest-active-streak-task').textContent = maxStreakTask;
 }
 
 //let taskChartInstance = null;

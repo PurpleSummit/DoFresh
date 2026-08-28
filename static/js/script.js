@@ -1,19 +1,24 @@
-import {lumiStaticImg, lumiJump} from './lumi.js';
+import { lumiStaticImg, lumiJump } from './lumi.js';
 
 // INIT code
 
 let fillTextArray = ['📝 a blank canvas here!\n', "goodness me, look at that! it's time to get going 🏃\n", 'you can do this! — blue 52 🐳\n', 'may the force be with you... ✊\n', 'lettuce commence. 🥬\n', 'go you! go you! 🎉\n']
 
+const allTodoBoxIds = Object.keys(localStorage).filter(key => Number.isInteger(+key));
+allTodoBoxIds.sort((a, b) => a - b);
+
+let today = new Date();
+today.setHours(0, 0, 0, 0); 
+let yesterday = new Date(today);
+yesterday.setDate(yesterday.getDate() - 1);
+
 document.addEventListener('DOMContentLoaded', () => {
     console.log(localStorage);
 
     // Activate sidebar link
-    //document.querySelector('#sidebar-home-link').className = 'nav-link active';
+    // const sidebarList = document.querySelector('#home-lists');
 
     // Display sidebar to-do lists and add main HTML
-    const sidebarList = document.querySelector('#home-lists');
-    const allTodoBoxIds = Object.keys(localStorage).filter(key => Number.isInteger(+key));
-    allTodoBoxIds.sort((a, b) => a - b);
 
     allTodoBoxIds.forEach(boxId => {
         addHTMLTodoBox(boxId);
@@ -24,9 +29,75 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     setListeners();
+    iDidList();
 });
 
 // LOGIC code
+
+function iDidList() {
+    let current = new Date(today);
+
+    let datesArray = [];
+
+    for (let i = 0; i < 8; i++) {
+        datesArray.push(new Date(current));
+
+        current.setDate(current.getDate() - 1);
+    }
+
+    allTodoBoxIds.forEach(boxId => {
+        let boxData = JSON.parse(localStorage.getItem(boxId));
+
+        if (boxData.refreshing) {
+            datesArray.forEach(date => {
+                // Task's range of completed dates
+                let tasks = boxData.tasks.active.concat(boxData.tasks.completed);
+                if (tasks && tasks.length > 0) {
+                    tasks.forEach(task => {
+                        let completedDates = task.completedDates;
+
+                        for (const range of completedDates) {
+                            let dateOneParts = range[0].split('-');
+                            let dateOne = new Date(dateOneParts[0], dateOneParts[1] - 1, dateOneParts[2]);
+
+                            let dateTwoParts = range[1];
+                            let dateTwo;
+                            if (dateTwoParts === null) {
+                                dateTwo = new Date(yesterday);
+                            }
+                            else {
+                                dateTwoParts = dateTwoParts.split('-');
+                                dateTwo = new Date(dateTwoParts[0], dateTwoParts[1] - 1, dateTwoParts[2]);
+                            }
+
+                            console.log("Is", date, "in between", [dateOne, dateTwo], "?");
+                            console.log(dateOne <= date);
+                            console.log(date <= dateTwo);
+
+                            // If the task was completed on `date`, then add the task to the I Did list for that date 
+                            if (dateOne <= date && date <= dateTwo) {
+                                let taskId = task.taskId;
+                                let completedDate = date.toISOString().split('T')[0];
+                                console.log(taskId, completedDate);
+                                addHTMLTaskIDid(boxId, taskId, completedDate);
+                            }
+                        }
+                    });
+                }
+            });
+        } else {
+            let completedTasks = boxData.tasks.completed;
+            if (completedTasks && completedTasks.length > 0) {
+                completedTasks.forEach(task => {
+                    let taskId = task.taskId;
+                    let completedDate = task.completedDate || today.toISOString().split('T')[0];
+                    addHTMLTaskIDid(boxId, taskId, completedDate);
+                });
+            }
+        }
+
+    });
+}
 
 function setListeners() {
     // To-do task buttons
@@ -48,6 +119,14 @@ function setListeners() {
         textarea.addEventListener('focusout', () => {
             textarea.parentElement.dataset.bsToggle = 'collapse';
             editTask(textarea);
+        });
+
+        textarea.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                textarea.parentElement.dataset.bsToggle = 'collapse';
+                editTask(textarea);
+            }
         });
     });
 
@@ -303,10 +382,10 @@ function addTask(button) {
     let newTaskId = "task_" + Date.now();
 
     if (todoBoxData.refreshing) {
-        todoBoxData.tasks.active.push({ taskId: `${newTaskId}`, task: 'New task!', details: '', subTasks: [], createdDate: new Date().toISOString().split('T')[0], completedDates: [] });
+        todoBoxData.tasks.active.push({ taskId: `${newTaskId}`, task: 'New task!', details: '', parentTodoBox: todoBoxId, subTasks: [], createdDate: new Date().toISOString().split('T')[0], completedDates: [] });
     }
     else {
-        todoBoxData.tasks.active.push({ taskId: `${newTaskId}`, task: 'New task!', details: '', subTasks: [], createdDate: new Date().toISOString().split('T')[0], completedDate: '' });
+        todoBoxData.tasks.active.push({ taskId: `${newTaskId}`, task: 'New task!', details: '', parentTodoBox: todoBoxId, subTasks: [], createdDate: new Date().toISOString().split('T')[0], completedDate: '' });
     }
 
     localStorage.setItem(todoBoxId, JSON.stringify(todoBoxData));
@@ -355,10 +434,10 @@ function addSubtask(button) {
     // Add the new subtask object to localStorage
     let newSubtaskObject;
     if (todoBoxData.refreshing) {
-        newSubtaskObject = { taskId: `${newTaskId}`, task: 'New task!', details: '', parentTask: `${parentTaskId}`, createdDate: new Date().toISOString().split('T')[0], completedDates: [] };
+        newSubtaskObject = { taskId: `${newTaskId}`, task: 'New task!', details: '', parentTodoBox: todoBoxId, parentTask: `${parentTaskId}`, createdDate: new Date().toISOString().split('T')[0], completedDates: [] };
     }
     else {
-        newSubtaskObject = { taskId: `${newTaskId}`, task: 'New task!', details: '', parentTask: `${parentTaskId}`, createdDate: new Date().toISOString().split('T')[0], completedDate: '' };
+        newSubtaskObject = { taskId: `${newTaskId}`, task: 'New task!', details: '', parentTodoBox: todoBoxId, parentTask: `${parentTaskId}`, createdDate: new Date().toISOString().split('T')[0], completedDate: '' };
     }
     todoBoxData.tasks['active'].push(newSubtaskObject);
 
@@ -380,10 +459,10 @@ function completeTask(radio) {
     // Change Lumi's costume
     lumiJump();
 
-    let taskElement = radio.parentElement.parentElement.parentElement;
-    let taskId = taskElement.id;
-    let parentTodoBox = taskElement.parentElement.parentElement;
-    let todoBoxId = parentTodoBox.id.replace('todo-box', '')
+    const taskElement = radio.parentElement.parentElement.parentElement;
+    const taskId = taskElement.id;
+    const parentTodoBox = taskElement.parentElement.parentElement;
+    const todoBoxId = parentTodoBox.id.replace('todo-box', '');
 
     let todoBoxData = JSON.parse(localStorage.getItem(todoBoxId));
     if (!todoBoxData) return;
@@ -402,10 +481,10 @@ function completeTask(radio) {
     if (previousState === 'active' && taskData['subTasks']?.length > 0) {
         idsToChange = [...idsToChange, ...taskData['subTasks']];
     }
-    // If completed subtask, then its parentTask should be restored too
-    //else if (previousState === 'completed' && taskData['parentTask']) {
-    //    idsToChange.push(taskData['parentTask']);
-    //}
+    /* If completed subtask, then its parentTask should be restored too
+    else if (previousState === 'completed' && taskData['parentTask']) {
+        idsToChange.push(taskData['parentTask']);
+    } */
 
     const allTasks = [...todoBoxData.tasks.active, ...todoBoxData.tasks.completed]
     let tasksToChange = allTasks.filter(t => idsToChange.includes(t['taskId']));
@@ -415,7 +494,7 @@ function completeTask(radio) {
         todoBoxData.tasks.active = todoBoxData.tasks.active.filter(t => !idsToChange.includes(t['taskId']));
 
         tasksToChange.forEach(task => {
-            if (task.completedDate) task.completedDate = `${new Date().toISOString().split('T')[0]}`;
+            if (task.completedDate === '') task.completedDate = `${new Date().toISOString().split('T')[0]}`;
         });
 
         // Prevent duplicate entries
@@ -440,14 +519,20 @@ function completeTask(radio) {
 
     // 🗻 Update DOM elements
     idsToChange.forEach(id => {
-        let oldTaskElement = document.querySelector(`#${id}`);
+        let oldTaskElements = document.querySelectorAll(`#${id}`);
 
-        if (oldTaskElement) {
-            oldTaskElement.remove();
+        if (oldTaskElements) {
+            oldTaskElements.forEach(el => {
+                el.remove();
+            })
         }
 
         if (previousState === 'completed') {
             addHTMLTodoTask(todoBoxId, id, true);
+        }
+
+        if (previousState === 'active') {
+            addHTMLTaskIDid(todoBoxId, id, today.toISOString().split('T')[0]);
         }
     });
 
@@ -503,6 +588,7 @@ function editTaskDetails(textarea) {
 }
 
 function removeTask(button) {
+    // Locate all parent HTML for JSON IDs
     let taskElement = button.parentElement.parentElement.parentElement.parentElement.parentElement;
     let taskId = taskElement.id;
     let parentTodoBox = taskElement.parentElement.parentElement;
@@ -511,6 +597,7 @@ function removeTask(button) {
     let todoBoxData = JSON.parse(localStorage.getItem(todoBoxId));
     if (!todoBoxData) return;
 
+    // Consolidate all the tasks that should be moved with the selected task
     let tasksToRemove = [taskId];
 
     let taskData = todoBoxData.tasks.active.find((t => t['taskId'] == taskId)) || todoBoxData.tasks.completed.find(t => t['taskId'] == taskId);
@@ -539,8 +626,12 @@ function removeTask(button) {
     localStorage.setItem(todoBoxId, JSON.stringify(todoBoxData));
 
     tasksToRemove.forEach(id => {
-        let element = document.querySelector(`#${id}`);
-        if (element) element.remove();
+        let elements = document.querySelectorAll(`#${id}`);
+        if (elements) {
+            elements.forEach(el => {
+                el.remove();
+            })
+        }
     });
 
     // ⛰️ Fix the # of completed tasks
@@ -596,7 +687,6 @@ function addHTMLTodoBox(boxId) {
     if (todoBoxData.tasks.active.length >= 1) {
         (todoBoxData.tasks.active).forEach((task) => {
             let taskId = task['taskId'];
-            let taskText = task['task'];
 
             addHTMLTodoTask(boxId, taskId, true);
         });
@@ -672,6 +762,7 @@ function updateHTMLCollapseDiv(todoBoxId) {
 }
 
 function addHTMLTodoTask(todoBoxId, taskId, active) {
+    // Collect all data; divide and separate according to active and has-parent-already
     let todoBoxData = localStorage.getItem(todoBoxId);
     todoBoxData = JSON.parse(todoBoxData);
 
@@ -705,17 +796,18 @@ function addHTMLTodoTask(todoBoxId, taskId, active) {
         subtaskClass = 'subtask';
     }
 
+    // Locate and build HTML elements
     let taskText = taskData.task;
     let taskDetails = taskData.details;
 
-    let tasksDiv = document.querySelector(`#todo-box${todoBoxId}`).querySelector(`.todo-box${completed}-tasks`);
-
+    let div = document.querySelector(`#todo-box${todoBoxId}`).querySelector(`.todo-box${completed}-tasks`);
     const taskElement = document.createElement('div');
+
     taskElement.className = 'todo-task accordion-item';
     taskElement.id = `${taskId}`;
     taskElement.innerHTML = `
-        <h2 class="accordion-header">
-            <div class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#details-${taskId}" aria-expanded="false" aria-controls="details-${taskId}">
+        <h2 class="accordion-header task-header-container">
+            <div class="accordion-button task-head collapsed" data-bs-toggle="collapse" data-bs-target="#details-${taskId}" aria-expanded="false" aria-controls="details-${taskId}">
                 <input type='radio'${checked}>
                 <textarea name='task-textarea' class='todo${completed}-task-text'${disabled}>${taskText}</textarea>
                 <button type="button" class="btn edit-todo-task-btn" data-bs-toggle="dropdown" aria-expanded="false" data-toggle="dropdown">
@@ -748,16 +840,58 @@ function addHTMLTodoTask(todoBoxId, taskId, active) {
         if (parentTaskElement) parentTaskElement.after(taskElement);
     }
     else {
-        if (!active && !tasksDiv) {
+        if (!active && !div && parentElementType !== "i-did-list") {
             addHTMLCollapseDiv(todoBoxId);
 
-            // Set tasksDiv again
-            tasksDiv = document.querySelector(`#todo-box${todoBoxId}`).querySelector(`.todo-box-completed-tasks`);
+            // Set div again
+            div = document.querySelector(`#todo-box${todoBoxId}`).querySelector(`.todo-box-completed-tasks`);
         }
-        if (tasksDiv) {
-            tasksDiv.prepend(taskElement);
+        if (div) {
+            div.appendChild(taskElement);
         }
     }
 
     setListeners();
+}
+
+// completedDate is in ISO form YYYY-MM-DD
+function addHTMLTaskIDid(todoBoxId, taskId, completedDate) {
+
+    let todoBoxData = localStorage.getItem(todoBoxId);
+    todoBoxData = JSON.parse(todoBoxData);
+
+    let allTasks = todoBoxData.tasks['completed'].concat(todoBoxData.tasks['active']);
+    let taskData = allTasks.find(task => task['taskId'] == taskId);
+
+    let div = document.querySelector('#i-did-list');
+
+    let completedTag = 'Completed ';
+
+    let todayStr = today.toISOString().split('T')[0];
+    let yesterdayStr = yesterday.toISOString().split('T')[0];
+
+    if (completedDate == todayStr) {
+        completedTag += 'Today';
+    }
+    else if (completedDate == yesterdayStr) {
+        completedTag += 'Yesterday';
+    }
+    else {
+        console.log(taskData);
+        completedTag += `on ${completedDate}`;
+    }
+
+    let taskElement = document.createElement('div');
+    taskElement.className = 'todo-task i-did-todo-task';
+    taskElement.id = `${taskId}`;
+    taskElement.innerHTML = `
+    <h2 class="task-header-container">
+        <div class="task-head">
+            <input type='radio' checked>
+            <textarea name='task-textarea' class='todo-completed-task-text' disabled>${taskData.task}</textarea>
+        </div>
+        <p class="i-did-completed-tag">${completedTag}</p>
+    </h2>`;
+
+    div.appendChild(taskElement);
 }

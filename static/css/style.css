@@ -130,15 +130,13 @@ button {
     margin-top: -2px;
 }
 
-.accordion-header {
-    display: flex;
-}
-
-.accordion-button {
+.task-head {
     padding: 1rem;
     border-radius: 10px !important;
     background-color: transparent !important;
     box-shadow: none !important;
+    display: flex;
+    align-items: center;
 }
 
 .accordion-collapse {
@@ -231,7 +229,7 @@ input[type='radio'] {
     transition: 0.4s ease-in;
 }
 
-.todo-completed-task-text {
+.todo-task:not(.i-did-todo-task) .todo-completed-task-text {
     text-decoration: line-through;
 }
 
@@ -261,7 +259,6 @@ input[type='text'] {
     max-width: 286px;
     min-height: 36px;
 }
-
 
 .progress-circle {
     position: relative;
@@ -336,4 +333,67 @@ input[type='text'] {
     opacity: 0;
     transform: scale(0.85);
     transition: opacity 0.15s ease-in-out, transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+#i-did-list {
+    position: absolute;
+    right: 0px;
+    top: 90px;
+    height: 100%;
+    border-radius: 8px; 
+    border-top-right-radius: 0px;
+    border-bottom-right-radius: 0px;
+    z-index: 11;
+    
+    width: 100%;
+    max-width: 320px;
+    overflow-x: hidden;
+    overflow-y: auto;
+    transition: max-width 0.25s ease-in-out;
+
+    background: rgba(255, 255, 255, 0.20);
+    backdrop-filter: blur(24px) saturate(180%);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+}
+
+#i-did-list.i-did-close {
+    max-width: 49px !important;
+}
+
+#i-did-list #i-did-list-toggle { margin-left: 18px; }
+
+#i-did-list.i-did-close .todo-task {
+    max-width: 0px;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.1s ease, max-width 0.25s ease-in-out, visibility 0.25s;
+    display: inline-block;
+    vertical-align: middle;
+    overflow: hidden;
+    white-space: nowrap;
+}
+
+#i-did-list:not(.i-did-close) .todo-task {
+    max-width: 360px;
+    width: 100%;
+    opacity: 1;
+    visibility: visible;
+    transition: opacity 0.1s ease, max-width 0.25s ease-in-out;
+    display: inline-block;
+    vertical-align: middle;
+    overflow: hidden;
+    white-space: nowrap;
+}
+
+#i-did-list .todo-task::before {
+    transform: translateY(-50%);
+    transition: all 0.5s;
+}
+
+.i-did-completed-tag {
+    font-size: 12px;
+    font-weight: 400;
+    color: rgb(93, 91, 91);
+    margin-top: -15px;
 }
