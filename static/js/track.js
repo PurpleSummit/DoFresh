@@ -31,7 +31,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Declaring task data globally
 let today = new Date();
-let todayStr = today.toISOString().split('T')[0];
+let todayStr = toSimpleISOString(today);
 let yesterday = new Date(today);
 yesterday.setDate(yesterday.getDate() - 1);
 
@@ -71,7 +71,7 @@ allTasks.forEach(taskData => {
             }
 
             while (iDate <= jDate) {
-                completedDates.push(iDate.toISOString().split('T')[0]);
+                completedDates.push(toSimpleISOString(iDate));
                 iDate.setDate(iDate.getDate() + 1);
             }
         });
@@ -106,7 +106,7 @@ let startDates = dateRanges.flatMap((task) => {
 let timestamps = startDates.map(date => new Date(date).getTime()).filter(time => !isNaN(time) && time > 0);
 
 let startDate = timestamps.length > 0 ? new Date(Math.min(...timestamps)) : new Date();
-startDate = startDate.toISOString().split('T')[0];
+startDate = toSimpleISOString(startDate);
 
 
 function chartCompletion() {
@@ -117,7 +117,7 @@ function chartCompletion() {
     // Fill in the data with dates with no completions
     let iDate = newDateFromISO(completedDates.sort()[0]);
     while (iDate < yesterday) {
-        let date = iDate.toISOString().split('T')[0];
+        let date = toSimpleISOString(iDate);
 
         if (completedDates.includes(date)) {
             formattedData.push({ x: date, y: completionData[date].length });
@@ -340,7 +340,7 @@ function activityHeatmap() {
     iDate.setDate(iDate.getDate() - (iDate.getDay() + 6) % 7);
 
     while (iDate < yesterday) {
-        selectDate = iDate.toISOString().split('T')[0];
+        selectDate = toSimpleISOString(iDate);
 
         if (!xValues.includes(selectDate)) {
             xValues.push(selectDate);
@@ -447,6 +447,59 @@ function longestActiveStreak() {
     document.querySelector('#longest-active-streak-num').textContent = maxStreak;
     document.querySelector('#longest-active-streak-task').textContent = maxStreakTask;
 }
+
+function whenBlankChart() {
+    if (taskChartInstance !== null) {
+        taskChartInstance.destroy();
+    }
+
+    removeFillerText();
+
+    let fillText = document.createElement('p');
+    fillText.id = `chart-fill-p`;
+    fillText.textContent = `No data yet... it's time to get cracking! 🔮`;
+
+    document.querySelector('#track-dashboard').prepend(fillText);
+
+    document.querySelector('#chart-settings-div').style.opacity = 0;
+}
+
+function removeFillerText() {
+    let chartFillText = document.querySelector('#chart-fill-p');
+    if (chartFillText) {
+        chartFillText.remove();
+    }
+}
+
+// Small date-formatting functions
+
+function newDateFromISO(dateStr) {
+    let dateParts = dateStr.split('-');
+
+    let yearPart = dateParts[0];
+    let monthPart = dateParts[1] - 1;
+    let dayPart = dateParts[2];
+
+    return new Date(yearPart, monthPart, dayPart);
+}
+
+function toSimpleISOString(date) {
+    return date.toISOString().split('T')[0];
+}
+
+// 2026-08-01 to Month Date, YY
+function ISOToDateString(ISOString, yearIncluded) {
+    let dateParts = ISOString.split('-');
+
+    labelDate = `${months[dateParts[1] - 1]} ${dateParts[2]}`;
+
+    if (yearIncluded) {
+        labelDate += `, ${dateParts[0]}`;
+    }
+
+    return labelDate;
+}
+
 
 //let taskChartInstance = null;
 // let rangeSetting, chartType;
@@ -1062,49 +1115,3 @@ function longestActiveStreak() {
         }
     });
 } */
-
-function whenBlankChart() {
-    if (taskChartInstance !== null) {
-        taskChartInstance.destroy();
-    }
-
-    removeFillerText();
-
-    let fillText = document.createElement('p');
-    fillText.id = `chart-fill-p`;
-    fillText.textContent = `No data yet... it's time to get cracking! 🔮`;
-
-    document.querySelector('#track-dashboard').prepend(fillText);
-
-    document.querySelector('#chart-settings-div').style.opacity = 0;
-}
-
-function removeFillerText() {
-    let chartFillText = document.querySelector('#chart-fill-p');
-    if (chartFillText) {
-        chartFillText.remove();
-    }
-}
-
-function newDateFromISO(dateStr) {
-    let dateParts = dateStr.split('-');
-
-    let yearPart = dateParts[0];
-    let monthPart = dateParts[1] - 1;
-    let dayPart = dateParts[2];
-
-    return new Date(yearPart, monthPart, dayPart);
-}
-
-// 2026-08-01 to Month Date, YY
-function ISOToDateString(ISOString, yearIncluded) {
-    let dateParts = ISOString.split('-');
-
-    labelDate = `${months[dateParts[1] - 1]} ${dateParts[2]}`;
-
-    if (yearIncluded) {
-        labelDate += `, ${dateParts[0]}`;
-    }
-
-    return labelDate;
-}

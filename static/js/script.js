@@ -11,6 +11,8 @@ let today = new Date();
 today.setHours(0, 0, 0, 0); 
 let yesterday = new Date(today);
 yesterday.setDate(yesterday.getDate() - 1);
+let todayStr = toSimpleISOString(today);
+let yesterdayStr = toSimpleISOString(yesterday);
 
 document.addEventListener('DOMContentLoaded', () => {
     console.log(localStorage);
@@ -42,12 +44,22 @@ function iDidList() {
     for (let i = 0; i < 8; i++) {
         datesArray.push(new Date(current));
 
+        let currentStr = toSimpleISOString(current);
+
+        let iDidDateHeader = document.createElement('div');
+        iDidDateHeader.className = 'i-did-date-header';
+        iDidDateHeader.id = `i-did-header-${currentStr}`;
+        iDidDateHeader.innerHTML = `<h5>${ISOToDateString(currentStr)}</h5>`
+
+        document.querySelector('#i-did-list').appendChild(iDidDateHeader);
+
         current.setDate(current.getDate() - 1);
     }
 
     allTodoBoxIds.forEach(boxId => {
         let boxData = JSON.parse(localStorage.getItem(boxId));
 
+        // If it's a refreshing list, log one week's worth of past completions
         if (boxData.refreshing) {
             datesArray.forEach(date => {
                 // Task's range of completed dates
@@ -70,30 +82,35 @@ function iDidList() {
                                 dateTwo = new Date(dateTwoParts[0], dateTwoParts[1] - 1, dateTwoParts[2]);
                             }
 
-                            console.log("Is", date, "in between", [dateOne, dateTwo], "?");
-                            console.log(dateOne <= date);
-                            console.log(date <= dateTwo);
-
                             // If the task was completed on `date`, then add the task to the I Did list for that date 
                             if (dateOne <= date && date <= dateTwo) {
                                 let taskId = task.taskId;
-                                let completedDate = date.toISOString().split('T')[0];
-                                console.log(taskId, completedDate);
+                                let completedDate = toSimpleISOString(date);
+                                
+                                let completedTag = `${completedDate}`;
+                                if (completedDate == todayStr) {
+                                    completedTag += 'Today';
+                                }
+                                else if (completedDate == yesterdayStr) {
+                                    completedTag += 'Yesterday';
+                                }
+
                                 addHTMLTaskIDid(boxId, taskId, completedDate);
                             }
                         }
                     });
                 }
             });
-        } else {
-            let completedTasks = boxData.tasks.completed;
-            if (completedTasks && completedTasks.length > 0) {
-                completedTasks.forEach(task => {
-                    let taskId = task.taskId;
-                    let completedDate = task.completedDate || today.toISOString().split('T')[0];
-                    addHTMLTaskIDid(boxId, taskId, completedDate);
-                });
-            }
+        }
+        
+        // Display all the completions today
+        let completedTasks = boxData.tasks.completed;
+        if (completedTasks && completedTasks.length > 0) {
+            completedTasks.forEach(task => {
+                let taskId = task.taskId;
+                let completedDate = task.completedDate || todayStr;
+                addHTMLTaskIDid(boxId, taskId, completedDate);
+            });
         }
 
     });
@@ -382,10 +399,10 @@ function addTask(button) {
     let newTaskId = "task_" + Date.now();
 
     if (todoBoxData.refreshing) {
-        todoBoxData.tasks.active.push({ taskId: `${newTaskId}`, task: 'New task!', details: '', parentTodoBox: todoBoxId, subTasks: [], createdDate: new Date().toISOString().split('T')[0], completedDates: [] });
+        todoBoxData.tasks.active.push({ taskId: `${newTaskId}`, task: 'New task!', details: '', parentTodoBox: todoBoxId, subTasks: [], createdDate: toSimpleISOString(new Date()), completedDates: [] });
     }
     else {
-        todoBoxData.tasks.active.push({ taskId: `${newTaskId}`, task: 'New task!', details: '', parentTodoBox: todoBoxId, subTasks: [], createdDate: new Date().toISOString().split('T')[0], completedDate: '' });
+        todoBoxData.tasks.active.push({ taskId: `${newTaskId}`, task: 'New task!', details: '', parentTodoBox: todoBoxId, subTasks: [], createdDate: toSimpleISOString(new Date()), completedDate: '' });
     }
 
     localStorage.setItem(todoBoxId, JSON.stringify(todoBoxData));
@@ -434,10 +451,10 @@ function addSubtask(button) {
     // Add the new subtask object to localStorage
     let newSubtaskObject;
     if (todoBoxData.refreshing) {
-        newSubtaskObject = { taskId: `${newTaskId}`, task: 'New task!', details: '', parentTodoBox: todoBoxId, parentTask: `${parentTaskId}`, createdDate: new Date().toISOString().split('T')[0], completedDates: [] };
+        newSubtaskObject = { taskId: `${newTaskId}`, task: 'New task!', details: '', parentTodoBox: todoBoxId, parentTask: `${parentTaskId}`, createdDate: toSimpleISOString(new Date()), completedDates: [] };
     }
     else {
-        newSubtaskObject = { taskId: `${newTaskId}`, task: 'New task!', details: '', parentTodoBox: todoBoxId, parentTask: `${parentTaskId}`, createdDate: new Date().toISOString().split('T')[0], completedDate: '' };
+        newSubtaskObject = { taskId: `${newTaskId}`, task: 'New task!', details: '', parentTodoBox: todoBoxId, parentTask: `${parentTaskId}`, createdDate: toSimpleISOString(new Date()), completedDate: '' };
     }
     todoBoxData.tasks['active'].push(newSubtaskObject);
 
@@ -494,7 +511,7 @@ function completeTask(radio) {
         todoBoxData.tasks.active = todoBoxData.tasks.active.filter(t => !idsToChange.includes(t['taskId']));
 
         tasksToChange.forEach(task => {
-            if (task.completedDate === '') task.completedDate = `${new Date().toISOString().split('T')[0]}`;
+            if (task.completedDate === '') task.completedDate = `${toSimpleISOString(new Date())}`;
         });
 
         // Prevent duplicate entries
@@ -519,20 +536,19 @@ function completeTask(radio) {
 
     // 🗻 Update DOM elements
     idsToChange.forEach(id => {
-        let oldTaskElements = document.querySelectorAll(`#${id}`);
+        let taskElement = document.querySelector(`#${id}`);
 
-        if (oldTaskElements) {
-            oldTaskElements.forEach(el => {
-                el.remove();
-            })
-        }
+        if (taskElement) taskElement.remove();
 
         if (previousState === 'completed') {
             addHTMLTodoTask(todoBoxId, id, true);
+
+            let iDidTaskElement = document.querySelector(`#${id}-${todayStr}`);
+            if (iDidTaskElement) iDidTaskElement.remove();
         }
 
         if (previousState === 'active') {
-            addHTMLTaskIDid(todoBoxId, id, today.toISOString().split('T')[0]);
+            addHTMLTaskIDid(todoBoxId, id, toSimpleISOString(today));
         }
     });
 
@@ -626,12 +642,11 @@ function removeTask(button) {
     localStorage.setItem(todoBoxId, JSON.stringify(todoBoxData));
 
     tasksToRemove.forEach(id => {
-        let elements = document.querySelectorAll(`#${id}`);
-        if (elements) {
-            elements.forEach(el => {
-                el.remove();
-            })
-        }
+        let taskElement = document.querySelector(`#${id}`);
+        taskElement.remove();
+        
+        let iDidTaskElement = document.querySelector(`#${id}-${todayStr}`);
+        if (iDidTaskElement) iDidTaskElement.remove();
     });
 
     // ⛰️ Fix the # of completed tasks
@@ -863,27 +878,19 @@ function addHTMLTaskIDid(todoBoxId, taskId, completedDate) {
     let allTasks = todoBoxData.tasks['completed'].concat(todoBoxData.tasks['active']);
     let taskData = allTasks.find(task => task['taskId'] == taskId);
 
-    let div = document.querySelector('#i-did-list');
+    let div = document.querySelector(`#i-did-header-${completedDate}`);
 
-    let completedTag = 'Completed ';
-
-    let todayStr = today.toISOString().split('T')[0];
-    let yesterdayStr = yesterday.toISOString().split('T')[0];
-
-    if (completedDate == todayStr) {
-        completedTag += 'Today';
-    }
-    else if (completedDate == yesterdayStr) {
-        completedTag += 'Yesterday';
+    let completedTag;
+    if (completedDate == todayStr || completedDate == yesterdayStr) {
+        completedTag = `Completed ${ISOToDateString(completedDate)}`;
     }
     else {
-        console.log(taskData);
-        completedTag += `on ${completedDate}`;
+        completedTag = `Completed on ${ISOToDateString(completedDate)}`;
     }
 
     let taskElement = document.createElement('div');
-    taskElement.className = 'todo-task i-did-todo-task';
-    taskElement.id = `${taskId}`;
+    taskElement.className = `todo-task i-did-todo-task i-did-${completedDate}`;
+    taskElement.id = `${taskId}-${completedDate}`;
     taskElement.innerHTML = `
     <h2 class="task-header-container">
         <div class="task-head">
@@ -894,4 +901,23 @@ function addHTMLTaskIDid(todoBoxId, taskId, completedDate) {
     </h2>`;
 
     div.appendChild(taskElement);
+}
+
+// Small functions
+function toSimpleISOString(date) {
+    return date.toISOString().split('T')[0]
+}
+
+function ISOToDateString(ISOString) {
+    if (ISOString == todayStr) {
+        return 'Today';
+    } else if (ISOString == yesterdayStr) {
+        return 'Yesterday';
+    }
+
+    let months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'July', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+    let dateParts = ISOString.split('-');
+
+    return `${months[dateParts[1] - 1]} ${dateParts[2]}, ${dateParts[0]}`;
 }
