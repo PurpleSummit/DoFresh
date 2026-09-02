@@ -16,17 +16,19 @@
 <div class="todo-box-div"></div>
 
 <div id="i-did-list">
-    <div style="display: flex;">
+    <div class="i-did-head" style="display: flex;">
         <button id="i-did-list-toggle" onclick="toggleIDid()">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16"
-                height="16" fill="currentColor" class="bi bi-check-circle" viewBox="0 0 16 16">
-                <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16" />
-                <path
-                    d="m10.97 4.97-.02.022-3.473 4.425-2.093-2.094a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-1.071-1.05" />
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                class="bi bi-chevron-double-right" viewBox="0 0 16 16">
+                <path fill-rule="evenodd"
+                    d="M3.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L9.293 8 3.646 2.354a.5.5 0 0 1 0-.708" />
+                <path fill-rule="evenodd"
+                    d="M7.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L13.293 8 7.646 2.354a.5.5 0 0 1 0-.708" />
             </svg>
         </button>
         <h2 style="margin: 14px 19px 13px 19px;">I Did!</h2>
     </div>
+    <div class="i-did-body"></div>
 </div>
 
 
@@ -135,9 +137,58 @@
     </div>
 </div>
 
+<div class="modal fade" id="welcomeModal" tabindex="-1" aria-labelledby="welcomeModalLabel"
+    aria-hidden="false">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-body">
+
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <h3>Welcome to DoFresh!</h3>
+
+                <h5>We're so glad to see you 😊</h5>
+
+                <br>
+
+                <p>Our goal is to help you accomplish <i>your</i> goals, duties, and callings step by step. We know that many of your goals will take time and effort and serious dedication—all components that are extremely important and extremely difficult. Yet do not fear! We want to help.</p>
+
+                <h3>1. Dashboard 🗒️</h3>
+                <p>We have a dashboard to keep track of all your tasks and to-do lists. (Wow!) Organize them however you want to.</p>
+                <h3>2. Track 📊</h3>
+                <p>Here's a fun, very purple page! You can use this section to reflect on your productivity and your priorities. Pat yourself on the back if you have a streak you're proud of. Track keeps, well, track of what tasks you complete so that you have accurate data about your habits, your persistence, and your hiatuses.</p>
+                <h3>3. Chat</h3>
+                <p>You can spill your thoughts to Lumi in this page. Lumi is your cheerleader, friend, and counselor. Say hi to Lumi!</p>
+                
+
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-purple" data-bs-dismiss="modal">Let's go!</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
     function toggleIDid() {
-        document.querySelector('#i-did-list').classList.toggle('i-did-close');
+        let iDidList = document.querySelector('#i-did-list');
+
+        iDidList.classList.toggle('i-did-close');
+
+        if (iDidList.classList.contains('i-did-close')) {
+            iDidList.querySelector('#i-did-list-toggle').innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-double-left" viewBox="0 0 16 16">
+                <path fill-rule="evenodd" d="M8.354 1.646a.5.5 0 0 1 0 .708L2.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0"/>
+                <path fill-rule="evenodd" d="M12.354 1.646a.5.5 0 0 1 0 .708L6.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0"/>
+            </svg>`;
+        } else {
+            iDidList.querySelector('#i-did-list-toggle').innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                class="bi bi-chevron-double-right" viewBox="0 0 16 16">
+                <path fill-rule="evenodd"
+                    d="M3.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L9.293 8 3.646 2.354a.5.5 0 0 1 0-.708" />
+                <path fill-rule="evenodd"
+                    d="M7.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L13.293 8 7.646 2.354a.5.5 0 0 1 0-.708" />
+            </svg>`;
+        }
     }
 </script>
 

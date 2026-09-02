@@ -55,7 +55,7 @@ export function lumiJump() {
 
     setLumiCostume('../static/img/lumi_jumping.svg');
 
-    setTimeout(() => {
+    lumiTimeout = setTimeout(() => {
         lumiMainBlink();
     }, 5600);
 }

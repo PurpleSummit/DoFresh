@@ -8,7 +8,7 @@ const allTodoBoxIds = Object.keys(localStorage).filter(key => Number.isInteger(+
 allTodoBoxIds.sort((a, b) => a - b);
 
 let today = new Date();
-today.setHours(0, 0, 0, 0); 
+today.setHours(0, 0, 0, 0);
 let yesterday = new Date(today);
 yesterday.setDate(yesterday.getDate() - 1);
 let todayStr = toSimpleISOString(today);
@@ -24,6 +24,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     allTodoBoxIds.forEach(boxId => {
         addHTMLTodoBox(boxId);
+        updateHTMLCompletedForGoodDiv(boxId);
     });
 
     if (allTodoBoxIds.length < 1) {
@@ -37,6 +38,9 @@ document.addEventListener('DOMContentLoaded', () => {
 // LOGIC code
 
 function iDidList() {
+    console.log("Well something's supposed to happen");
+    document.querySelector('.i-did-body').innerHTML = ``;
+
     let current = new Date(today);
 
     let datesArray = [];
@@ -51,7 +55,7 @@ function iDidList() {
         iDidDateHeader.id = `i-did-header-${currentStr}`;
         iDidDateHeader.innerHTML = `<h5>${ISOToDateString(currentStr)}</h5>`
 
-        document.querySelector('#i-did-list').appendChild(iDidDateHeader);
+        document.querySelector('.i-did-body').appendChild(iDidDateHeader);
 
         current.setDate(current.getDate() - 1);
     }
@@ -86,7 +90,7 @@ function iDidList() {
                             if (dateOne <= date && date <= dateTwo) {
                                 let taskId = task.taskId;
                                 let completedDate = toSimpleISOString(date);
-                                
+
                                 let completedTag = `${completedDate}`;
                                 if (completedDate == todayStr) {
                                     completedTag += 'Today';
@@ -102,24 +106,43 @@ function iDidList() {
                 }
             });
         }
-        
-        // Display all the completions today
+
+        // Display all the completions
         let completedTasks = boxData.tasks.completed;
         if (completedTasks && completedTasks.length > 0) {
-            completedTasks.forEach(task => {
-                let taskId = task.taskId;
-                let completedDate = task.completedDate || todayStr;
-                addHTMLTaskIDid(boxId, taskId, completedDate);
+            completedTasks.forEach(taskData => {
+                if (!taskData.completedForGood) {
+                    let taskId = taskData.taskId;
+                    let completedDate = taskData.completedDate || todayStr;
+
+                    if (!document.querySelector(`#i-did-header-${completedDate}`)) {
+                        let iDidDateHeader = document.createElement('div');
+                        iDidDateHeader.className = 'i-did-date-header';
+                        iDidDateHeader.id = `i-did-header-${completedDate}`;
+                        iDidDateHeader.innerHTML = `<h5>${ISOToDateString(completedDate)}</h5>`
+                    }
+
+                    addHTMLTaskIDid(boxId, taskId, completedDate);
+                }
             });
         }
 
+        let emptyHeaders = document.querySelectorAll('.i-did-date-header:not(:has(.i-did-todo-task))');
+        console.log(emptyHeaders);
+        emptyHeaders.forEach(headerDiv => {
+            headerDiv.style.display = 'none';
+        });
+        let otherHeaders = document.querySelectorAll('.i-did-date-header:has(.i-did-todo-task)');
+        console.log(otherHeaders);
+        otherHeaders.forEach(headerDiv => {
+            headerDiv.style.display = 'block';
+        });
     });
 }
 
 function setListeners() {
     // To-do task buttons
     let allAddTaskButtons = document.querySelectorAll('.add-task-btn');
-
     allAddTaskButtons.forEach(button => {
         button.onclick = () => {
             addTask(button);
@@ -127,7 +150,6 @@ function setListeners() {
     });
 
     let allTodoTasks = document.querySelectorAll('.todo-task-text');
-
     allTodoTasks.forEach(textarea => {
         textarea.onfocus = () => {
             textarea.parentElement.dataset.bsToggle = 'disabled';
@@ -148,7 +170,6 @@ function setListeners() {
     });
 
     let allTodoDetails = document.querySelectorAll('.todo-task-details');
-
     allTodoDetails.forEach(textarea => {
         textarea.addEventListener('focusout', () => {
             editTaskDetails(textarea);
@@ -156,7 +177,6 @@ function setListeners() {
     });
 
     let allTodoCheckboxes = document.querySelectorAll('input[type="radio"]');
-
     allTodoCheckboxes.forEach(radio => {
         radio.onclick = () => {
             completeTask(radio);
@@ -164,7 +184,6 @@ function setListeners() {
     });
 
     let allRemoveTaskButtons = document.querySelectorAll('.remove-task-btn');
-
     allRemoveTaskButtons.forEach(button => {
         button.onclick = () => {
             removeTask(button);
@@ -173,11 +192,9 @@ function setListeners() {
 
     // To-do box buttons
     let addTodoBoxButton = document.querySelector('.add-todo-box-btn');
-
     addTodoBoxButton.addEventListener('click', addTodoBox);
 
     let allRenameTodoBoxButtons = document.querySelectorAll('.rename-todo-box-btn');
-
     allRenameTodoBoxButtons.forEach(button => {
         button.onclick = () => {
             renameTodoBox(button);
@@ -185,7 +202,6 @@ function setListeners() {
     });
 
     let allRemoveTodoBoxButton = document.querySelectorAll('.remove-todo-box-btn');
-
     allRemoveTodoBoxButton.forEach(button => {
         button.onclick = () => {
             removeTodoBox(button);
@@ -229,9 +245,22 @@ function setListeners() {
     let allAddSubtaskBtns = document.querySelectorAll('.add-subtask-btn');
     allAddSubtaskBtns.forEach(btn => {
         btn.onclick = () => {
+            btn.parentElement.parentElement.dataset.bsToggle = 'disabled';
+
             addSubtask(btn);
         };
+
+        btn.onblur = () => {
+            btn.parentElement.parentElement.dataset.bsToggle = 'collapse';
+        };
     });
+
+    let allCompletedRefreshingTaskBtns = document.querySelectorAll('.complete-refreshing-task-btn');
+    allCompletedRefreshingTaskBtns.forEach(btn => {
+        btn.onclick = () => {
+            completeRefreshingTask(btn);
+        }
+    })
 }
 
 function fillIfBlank(parentElement) {
@@ -399,7 +428,7 @@ function addTask(button) {
     let newTaskId = "task_" + Date.now();
 
     if (todoBoxData.refreshing) {
-        todoBoxData.tasks.active.push({ taskId: `${newTaskId}`, task: 'New task!', details: '', parentTodoBox: todoBoxId, subTasks: [], createdDate: toSimpleISOString(new Date()), completedDates: [] });
+        todoBoxData.tasks.active.push({ taskId: `${newTaskId}`, task: 'New task!', details: '', parentTodoBox: todoBoxId, subTasks: [], createdDate: toSimpleISOString(new Date()), completedDates: [], completedForGood: false });
     }
     else {
         todoBoxData.tasks.active.push({ taskId: `${newTaskId}`, task: 'New task!', details: '', parentTodoBox: todoBoxId, subTasks: [], createdDate: toSimpleISOString(new Date()), completedDate: '' });
@@ -408,7 +437,7 @@ function addTask(button) {
     localStorage.setItem(todoBoxId, JSON.stringify(todoBoxData));
 
     // ⛰️ Create a todo-task div and add it
-    addHTMLTodoTask(todoBoxId, newTaskId, true);
+    addHTMLTask(todoBoxId, newTaskId, true);
 
     document.querySelector(`#${newTaskId}`).querySelector('.todo-task-text').focus();
 
@@ -451,7 +480,7 @@ function addSubtask(button) {
     // Add the new subtask object to localStorage
     let newSubtaskObject;
     if (todoBoxData.refreshing) {
-        newSubtaskObject = { taskId: `${newTaskId}`, task: 'New task!', details: '', parentTodoBox: todoBoxId, parentTask: `${parentTaskId}`, createdDate: toSimpleISOString(new Date()), completedDates: [] };
+        newSubtaskObject = { taskId: `${newTaskId}`, task: 'New task!', details: '', parentTodoBox: todoBoxId, parentTask: `${parentTaskId}`, createdDate: toSimpleISOString(new Date()), completedDates: [], completedForGood: false };
     }
     else {
         newSubtaskObject = { taskId: `${newTaskId}`, task: 'New task!', details: '', parentTodoBox: todoBoxId, parentTask: `${parentTaskId}`, createdDate: toSimpleISOString(new Date()), completedDate: '' };
@@ -461,7 +490,7 @@ function addSubtask(button) {
     localStorage.setItem(todoBoxId, JSON.stringify(todoBoxData));
 
     // ⛰️ Create a todo-task div and add it
-    addHTMLTodoTask(todoBoxId, newTaskId, true);
+    addHTMLTask(todoBoxId, newTaskId, true);
 
     // Focus on the task
     let newSubtaskElement = document.querySelector(`#${newTaskId}`);
@@ -473,9 +502,6 @@ function addSubtask(button) {
 }
 
 function completeTask(radio) {
-    // Change Lumi's costume
-    lumiJump();
-
     const taskElement = radio.parentElement.parentElement.parentElement;
     const taskId = taskElement.id;
     const parentTodoBox = taskElement.parentElement.parentElement;
@@ -508,6 +534,9 @@ function completeTask(radio) {
 
     // Complete the task and possibly its subtasks
     if (previousState == 'active') {
+        // Change Lumi's costume
+        lumiJump();
+
         todoBoxData.tasks.active = todoBoxData.tasks.active.filter(t => !idsToChange.includes(t['taskId']));
 
         tasksToChange.forEach(task => {
@@ -541,19 +570,74 @@ function completeTask(radio) {
         if (taskElement) taskElement.remove();
 
         if (previousState === 'completed') {
-            addHTMLTodoTask(todoBoxId, id, true);
-
-            let iDidTaskElement = document.querySelector(`#${id}-${todayStr}`);
-            if (iDidTaskElement) iDidTaskElement.remove();
-        }
-
-        if (previousState === 'active') {
-            addHTMLTaskIDid(todoBoxId, id, toSimpleISOString(today));
+            addHTMLTask(todoBoxId, id, true);
         }
     });
 
     // Updates all the tasks in completed-tasks div & removes elements if no tasks left
     updateHTMLCollapseDiv(todoBoxId);
+    iDidList();
+
+    // If no active tasks anymore
+    if (todoBoxData.tasks.active.length < 1) {
+        fillIfBlank(parentTodoBox.querySelector('.todo-box-tasks'));
+    }
+
+    setListeners();
+}
+
+function completeRefreshingTask(button) {
+    let taskElement = button.parentElement.parentElement.parentElement.parentElement.parentElement;
+    let taskId = taskElement.id;
+
+    let parentTodoBox = taskElement.parentElement.parentElement;
+    let todoBoxId = parentTodoBox.id.replace('todo-box', '');
+
+    let todoBoxData = JSON.parse(localStorage.getItem(todoBoxId));
+    if (!todoBoxData) return;
+
+    let idsToChange = [taskId];
+    
+    const allTasks = [...todoBoxData.tasks.active, ...todoBoxData.tasks.completed]
+    let taskData = allTasks.find(task => task['taskId'] == taskId);
+
+    // If active, mainstream task, all its subtasks should be completed too
+    if (taskData['subTasks'] && taskData['subTasks']?.length > 0) {
+        idsToChange = [...idsToChange, ...taskData['subTasks']];
+    }
+
+    let tasksToChange = allTasks.filter(t => idsToChange.includes(t['taskId']));
+
+    // Complete the task and possibly its subtasks
+    todoBoxData.tasks.active = todoBoxData.tasks.active.filter(t => !idsToChange.includes(t['taskId']));
+
+    tasksToChange.forEach(task => {
+        task.completedForGood = true;
+
+        if (task.completedDates.length > 0 && task.completedDates.at(-1)[1] === null) {
+            task.completedDates.at(-1)[1] = `${toSimpleISOString(new Date())}`;
+        }
+    });
+
+    // Prevent duplicate entries
+    const ongoingCompleted = todoBoxData.tasks.completed.filter(t => !idsToChange.includes(t['taskId']));
+    todoBoxData.tasks.completed = ongoingCompleted.concat(tasksToChange);
+
+    // Save changes
+    localStorage.setItem(todoBoxId, JSON.stringify(todoBoxData));
+
+    // 🗻 Update DOM elements
+    idsToChange.forEach(id => {
+        let taskElement = document.querySelector(`#${id}`);
+
+        if (taskElement) taskElement.remove();
+
+        // Add to section beneath `Completed` tasks
+    });
+
+    // Updates all the tasks in completed-tasks div & removes elements if no tasks left
+    updateHTMLCompletedForGoodDiv(todoBoxId);
+    iDidList();
 
     // If no active tasks anymore
     if (todoBoxData.tasks.active.length < 1) {
@@ -644,7 +728,7 @@ function removeTask(button) {
     tasksToRemove.forEach(id => {
         let taskElement = document.querySelector(`#${id}`);
         taskElement.remove();
-        
+
         let iDidTaskElement = document.querySelector(`#${id}-${todayStr}`);
         if (iDidTaskElement) iDidTaskElement.remove();
     });
@@ -693,8 +777,8 @@ function addHTMLTodoBox(boxId) {
             </ul>
         </div>
     </div>
-    <div class='todo-box-tasks accordion accordion-flush' id='accordion-flush${boxId}'>
-    </div>`;
+    <div class='todo-box-tasks accordion accordion-flush' id='accordion-flush${boxId}'></div>
+    <div class='todo-box-completed-refreshing-tasks'></div>`;
 
     let todoBoxDiv = document.querySelector('.todo-box-div');
     todoBoxDiv.appendChild(box);
@@ -703,7 +787,7 @@ function addHTMLTodoBox(boxId) {
         (todoBoxData.tasks.active).forEach((task) => {
             let taskId = task['taskId'];
 
-            addHTMLTodoTask(boxId, taskId, true);
+            addHTMLTask(boxId, taskId, true);
         });
     }
     else {
@@ -723,6 +807,7 @@ function addHTMLTodoBox(boxId) {
 
 function addHTMLCollapseDiv(todoBoxId) {
     const box = document.querySelector(`#todo-box${todoBoxId}`);
+    const tasksBox = box.querySelector('.todo-box-tasks');
 
     let todoBoxData = localStorage.getItem(todoBoxId);
     todoBoxData = JSON.parse(todoBoxData);
@@ -732,12 +817,12 @@ function addHTMLCollapseDiv(todoBoxId) {
     collapseToggle.innerHTML = `<button class="btn collapse-btn" type="button" data-bs-toggle="collapse" data-bs-target="#collapseExample${todoBoxId}" aria-expanded="false" aria-controls="collapseExample${todoBoxId}">
         Completed (${todoBoxData.tasks.completed.length})
     </button>`;
-    box.appendChild(collapseToggle);
+    tasksBox.after(collapseToggle);
 
     const collapseDiv = document.createElement('div');
     collapseDiv.className = 'collapse todo-box-completed-tasks accordion accordion-flush';
     collapseDiv.id = `collapseExample${todoBoxId}`;
-    box.appendChild(collapseDiv);
+    collapseToggle.after(collapseDiv);
 }
 
 function updateHTMLCollapseDiv(todoBoxId) {
@@ -753,20 +838,22 @@ function updateHTMLCollapseDiv(todoBoxId) {
         collapseToggle = todoBox.querySelector('.collapse-btn-div');
     }
 
+    let completedRefreshingTasks = todoBoxData.tasks.completed.filter(task => !task.completedForGood);
+
     collapseToggle.innerHTML = `<button class="btn collapse-btn" type="button" data-bs-toggle="collapse" data-bs-target="#collapseExample${todoBoxId}" aria-expanded="false" aria-controls="collapseExample${todoBoxId}">
-        Completed (${todoBoxData.tasks.completed.length})</button>`;
+        Completed (${completedRefreshingTasks.length})</button>`;
 
     // Wipe the original completed-tasks div and update
     todoBox.querySelector('.todo-box-completed-tasks').innerHTML = '';
 
-    (todoBoxData.tasks.completed).forEach((task) => {
+    completedRefreshingTasks.forEach((task) => {
         let taskId = task['taskId'];
 
-        addHTMLTodoTask(todoBoxId, taskId, false);
+        addHTMLTask(todoBoxId, taskId, false);
     });
 
     // If no completed tasks
-    if (todoBoxData.tasks.completed.length < 1) {
+    if (completedRefreshingTasks.length < 1) {
         let completedDiv = todoBox.querySelector('.todo-box-completed-tasks');
         completedDiv.remove();
         let completedButton = todoBox.querySelector('.collapse-btn-div');
@@ -776,46 +863,69 @@ function updateHTMLCollapseDiv(todoBoxId) {
     setListeners();
 }
 
-function addHTMLTodoTask(todoBoxId, taskId, active) {
-    // Collect all data; divide and separate according to active and has-parent-already
+function updateHTMLCompletedForGoodDiv(todoBoxId) {
+    let todoBoxElement = document.querySelector(`#todo-box${todoBoxId}`);
+    let completedForGoodDiv = todoBoxElement.querySelector('.todo-box-completed-refreshing-tasks');
+    completedForGoodDiv.innerHTML = '';
+
     let todoBoxData = localStorage.getItem(todoBoxId);
     todoBoxData = JSON.parse(todoBoxData);
 
-    let addSubtask, subtaskClass;
-    let allTasks, checked, disabled, completed;
-    if (active) {
-        allTasks = todoBoxData.tasks['active'];
-        checked = "";
-        disabled = "";
-        completed = "";
-        addSubtask = `
-        <li><a class='dropdown-item add-subtask-btn'${disabled}>
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-return-right" viewBox="0 0 16 16">
-                <path fill-rule="evenodd" d="M1.5 1.5A.5.5 0 0 0 1 2v4.8a2.5 2.5 0 0 0 2.5 2.5h9.793l-3.347 3.346a.5.5 0 0 0 .708.708l4.2-4.2a.5.5 0 0 0 0-.708l-4-4a.5.5 0 0 0-.708.708L13.293 8.3H3.5A1.5 1.5 0 0 1 2 6.8V2a.5.5 0 0 0-.5-.5"/>
-            </svg>Add a subtask</a>
-        </li>`;
-    }
-    else {
-        allTasks = todoBoxData.tasks['completed'];
-        checked = " checked";
-        disabled = " disabled";
-        completed = "-completed";
-        addSubtask = '';
+    let completedForGoodTasks = todoBoxData.tasks.completed.filter(task => task.completedForGood);
+
+    completedForGoodTasks.forEach(task => {
+        let taskId = task['taskId'];
+
+        addHTMLCompletedRefreshingTask(todoBoxId, taskId);
+    });
+}
+
+function addHTMLTask(todoBoxId, taskId, active) {
+    // Send to addHTMLCompletedTask if completed
+    if (!active) {
+        addHTMLCompletedTask(todoBoxId, taskId);
+        return;
     }
 
+    // Collect all data; divide and separate according to active and has-parent-already
+    let todoBoxData = JSON.parse(localStorage.getItem(todoBoxId));
+
+    let allTasks = todoBoxData.tasks['active'];
     let taskData = allTasks.find(task => task['taskId'] == taskId);
 
+    // Enable/disable subtask adding
     let parentTaskId = taskData['parentTask'];
+    let addSubtask, subtaskClass;
     if (parentTaskId) {
         addSubtask = '';
         subtaskClass = 'subtask';
+    } else {
+        addSubtask = `
+        <li><a class='dropdown-item add-subtask-btn'>
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-return-right" viewBox="0 0 16 16">
+            <path fill-rule="evenodd" d="M1.5 1.5A.5.5 0 0 0 1 2v4.8a2.5 2.5 0 0 0 2.5 2.5h9.793l-3.347 3.346a.5.5 0 0 0 .708.708l4.2-4.2a.5.5 0 0 0 0-.708l-4-4a.5.5 0 0 0-.708.708L13.293 8.3H3.5A1.5 1.5 0 0 1 2 6.8V2a.5.5 0 0 0-.5-.5"/>
+        </svg>Add a subtask</a>
+        </li>`;
+        subtaskClass = '';
+    }
+
+    // Enable/disable completing a refreshing task
+    let completeRefreshingTask = '';
+    if (todoBoxData.refreshing) {
+        completeRefreshingTask = `
+        <li><a class='dropdown-item complete-refreshing-task-btn'>
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-check-circle-fill" viewBox="0 0 16 16">
+        <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0m-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z"/>
+      </svg>
+        Mark complete</a>
+        </li>`;
     }
 
     // Locate and build HTML elements
     let taskText = taskData.task;
     let taskDetails = taskData.details;
 
-    let div = document.querySelector(`#todo-box${todoBoxId}`).querySelector(`.todo-box${completed}-tasks`);
+    let div = document.querySelector(`#todo-box${todoBoxId}`).querySelector(`.todo-box-tasks`);
     const taskElement = document.createElement('div');
 
     taskElement.className = 'todo-task accordion-item';
@@ -823,8 +933,8 @@ function addHTMLTodoTask(todoBoxId, taskId, active) {
     taskElement.innerHTML = `
         <h2 class="accordion-header task-header-container">
             <div class="accordion-button task-head collapsed" data-bs-toggle="collapse" data-bs-target="#details-${taskId}" aria-expanded="false" aria-controls="details-${taskId}">
-                <input type='radio'${checked}>
-                <textarea name='task-textarea' class='todo${completed}-task-text'${disabled}>${taskText}</textarea>
+                <input type='radio'>
+                <textarea name='task-textarea' class='todo-task-text'>${taskText}</textarea>
                 <button type="button" class="btn edit-todo-task-btn" data-bs-toggle="dropdown" aria-expanded="false" data-toggle="dropdown">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-three-dots-vertical" viewBox="0 0 16 16">
                         <path d="M9.5 13a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0m0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0m0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0"/>
@@ -837,12 +947,13 @@ function addHTMLTodoTask(todoBoxId, taskId, active) {
                         </svg>Delete</a>
                     </li>
                     ${addSubtask}
+                    ${completeRefreshingTask}
                 </ul>
             </button>
         </h2>
         <div id="details-${taskId}" class="accordion-collapse collapse" data-bs-parent="#accordion-flush${todoBoxId}">
             <div class="form-floating accordion-body" style="padding: 0px;">
-                <textarea id='details-${taskId}-textarea' class='form-control todo${completed}-task-details' placeholder='Leave the details here'${disabled}>${taskDetails}</textarea>
+                <textarea id='details-${taskId}-textarea' class='form-control todo-task-details' placeholder='Leave the details here'>${taskDetails}</textarea>
                 <label for="details-${taskId}-textarea">Details</label>
             </div>
     </div>`;
@@ -855,15 +966,144 @@ function addHTMLTodoTask(todoBoxId, taskId, active) {
         if (parentTaskElement) parentTaskElement.after(taskElement);
     }
     else {
-        if (!active && !div && parentElementType !== "i-did-list") {
+        div?.appendChild(taskElement);
+    }
+
+    setListeners();
+}
+
+function addHTMLCompletedTask(todoBoxId, taskId) {
+    // Collect all data; divide and separate according to active and has-parent-already
+    let todoBoxData = localStorage.getItem(todoBoxId);
+    todoBoxData = JSON.parse(todoBoxData);
+
+    let allTasks = todoBoxData.tasks['completed'];
+    let taskData = allTasks.find(task => task['taskId'] == taskId);
+
+    if (taskData.completedForGood) {
+        addHTMLCompletedRefreshingTask(todoBoxId, taskId);
+        return;
+    }
+
+    // Set 'complete for good' button
+    let completeRefreshingTask = (todoBoxData.refreshing) ? `
+        <li><a class='dropdown-item complete-refreshing-task-btn'>
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-check-circle-fill" viewBox="0 0 16 16">
+        <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0m-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z"/>
+      </svg>
+        Mark complete</a>
+        </li>` : '';
+
+    // Locate and build HTML elements
+    let taskText = taskData.task;
+    let taskDetails = taskData.details;
+
+    let div = document.querySelector(`#todo-box${todoBoxId}`).querySelector(`.todo-box-completed-tasks`);
+    const taskElement = document.createElement('div');
+
+    taskElement.className = 'todo-task accordion-item';
+    taskElement.id = `${taskId}`;
+    taskElement.innerHTML = `
+        <h2 class="accordion-header task-header-container">
+            <div class="accordion-button task-head collapsed" data-bs-toggle="collapse" data-bs-target="#details-${taskId}" aria-expanded="false" aria-controls="details-${taskId}">
+                <input type='radio' checked>
+                <textarea name='task-textarea' class='todo-completed-task-text' disabled>${taskText}</textarea>
+                <button type="button" class="btn edit-todo-task-btn" data-bs-toggle="dropdown" aria-expanded="false" data-toggle="dropdown">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-three-dots-vertical" viewBox="0 0 16 16">
+                        <path d="M9.5 13a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0m0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0m0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0"/>
+                    </svg>
+                </button>
+                <ul class="task-edit-dropdown dropdown-menu dropdown-menu-end collapsed">
+                    <li><a class='dropdown-item remove-task-btn'>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash-fill" viewBox="0 0 16 16">
+                            <path d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5M8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5m3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0"/>
+                        </svg>Delete</a>
+                    </li>
+                    ${completeRefreshingTask}
+                </ul>
+            </button>
+        </h2>
+        <div id="details-${taskId}" class="accordion-collapse collapse" data-bs-parent="#accordion-flush${todoBoxId}">
+            <div class="form-floating accordion-body" style="padding: 0px;">
+                <textarea id='details-${taskId}-textarea' class='form-control todo-completed-task-details' placeholder='Leave the details here' disabled>${taskDetails}</textarea>
+                <label for="details-${taskId}-textarea">Details</label>
+            </div>
+    </div>`;
+
+    let parentTaskId = taskData['parentTask'];
+    const hasMatchingParentTask = parentTaskId && (allTasks.some(t => t['taskId'] == parentTaskId) && allTasks.some(t => t['taskId'] == taskId));
+
+    if (hasMatchingParentTask) {
+        taskElement.className = 'todo-task accordion-item subtask';
+        let parentTaskElement = document.querySelector(`#${parentTaskId}`);
+        if (parentTaskElement) parentTaskElement.after(taskElement);
+    }
+    else {
+        if (!div) {
             addHTMLCollapseDiv(todoBoxId);
 
             // Set div again
             div = document.querySelector(`#todo-box${todoBoxId}`).querySelector(`.todo-box-completed-tasks`);
         }
-        if (div) {
-            div.appendChild(taskElement);
-        }
+        div?.appendChild(taskElement);
+    }
+
+    setListeners();
+}
+
+function addHTMLCompletedRefreshingTask(todoBoxId, taskId) {
+    // Collect all data; divide and separate according to active and has-parent-already
+    let todoBoxData = localStorage.getItem(todoBoxId);
+    todoBoxData = JSON.parse(todoBoxData);
+
+    let allTasks = todoBoxData.tasks['completed'];
+    let taskData = allTasks.find(task => task['taskId'] == taskId);
+
+    // Locate and build HTML elements
+    let taskText = taskData.task;
+    let taskDetails = taskData.details;
+
+    let div = document.querySelector(`#todo-box${todoBoxId}`).querySelector(`.todo-box-completed-refreshing-tasks`);
+    const taskElement = document.createElement('div');
+
+    taskElement.className = 'todo-task accordion-item';
+    taskElement.id = `${taskId}`;
+    taskElement.innerHTML = `
+        <h2 class="accordion-header task-header-container">
+            <div class="accordion-button task-head collapsed" data-bs-toggle="collapse" data-bs-target="#details-${taskId}" aria-expanded="false" aria-controls="details-${taskId}">
+                <input type='radio' checked disabled>
+                <textarea name='task-textarea' class='todo-completed-task-text' disabled>${taskText}</textarea>
+                <button type="button" class="btn edit-todo-task-btn" data-bs-toggle="dropdown" aria-expanded="false" data-toggle="dropdown">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-three-dots-vertical" viewBox="0 0 16 16">
+                        <path d="M9.5 13a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0m0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0m0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0"/>
+                    </svg>
+                </button>
+                <ul class="task-edit-dropdown dropdown-menu dropdown-menu-end collapsed">
+                    <li><a class='dropdown-item remove-task-btn'>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash-fill" viewBox="0 0 16 16">
+                            <path d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5M8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5m3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0"/>
+                        </svg>Delete</a>
+                    </li>
+                </ul>
+            </button>
+        </h2>
+        <div id="details-${taskId}" class="accordion-collapse collapse" data-bs-parent="#accordion-flush${todoBoxId}">
+            <div class="form-floating accordion-body" style="padding: 0px;">
+                <textarea id='details-${taskId}-textarea' class='form-control todo-completed-task-details' placeholder='Leave the details here' disabled>${taskDetails}</textarea>
+                <label for="details-${taskId}-textarea">Details</label>
+            </div>
+    </div>`;
+
+    let parentTaskId = taskData['parentTask'];
+    const hasMatchingParentTask = parentTaskId && (allTasks.some(t => t['taskId'] == parentTaskId) && allTasks.some(t => t['taskId'] == taskId));
+
+    if (hasMatchingParentTask) {
+        taskElement.className = 'todo-task accordion-item subtask';
+        let parentTaskElement = document.querySelector(`#${parentTaskId}`);
+        if (parentTaskElement) parentTaskElement.after(taskElement);
+    }
+    else {
+        div?.appendChild(taskElement);
     }
 
     setListeners();
@@ -900,12 +1140,12 @@ function addHTMLTaskIDid(todoBoxId, taskId, completedDate) {
         <p class="i-did-completed-tag">${completedTag}</p>
     </h2>`;
 
-    div.appendChild(taskElement);
+    div?.appendChild(taskElement);
 }
 
 // Small functions
 function toSimpleISOString(date) {
-    return date.toISOString().split('T')[0]
+    return date.toLocaleDateString('en-CA');
 }
 
 function ISOToDateString(ISOString) {

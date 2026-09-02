@@ -34,6 +34,7 @@ let today = new Date();
 let todayStr = toSimpleISOString(today);
 let yesterday = new Date(today);
 yesterday.setDate(yesterday.getDate() - 1);
+let yesterdayStr = toSimpleISOString(yesterday);
 
 const allTodoBoxes = Object.entries(localStorage).filter(([key, value]) => {
     if (!Number.isInteger(+key) || !value) return false;
@@ -242,7 +243,7 @@ function streakActivity() {
 
         return ranges.map(range => {
             const startDate = range[0];
-            const endDate = range[1] === null ? todayStr : range[1];
+            const endDate = range[1] === null ? yesterdayStr : range[1];
 
             return {
                 x: [startDate, endDate],
@@ -251,7 +252,7 @@ function streakActivity() {
         })
     });
 
-    console.log(formattedRanges);
+    console.log(new Date());
 
     taskChartInstance = new Chart('streak-timeline-canvas', {
         type: 'bar',
@@ -265,7 +266,7 @@ function streakActivity() {
                 borderRadius: 5,
                 borderWidth: borderWidth,
                 borderSkipped: function (ctx) {
-                    if (ctx.raw.x[1] == todayStr) {
+                    if (ctx.raw.x[1] == yesterdayStr) {
                         return 'right';
                     }
                     else {
@@ -424,7 +425,7 @@ function longestStreak() {
 
 function longestActiveStreak() {
     let maxStreak = 0;
-    let maxStreakTask = 'No streak now... 🪻';
+    let maxStreakTasks = [];
 
     allTasks.forEach(taskData => {
         let completedRanges = taskData.completedDates;
@@ -438,14 +439,25 @@ function longestActiveStreak() {
 
                 if (streak > maxStreak) {
                     maxStreak = streak;
-                    maxStreakTask = taskData.task;
+                    maxStreakTasks = [taskData.task];
+                } else if (streak == maxStreak) {
+                    maxStreakTasks.push(taskData.task);
                 }
             }
         });
     });
 
+    let maxStreakText = '';
+    if (maxStreakTasks.length == 0) {
+        maxStreakText = 'No streak now... 🪻';
+    } else {
+        maxStreakTasks.forEach(taskName => {
+            maxStreakText += `${taskName}<br>`;
+        });
+    }
+
     document.querySelector('#longest-active-streak-num').textContent = maxStreak;
-    document.querySelector('#longest-active-streak-task').textContent = maxStreakTask;
+    document.querySelector('#longest-active-streak-task').innerHTML = maxStreakText;
 }
 
 function whenBlankChart() {
@@ -484,7 +496,7 @@ function newDateFromISO(dateStr) {
 }
 
 function toSimpleISOString(date) {
-    return date.toISOString().split('T')[0];
+    return date.toLocaleDateString('en-CA');
 }
 
 // 2026-08-01 to Month Date, YY

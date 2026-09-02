@@ -6,10 +6,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let lastAccessedDate = localStorage.getItem('lastAccessedDate');
 
-    // DEBUG REFRESHING ☑️
+    // REFRESHING LOGIC ☑️
     console.log("New date?", lastAccessedDate != today);
 
     if (lastAccessedDate == null) {
+        let welcomeModal = new bootstrap.Modal(document.getElementById('welcomeModal'), {});
+        welcomeModal.show();
+
         localStorage.setItem('lastAccessedDate', today);
     }
     else {
@@ -66,42 +69,45 @@ document.addEventListener('DOMContentLoaded', () => {
                 todoBoxData.tasks.completed.forEach(taskData => {
                     if (!taskData || !taskData.completedDates) return;
 
-                    let completedDateRanges = taskData.completedDates;
-                    let recentCompletedPair = completedDateRanges.at(-1);
+                    // Process only the still-refreshing tasks
+                    if (!taskData.completedForGood) {
+                        let completedDateRanges = taskData.completedDates;
+                        let recentCompletedPair = completedDateRanges.at(-1);
 
-                    // If the user didn't access the website for more than 1 day
-                    // All ongoing streaks were broken with lastAccessedDate as the final date
-                    if (diff > 1) {
-                        // If a streak was ongoing, ended on lastAccessedDate
-                        if (recentCompletedPair && recentCompletedPair[1] === null) {
-                            recentCompletedPair[1] = lastAccessedDate;
-                        }
-                        // If no ongoing streak, add a one-day streak
-                        else {
-                            taskData.completedDates.push([lastAccessedDate, lastAccessedDate]);
-                        }
-                    }
-                    else {
-                        if (completedDateRanges.length >= 1) {
-                            // If there was a closed streak, start a new streak
-                            if (recentCompletedPair && recentCompletedPair[1] !== null) {
-                                taskData.completedDates.push([lastAccessedDate, null]);
+                        // If the user didn't access the website for more than 1 day
+                        // All ongoing streaks were broken with lastAccessedDate as the final date
+                        if (diff > 1) {
+                            // If a streak was ongoing, ended on lastAccessedDate
+                            if (recentCompletedPair && recentCompletedPair[1] === null) {
+                                recentCompletedPair[1] = lastAccessedDate;
+                            }
+                            // If no ongoing streak, add a one-day streak
+                            else {
+                                taskData.completedDates.push([lastAccessedDate, lastAccessedDate]);
                             }
                         }
-                        // If there were no completed dates yet but the task was completed
                         else {
-                            taskData.completedDates = [[lastAccessedDate, null]];
+                            if (completedDateRanges.length >= 1) {
+                                // If there was a closed streak, start a new streak
+                                if (recentCompletedPair && recentCompletedPair[1] !== null) {
+                                    taskData.completedDates.push([lastAccessedDate, null]);
+                                }
+                            }
+                            // If there were no completed dates yet but the task was completed
+                            else {
+                                taskData.completedDates = [[lastAccessedDate, null]];
+                            }
                         }
                     }
                 });
 
                 // Refresh the completed tasks
-                todoBoxData.tasks.active = todoBoxData.tasks.active.concat(todoBoxData.tasks.completed);
+                todoBoxData.tasks.active = todoBoxData.tasks.active.concat(todoBoxData.tasks.completed.filter(task => !task.completedForGood));
 
-                todoBoxData.tasks.completed = [];
+                todoBoxData.tasks.completed = todoBoxData.tasks.completed.filter(task => task.completedForGood);
 
                 localStorage.setItem(todoBoxId, JSON.stringify(todoBoxData));
-            }); 
+            });
 
             // Set lastAccessedDate
             localStorage.setItem('lastAccessedDate', today);
@@ -111,7 +117,7 @@ document.addEventListener('DOMContentLoaded', () => {
             notifModal.show();
 
             document.querySelector('#task-completion-circle').dataset.percent = totalTasksCompleted / totalTasksNum * 100;
-            document.querySelector('#list-completion-circle').dataset.percent = totalListsCompleted / todoBoxes.length * 100; 
+            document.querySelector('#list-completion-circle').dataset.percent = totalListsCompleted / todoBoxes.length * 100;
 
             const progressCircles = document.querySelectorAll('.progress-circle');
             const animateCircle = (progressCircle) => {
@@ -149,6 +155,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // sidebar toggle button
     const toggleBtn = document.querySelector('.toggle-btn');
 
     toggleBtn.addEventListener('click', () => {
