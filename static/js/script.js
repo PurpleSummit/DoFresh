@@ -4,7 +4,7 @@ import { lumiStaticImg, lumiJump } from './lumi.js';
 
 let fillTextArray = ['📝 a blank canvas here!\n', "goodness me, look at that! it's time to get going 🏃\n", 'you can do this! — blue 52 🐳\n', 'may the force be with you... ✊\n', 'lettuce commence. 🥬\n', 'go you! go you! 🎉\n']
 
-const allTodoBoxIds = Object.keys(localStorage).filter(key => Number.isInteger(+key));
+let allTodoBoxIds = Object.keys(localStorage).filter(key => Number.isInteger(+key));
 allTodoBoxIds.sort((a, b) => a - b);
 
 let today = new Date();
@@ -27,9 +27,7 @@ document.addEventListener('DOMContentLoaded', () => {
         updateHTMLCompletedForGoodDiv(boxId);
     });
 
-    if (allTodoBoxIds.length < 1) {
-        fillIfBlank(document.body);
-    }
+    if (allTodoBoxIds.length < 1) document.querySelector('#todo-screen-filler').style.display = 'block';
 
     setListeners();
     iDidList();
@@ -128,16 +126,21 @@ function iDidList() {
         }
 
         let emptyHeaders = document.querySelectorAll('.i-did-date-header:not(:has(.i-did-todo-task))');
-        console.log(emptyHeaders);
         emptyHeaders.forEach(headerDiv => {
             headerDiv.style.display = 'none';
         });
         let otherHeaders = document.querySelectorAll('.i-did-date-header:has(.i-did-todo-task)');
-        console.log(otherHeaders);
         otherHeaders.forEach(headerDiv => {
             headerDiv.style.display = 'block';
         });
     });
+
+    if (allTodoBoxIds.length < 1) {
+        let emptyHeaders = document.querySelectorAll('.i-did-date-header');
+        emptyHeaders.forEach(headerDiv => {
+            headerDiv.style.display = 'none';
+        });
+    }
 }
 
 function setListeners() {
@@ -165,6 +168,7 @@ function setListeners() {
                 event.preventDefault();
                 textarea.parentElement.dataset.bsToggle = 'collapse';
                 editTask(textarea);
+                textarea.blur();
             }
         });
     });
@@ -311,6 +315,9 @@ function addTodoBox() {
         let todoBoxData = { title: 'Refreshing To-Do List', tasks: { active: [], completed: [] }, refreshing: false };
         localStorage.setItem(newBoxId, JSON.stringify(todoBoxData));
 
+        // Remove the existing zero state filler image
+        document.querySelector('#todo-screen-filler').style.display = 'none';
+
         addHTMLTodoBox(newBoxId);
         makeRefreshingTodoBox(newBoxId);
     };
@@ -326,6 +333,9 @@ function addTodoBox() {
 
         let todoBoxData = { title: 'To-Do List', tasks: { active: [], completed: [] }, refreshing: false };
         localStorage.setItem(newBoxId, JSON.stringify(todoBoxData));
+
+        // Remove the existing zero state filler image
+        document.querySelector('#todo-screen-filler').style.display = 'none';
 
         addHTMLTodoBox(newBoxId);
     };
@@ -376,9 +386,11 @@ function removeTodoBox(button) {
         const todoBoxesDiv = document.querySelector('.todo-box-div');
         todoBoxesDiv.removeChild(parentTodoBox);
 
-        if (Object.keys(localStorage).length < 2) {
-            fillIfBlank(todoBoxesDiv);
-        }
+        // Update allTodoBoxIds and add screen filler if needed
+        allTodoBoxIds = Object.keys(localStorage).filter(key => Number.isInteger(+key));
+        allTodoBoxIds.sort((a, b) => a - b);
+
+        if (allTodoBoxIds.length < 1) document.querySelector('#todo-screen-filler').style.display = 'block';
     };
 }
 
@@ -428,10 +440,10 @@ function addTask(button) {
     let newTaskId = "task_" + Date.now();
 
     if (todoBoxData.refreshing) {
-        todoBoxData.tasks.active.push({ taskId: `${newTaskId}`, task: 'New task!', details: '', parentTodoBox: todoBoxId, subTasks: [], createdDate: toSimpleISOString(new Date()), completedDates: [], completedForGood: false });
+        todoBoxData.tasks.active.push({ taskId: `${newTaskId}`, task: '', details: '', parentTodoBox: todoBoxId, subTasks: [], createdDate: toSimpleISOString(new Date()), completedDates: [], completedForGood: false });
     }
     else {
-        todoBoxData.tasks.active.push({ taskId: `${newTaskId}`, task: 'New task!', details: '', parentTodoBox: todoBoxId, subTasks: [], createdDate: toSimpleISOString(new Date()), completedDate: '' });
+        todoBoxData.tasks.active.push({ taskId: `${newTaskId}`, task: '', details: '', parentTodoBox: todoBoxId, subTasks: [], createdDate: toSimpleISOString(new Date()), completedDate: '' });
     }
 
     localStorage.setItem(todoBoxId, JSON.stringify(todoBoxData));
@@ -480,10 +492,10 @@ function addSubtask(button) {
     // Add the new subtask object to localStorage
     let newSubtaskObject;
     if (todoBoxData.refreshing) {
-        newSubtaskObject = { taskId: `${newTaskId}`, task: 'New task!', details: '', parentTodoBox: todoBoxId, parentTask: `${parentTaskId}`, createdDate: toSimpleISOString(new Date()), completedDates: [], completedForGood: false };
+        newSubtaskObject = { taskId: `${newTaskId}`, task: '', details: '', parentTodoBox: todoBoxId, parentTask: `${parentTaskId}`, createdDate: toSimpleISOString(new Date()), completedDates: [], completedForGood: false };
     }
     else {
-        newSubtaskObject = { taskId: `${newTaskId}`, task: 'New task!', details: '', parentTodoBox: todoBoxId, parentTask: `${parentTaskId}`, createdDate: toSimpleISOString(new Date()), completedDate: '' };
+        newSubtaskObject = { taskId: `${newTaskId}`, task: '', details: '', parentTodoBox: todoBoxId, parentTask: `${parentTaskId}`, createdDate: toSimpleISOString(new Date()), completedDate: '' };
     }
     todoBoxData.tasks['active'].push(newSubtaskObject);
 
@@ -524,10 +536,6 @@ function completeTask(radio) {
     if (previousState === 'active' && taskData['subTasks']?.length > 0) {
         idsToChange = [...idsToChange, ...taskData['subTasks']];
     }
-    /* If completed subtask, then its parentTask should be restored too
-    else if (previousState === 'completed' && taskData['parentTask']) {
-        idsToChange.push(taskData['parentTask']);
-    } */
 
     const allTasks = [...todoBoxData.tasks.active, ...todoBoxData.tasks.completed]
     let tasksToChange = allTasks.filter(t => idsToChange.includes(t['taskId']));
@@ -583,6 +591,12 @@ function completeTask(radio) {
         fillIfBlank(parentTodoBox.querySelector('.todo-box-tasks'));
     }
 
+    let fillInText = parentTodoBox.querySelector('.todo-box-tasks').querySelector('.blank-todo-fill');
+    if (todoBoxData.tasks.active.length > 0 && fillInText) {
+        console.log(fillInText);
+        fillInText.remove();
+    }
+
     setListeners();
 }
 
@@ -597,7 +611,7 @@ function completeRefreshingTask(button) {
     if (!todoBoxData) return;
 
     let idsToChange = [taskId];
-    
+
     const allTasks = [...todoBoxData.tasks.active, ...todoBoxData.tasks.completed]
     let taskData = allTasks.find(task => task['taskId'] == taskId);
 
@@ -922,7 +936,7 @@ function addHTMLTask(todoBoxId, taskId, active) {
     }
 
     // Locate and build HTML elements
-    let taskText = taskData.task;
+    let taskText = taskData['task'];
     let taskDetails = taskData.details;
 
     let div = document.querySelector(`#todo-box${todoBoxId}`).querySelector(`.todo-box-tasks`);

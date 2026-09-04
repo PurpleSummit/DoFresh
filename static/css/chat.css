@@ -78,7 +78,7 @@ pre {
     padding-top: 24px;
     padding-bottom: 0px;
     background-color: transparent;
-    width: stretch;
+    width: 100%;
     padding-right: 17px;
     padding-left: 93px;
     transition: all .25s ease-in-out;

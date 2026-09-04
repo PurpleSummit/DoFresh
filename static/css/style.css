@@ -415,3 +415,24 @@ input[type='text'] {
     color: rgb(93, 91, 91);
     margin-top: -15px;
 }
+
+#todo-screen-filler {
+    width: 100%;
+    height: 100vh;
+    display: none;
+    align-content: center;
+    text-align: center;
+
+    border-radius: 17px;
+    background-color: rgba(250, 250, 250, 0.332);
+}
+
+#todo-screen-filler img {
+    width: 250px;
+}
+
+#todo-screen-filler p, #todo-screen-filler h5 {
+    margin: 0 auto;
+    margin-bottom: 21px;
+    width: max-content;
+}
