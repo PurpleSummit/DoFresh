@@ -150,3 +150,15 @@
 #longest-streak-num {
     text-align: center;
 }
+
+.filler-div {
+    display: none;
+    align-content: center;
+    text-align: center;
+    width: 250px;
+    margin: 0px auto;
+}
+
+.filler-div img {
+    width: 100%;
+}

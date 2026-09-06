@@ -2,7 +2,7 @@
 
 {% block style %}
 <link rel="stylesheet" href="../static/css/chat.css">
-<script src="../static/js/chat.js" defer></script>
+<script type="module" src="../static/js/chat.js" defer></script>
 {% endblock %}
 
 {% block body %}
@@ -18,19 +18,27 @@
 </button>
 
 <div id="chat-div">
+    <div id="chat-filler">
+        <div id="lumi">
+            <object type="image/svg+xml" data="">
+                <img src="" alt="Lumi character">
+            </object>
+        </div>
+    </div>
+
     <div id="sent-messages">
         {% for message in previous_messages %}
-            {% if message.author == "user" %}
-            <div class="message-container user-message">
-                <pre class="message-text">{{ message.text }}</pre>
-            </div>
-            <p class="user-message-time">{{ message.created_time }}</p>
-            {% else %}
-            <div class="message-container">
-                <pre class="message-text">{{ message.text }}</pre>
-            </div>
-            <p class="message-time">{{ message.created_time }}</p>
-            {% endif %}
+        {% if message.author == "user" %}
+        <div class="message-container user-message">
+            <pre class="message-text">{{ message.text }}</pre>
+        </div>
+        <p class="user-message-time">{{ message.created_time }}</p>
+        {% else %}
+        <div class="message-container">
+            <pre class="message-text">{{ message.text }}</pre>
+        </div>
+        <p class="message-time">{{ message.created_time }}</p>
+        {% endif %}
         {% endfor %}
     </div>
 

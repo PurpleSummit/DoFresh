@@ -2,7 +2,8 @@
 
 {% block style %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+<script
+    src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
 <link rel="stylesheet" href="../static/css/track.css">
 <script src="../static/js/track.js"></script>
 {% endblock %}
@@ -12,44 +13,7 @@
     <div id="track-body">
         <div id="chart-body" style="display: flex;">
             <h1 id="title">Track</h1>
-            <span id="title-selected-list"></span>
         </div>
-
-        <!-- <div id="chart-settings-div">
-                <div class="track-range-btn-group btn-group" role="group" aria-label="Basic radio toggle button group"
-                    style="margin-top: 3%;">
-                    <input type='radio' class='btn-check week-range-btn' name='range-radio' id='vbtn-radio1'
-                        autocomplete='off' disabled>
-                    <label class='btn btn-outline-purple' for='vbtn-radio1'>Week</label>
-                    <input type='radio' class='btn-check month-range-btn' name='range-radio' id='vbtn-radio2'
-                        autocomplete='off' disabled>
-                    <label class='btn btn-outline-purple' for='vbtn-radio2'>Month</label>
-                    <input type='radio' class='btn-check semi-year-range-btn' name='range-radio' id='vbtn-radio3'
-                        autocomplete='off' disabled>
-                    <label class='btn btn-outline-purple' for='vbtn-radio3'>Semi-year</label>
-                    <input type='radio' class='btn-check year-range-btn' name='range-radio' id='vbtn-radio4'
-                        autocomplete='off' disabled>
-                    <label class='btn btn-outline-purple' for='vbtn-radio4'>Year</label>
-                    <input type='radio' class='btn-check max-range-btn' name='range-radio' id='vbtn-radio5'
-                        autocomplete='off'>
-                    <label class='btn btn-outline-purple' for='vbtn-radio5'>Max</label>
-                </div>
-
-                <div class="chart-types-btn-group btn-group" role="group" aria-label="Basic radio toggle button group"
-                    style="margin-top: 3%; margin-left: auto;">
-                    <input type='radio' class='btn-check chart-complete-btn' name='type-radio' id='chart-complete1'
-                        autocomplete='off'>
-                    <label class='btn btn-outline-purple' for='chart-complete1'>Completed</label>
-                    <input type='radio' class='btn-check chart-streak-btn' name='type-radio' id='chart-streak1'
-                        autocomplete='off'>
-                    <label class='btn btn-outline-purple' for='chart-streak1'>Streak</label>
-                    <input type='radio' class='btn-check chart-month-btn' name='type-radio' id='chart-month1'
-                        autocomplete='off'>
-                    <label class='btn btn-outline-purple' for='chart-month1'>Monthly</label>
-                </div>
-            </div>-->
-
-        <!-- <div id="todo-tasks-nav"></div> -->
 
         <div id="track-dashboard" class="container">
             <div class="row">
@@ -67,6 +31,11 @@
                     </div>
 
                     <div id="heatmap">
+                        <div id="heatmap-filler" class="filler-div">
+                            <h5>No data to show yet!</h5>
+                            <p>Let's get you analyzing! 🔎</p>
+                        </div>
+
                         <div id="heatmap-weeks-container">
                             <div id="heatmap-weeks"></div>
                         </div>
@@ -109,7 +78,7 @@
                         <span style="font-size: 13px;">More</span>
                     </div>
                 </div>
-                
+
                 <div class="col">
                     <div id="longest-streak-div" class="track-chart">
                         <div class="chart-title">Longest Ever Streak</div>
@@ -128,6 +97,13 @@
             <div class="row">
                 <div id="streak-timeline-div" class="col track-chart full-length-chart">
                     <div class="chart-title">Streak Activity</div>
+
+                    <div id="streak-activity-filler" class="filler-div">
+                        <img src="../static/img/streak-activity-filler.svg"
+                            alt="zero state illustration of bar chart">
+                        <h5>No data to show yet!</h5>
+                        <p>Let's get you analyzing! 🔎</p>
+                    </div>
                     <canvas role="img" id="streak-timeline-canvas"
                         aria-label="Horizontal stacked floating bar chart showing streak activity of tasks.">
                         <!-- Fallback content inside canvas for screen readers -->
@@ -138,6 +114,14 @@
             <div class="row">
                 <div id="days-completion-div" class="col track-chart full-length-chart">
                     <div class="chart-title">Task Completion</div>
+
+                    <div id="completion-chart-filler" class="filler-div">
+                        <img src="../static/img/task-completion.svg"
+                            alt="zero state illustration of minimalist, curved graph button">
+                        <h5>No data to show yet!</h5>
+                        <p>Let's get you analyzing! 🔎</p>
+                    </div>
+
                     <canvas role="img" id="days-completion-canvas"
                         aria-label="Line chart showing daily completion of tasks.">
                         <!-- Fallback content inside canvas for screen readers -->

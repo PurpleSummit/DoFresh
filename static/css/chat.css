@@ -137,3 +137,23 @@ pre {
 .fade {
     transition: opacity 0.5s ease-in-out;
 }
+
+#chat-filler {
+    width: 100%;
+    min-height: calc(100vh - 246px);
+    min-height: calc(100svh - 246px);
+    display: none;
+    align-content: center;
+    text-align: center;
+
+    font-size: 30px;
+}
+
+#chat-filler #lumi {
+    width: 228px;
+    position: relative;
+    z-index: 10;
+    top: 0px;
+    opacity: 1;
+    margin: 0px auto;
+}

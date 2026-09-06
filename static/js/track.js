@@ -16,19 +16,6 @@ const chartColors = [
     '#1f0a30'
 ];
 
-document.addEventListener('DOMContentLoaded', () => {
-    // Activate sidebar link
-    // document.querySelector('#sidebar-track-link').className = 'nav-link active';
-
-    // const allTodoBoxIds = Object.keys(localStorage).filter((entry) => Number.isInteger(+entry[0]) && JSON.parse(entry[1]).refreshing);
-
-    chartCompletion();
-    activityHeatmap();
-    streakActivity();
-    longestStreak();
-    longestActiveStreak();
-});
-
 // Declaring task data globally
 let today = new Date();
 let todayStr = toSimpleISOString(today);
@@ -109,6 +96,24 @@ let timestamps = startDates.map(date => new Date(date).getTime()).filter(time =>
 let startDate = timestamps.length > 0 ? new Date(Math.min(...timestamps)) : new Date();
 startDate = toSimpleISOString(startDate);
 
+
+document.addEventListener('DOMContentLoaded', () => {
+    // Activate sidebar link
+    console.log(dateRanges);
+    if (dateRanges.length < 1) {
+        let fillers = document.getElementsByClassName('filler-div');
+        Array.from(fillers).forEach((filler) => {
+            filler.style.display = 'block';
+        });
+        return;
+    } else {
+        chartCompletion();
+        activityHeatmap();
+        streakActivity();
+        longestStreak();
+        longestActiveStreak();
+    }
+});
 
 function chartCompletion() {
     let formattedData = [];
@@ -384,13 +389,13 @@ function activityHeatmap() {
         heatmapSquare.dataset.bsTitle = `${weekday.toDateString()} • ${yValue} tasks`;
 
         heatmapSquare.innerHTML = `<rect width="20" height="21" rx="3" ry="3" fill="${squareColor}cc" />`;
-        document.querySelector(`#heatmap-row-${weekday.getDay()}`).appendChild(heatmapSquare);
+        document.getElementById(`heatmap-row-${weekday.getDay()}`).appendChild(heatmapSquare);
 
         if (weekday.getDay() == 1) {
             let weekLabel = document.createElement('span');
             weekLabel.textContent = months[weekday.getMonth()];
 
-            document.querySelector('#heatmap-weeks').append(weekLabel);
+            document.getElementById('heatmap-weeks').append(weekLabel);
 
             if (weekLabel.previousElementSibling && weekLabel.previousElementSibling.textContent == weekLabel.textContent) {
                 weekLabel.style.opacity = '0';
@@ -419,8 +424,8 @@ function longestStreak() {
         });
     });
 
-    document.querySelector('#longest-streak-num').textContent = maxStreak;
-    document.querySelector('#longest-streak-task').textContent = maxStreakTask;
+    document.getElementById('longest-streak-num').textContent = maxStreak;
+    document.getElementById('longest-streak-task').textContent = maxStreakTask;
 }
 
 function longestActiveStreak() {
@@ -456,8 +461,8 @@ function longestActiveStreak() {
         });
     }
 
-    document.querySelector('#longest-active-streak-num').textContent = maxStreak;
-    document.querySelector('#longest-active-streak-task').innerHTML = maxStreakText;
+    document.getElementById('longest-active-streak-num').textContent = maxStreak;
+    document.getElementById('longest-active-streak-task').innerHTML = maxStreakText;
 }
 
 function whenBlankChart() {
@@ -471,13 +476,13 @@ function whenBlankChart() {
     fillText.id = `chart-fill-p`;
     fillText.textContent = `No data yet... it's time to get cracking! 🔮`;
 
-    document.querySelector('#track-dashboard').prepend(fillText);
+    document.getElementById('track-dashboard').prepend(fillText);
 
-    document.querySelector('#chart-settings-div').style.opacity = 0;
+    document.getElementById('chart-settings-div').style.opacity = 0;
 }
 
 function removeFillerText() {
-    let chartFillText = document.querySelector('#chart-fill-p');
+    let chartFillText = document.getElementById('chart-fill-p');
     if (chartFillText) {
         chartFillText.remove();
     }
@@ -517,14 +522,14 @@ function ISOToDateString(ISOString, yearIncluded) {
 // let rangeSetting, chartType;
 
 /* function selectTodoList(boxId) {
-    let taskNavDiv = document.querySelector('#todo-tasks-nav');
+    let taskNavDiv = document.getElementById('todo-tasks-nav');
  
     let todoBoxData = JSON.parse(localStorage[`${boxId}`]);
  
     let allTasks = todoBoxData.tasks;
     allTasks = allTasks.completed.concat(allTasks.active);
  
-    let oldTaskNav = document.querySelector('.task-nav-btn-group');
+    let oldTaskNav = document.getElementsByClassName('task-nav-btn-group');
     if (oldTaskNav) {
         oldTaskNav.remove();
     }
@@ -601,7 +606,7 @@ function ISOToDateString(ISOString, yearIncluded) {
     taskNavDiv.appendChild(taskNav);
  
     // Set the subtitle to the list title
-    document.querySelector('#title-selected-list').textContent = todoBoxData.title;
+    document.getElementById('title-selected-list').textContent = todoBoxData.title;
  
     // Initialize the chart display
     if (allTasks.length > 0) {
@@ -619,7 +624,7 @@ function ISOToDateString(ISOString, yearIncluded) {
     console.log('selected', taskId);
  
     // Check the task button
-    document.querySelector(`#task-select${taskId.replace('task_', '')}`).checked = true;
+    document.getElementById(`task-select${taskId.replace('task_', '')}`).checked = true;
  
     // Gather data
     let todoBoxData = JSON.parse(localStorage[`${boxId}`]);
@@ -630,20 +635,20 @@ function ISOToDateString(ISOString, yearIncluded) {
     }
  
     // Update the settings panel
-    let chartSettingsDiv = document.querySelector('#chart-settings-div');
+    let chartSettingsDiv = document.getElementById('chart-settings-div');
  
     // Range buttons
-    let rangeDiv = document.querySelector('.track-range-btn-group');
+    let rangeDiv = document.getElementsByClassName('track-range-btn-group');
  
     // Chart-type buttons
-    let chartTypeDiv = document.querySelector('.chart-types-btn-group');
+    let chartTypeDiv = document.getElementsByClassName('chart-types-btn-group');
  
     // Set startDate for range buttons
     let completedRanges = taskData.completedDates;
     let startDate;
     if (completedRanges && completedRanges[0]) {
         startDate = new Date(completedRanges[0][0]);
-        document.querySelector('#chart-settings-div').style.opacity = 1;
+        document.getElementById('chart-settings-div').style.opacity = 1;
     }
     else {
         whenBlankChart();
@@ -652,7 +657,7 @@ function ISOToDateString(ISOString, yearIncluded) {
  
     // Initalize range buttons
     const diff = (new Date() - new Date(startDate)) / (1000 * 60 * 60 * 24);
-    let weekButton = document.querySelector('.week-range-btn');
+    let weekButton = document.getElementsByClassName('week-range-btn');
     if (rangeDiv) {
         weekButton.onclick = () => {
             rangeSetting = 'Week';
@@ -660,28 +665,28 @@ function ISOToDateString(ISOString, yearIncluded) {
         };
         weekButton.disabled = !(diff >= 7);
  
-        let monthButton = document.querySelector('.month-range-btn');
+        let monthButton = document.getElementsByClassName('month-range-btn');
         monthButton.onclick = () => {
             rangeSetting = 'Month';
             chartBegin(taskData, 'Month', chartType);
         };
         monthButton.disabled = !(diff >= 28);
  
-        let sixMonthButton = document.querySelector('.semi-year-range-btn');
+        let sixMonthButton = document.getElementsByClassName('semi-year-range-btn');
         sixMonthButton.onclick = () => {
             rangeSetting = 'Semi-year';
             chartBegin(taskData, 'Semi-year', chartType);
         };
         sixMonthButton.disabled = !(diff >= 182);
  
-        let yearButton = document.querySelector('.year-range-btn');
+        let yearButton = document.getElementsByClassName('year-range-btn');
         yearButton.onclick = () => {
             rangeSetting = 'Year';
             chartBegin(taskData, 'Year', chartType);
         };
         yearButton.disabled = !(diff >= 364);
  
-        let maxButton = document.querySelector('.max-range-btn');
+        let maxButton = document.getElementsByClassName('max-range-btn');
         maxButton.onclick = () => {
             rangeSetting = 'Max';
             chartBegin(taskData, 'Max', chartType);
@@ -690,21 +695,21 @@ function ISOToDateString(ISOString, yearIncluded) {
  
     // Initialize chart-type buttons
     if (chartTypeDiv) {
-        let completeButton = document.querySelector('.chart-complete-btn');
+        let completeButton = document.getElementsByClassName('chart-complete-btn');
         completeButton.onclick = () => {
             chartType = 'Complete';
             chartBegin(taskData, rangeSetting, chartType);
  
             weekButton.disabled = !(diff >= 7);
         };
-        let streakButton = document.querySelector('.chart-streak-btn');
+        let streakButton = document.getElementsByClassName('chart-streak-btn');
         streakButton.onclick = () => {
             chartType = 'Streak';
             chartBegin(taskData, rangeSetting, chartType);
  
             weekButton.disabled = !(diff >= 7);
         };
-        let byMonthButton = document.querySelector('.chart-month-btn');
+        let byMonthButton = document.getElementsByClassName('chart-month-btn');
         byMonthButton.onclick = () => {
             chartType = 'Month';
  
@@ -732,13 +737,13 @@ function ISOToDateString(ISOString, yearIncluded) {
 /* function chartBegin(taskData, rangeSetting, chartType) {
     if (rangeSetting == 'Week' && chartType == 'Month') {
         rangeSetting = 'Max';
-        document.querySelector('.max-range-btn').checked = true;
+        document.getElementsByClassName('max-range-btn').checked = true;
     }
  
     removeFillerText();
  
-    document.querySelector(`.${rangeSetting.toLowerCase()}-range-btn`).checked = true;
-    document.querySelector(`.chart-${chartType.toLowerCase()}-btn`).checked = true;
+    document.getElementsByClassName(`${rangeSetting.toLowerCase()}-range-btn`).checked = true;
+    document.getElementsByClassName(`chart-${chartType.toLowerCase()}-btn`).checked = true;
  
     // Delete any previously existing charts
     if (taskChartInstance !== null) {

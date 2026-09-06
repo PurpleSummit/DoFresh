@@ -1,15 +1,20 @@
+import { } from './lumi.js';
+
 let months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'July', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+let fillText = ['Spill the tea! 🍵', "How ya doin'? 😉", 'How do you want to start?', "What's on your mind??", "You're here!", "Welcome", "Hey there"];
 
 document.addEventListener('DOMContentLoaded', () => {
     // Activate sidebar link
-    // document.querySelector('#sidebar-chat-link').className = 'nav-link active';
+    // document.getElementById('sidebar-chat-link').className = 'nav-link active';
 
     document.getElementById('send-btn').addEventListener('click', async () => {
+        let chatFiller = document.getElementById('chat-filler');
+        chatFiller.style.display = 'none';
         buttonDisable();
 
-        const sentMessageContainer = document.querySelector('#sent-messages');
+        const sentMessageContainer = document.getElementById('sent-messages');
 
-        const userInput = document.querySelector('#user-input');
+        const userInput = document.getElementById('user-input');
         const userPrompt = userInput.value;
 
         const userMsgElement = document.createElement('div');
@@ -84,8 +89,10 @@ document.addEventListener('DOMContentLoaded', () => {
           </svg> ${error}.
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>`;
 
-            document.querySelector('#chat-title').prepend(alertElement);
+            document.getElementById('chat-title').prepend(alertElement);
         }
+
+        buttonEnable();
     });
 
     document.getElementById('refresh-chat-btn').addEventListener('click', async () => {
@@ -106,9 +113,9 @@ document.addEventListener('DOMContentLoaded', () => {
             </svg>
             Chat was successfully refreshed.
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>`;
-            document.querySelector('#chat-title').after(alertElement);
+            document.getElementById('chat-title').after(alertElement);
 
-            document.querySelector('#sent-messages').innerHTML = "";
+            document.getElementById('sent-messages').innerHTML = "";
 
         } catch (error) {
             let alertElement = document.createElement('div');
@@ -117,13 +124,16 @@ document.addEventListener('DOMContentLoaded', () => {
             alertElement.innerHTML = `Error refreshing the chat.
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>`;
 
-            document.querySelector('#chat-title').prepend(alertElement);
+            document.getElementById('chat-title').prepend(alertElement);
         }
 
         let refreshChatModal = bootstrap.Modal.getOrCreateInstance(document.getElementById('refreshChatModal'));
         refreshChatModal.hide();
+
+        fillChat();
     });
 
+    fillChat();
 });
 
 let i = 0;
@@ -147,13 +157,30 @@ function typeResult(outputTextElement, result) {
 }
 
 function buttonDisable() {
-    const sendBtn = document.querySelector('#send-btn');
+    const sendBtn = document.getElementById('send-btn');
 
     sendBtn.disabled = true;
 }
 
 function buttonEnable() {
-    const sendBtn = document.querySelector('#send-btn');
+    const sendBtn = document.getElementById('send-btn');
 
     sendBtn.disabled = false;
+}
+
+function fillChat() {
+    let chatFiller = document.getElementById('chat-filler');
+    if (document.getElementsByClassName('message-container').length < 1) {
+        chatFiller.style.display = 'block';
+    } else {
+        chatFiller.style.display = 'none';
+    }
+
+    chatFiller.querySelector('span')?.remove();
+
+    const span = document.createElement('span');
+    let randomText = fillText[Math.floor(Math.random() * fillText.length)];
+    span.textContent = randomText;
+
+    chatFiller.appendChild(span);
 }

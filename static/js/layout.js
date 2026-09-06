@@ -116,14 +116,16 @@ document.addEventListener('DOMContentLoaded', () => {
             let notifModal = new bootstrap.Modal(document.getElementById('refreshNotifModal'), {});
             notifModal.show();
 
-            document.querySelector('#task-completion-circle').dataset.percent = totalTasksCompleted / totalTasksNum * 100;
-            document.querySelector('#list-completion-circle').dataset.percent = totalListsCompleted / todoBoxes.length * 100;
+            console.log(document.getElementById('task-completion-circle'));
 
-            const progressCircles = document.querySelectorAll('.progress-circle');
+            document.getElementById('task-completion-circle').dataset.percent = totalTasksCompleted / totalTasksNum * 100;
+            document.getElementById('list-completion-circle').dataset.percent = totalListsCompleted / todoBoxes.length * 100;
+
+            const progressCircles = document.getElementsByClassName('progress-circle');
             const animateCircle = (progressCircle) => {
-                const circle = progressCircle.querySelector('.progress');
+                const circle = progressCircle.getElementsByClassName('progress')[0];
                 const percent = progressCircle.dataset.percent;
-                const percentText = progressCircle.querySelector('.progress-text-percentage');
+                const percentText = progressCircle.getElementsByClassName('progress-text-percentage')[0];
 
                 const radius = circle.r.baseVal.value;
                 const circumference = radius * 2 * Math.PI;
@@ -151,15 +153,15 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 });
             }, { threshold: 0.5 });
-            progressCircles.forEach(progressCircle => observer.observe(progressCircle));
+            Array.from(progressCircles).forEach(progressCircle => observer.observe(progressCircle));
         }
     }
 
     // sidebar toggle button
-    const toggleBtn = document.querySelector('.toggle-btn');
+    const toggleBtn = document.getElementsByClassName('toggle-btn')[0];
 
     toggleBtn.addEventListener('click', () => {
-        const sidebar = document.querySelector('#sidebar');
+        const sidebar = document.getElementById('sidebar');
         sidebar.classList.toggle('expand');
 
         if (sidebar.classList.contains('expand')) {
@@ -174,7 +176,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
 
     // home page sidebar
-    const homeSidebarList = document.querySelector('#home-lists');
+    const homeSidebarList = document.getElementById('home-lists');
     let allTodoBoxIds = Object.keys(localStorage).filter(key => Number.isInteger(+key));
 
     allTodoBoxIds.forEach(boxId => {
@@ -190,7 +192,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const allRefreshingTodoBoxes = Object.entries(localStorage).filter((entry) => Number.isInteger(+entry[0]) && JSON.parse(entry[1]).refreshing);
     const trackTodoBoxIds = allRefreshingTodoBoxes.map(data => data[0]);
 
-    const trackSidebarList = document.querySelector('#track-lists');
+    const trackSidebarList = document.getElementById('track-lists');
 
     if (trackSidebarList) {
         trackTodoBoxIds.forEach(boxId => {
@@ -218,7 +220,7 @@ document.addEventListener('DOMContentLoaded', () => {
 function openSidebar() {
     document.body.style.paddingLeft = '277px';
 
-    const chatInputField = document.querySelector('#user-input-container');
+    const chatInputField = document.getElementById('user-input-container');
     if (chatInputField) {
         chatInputField.style.paddingLeft = '277px';
     }
@@ -227,7 +229,7 @@ function openSidebar() {
 function closeSidebar() {
     document.body.style.paddingLeft = '93px';
 
-    const chatInputField = document.querySelector('#user-input-container');
+    const chatInputField = document.getElementById('user-input-container');
     if (chatInputField) {
         chatInputField.style.paddingLeft = '93px';
     }

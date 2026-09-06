@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log(localStorage);
 
     // Activate sidebar link
-    // const sidebarList = document.querySelector('#home-lists');
+    // const sidebarList = document.getElementById('home-lists');
 
     // Display sidebar to-do lists and add main HTML
 
@@ -27,17 +27,15 @@ document.addEventListener('DOMContentLoaded', () => {
         updateHTMLCompletedForGoodDiv(boxId);
     });
 
-    if (allTodoBoxIds.length < 1) document.querySelector('#todo-screen-filler').style.display = 'block';
+    if (allTodoBoxIds.length < 1) document.getElementById('todo-screen-filler').style.display = 'block';
 
-    setListeners();
     iDidList();
 });
 
 // LOGIC code
 
 function iDidList() {
-    console.log("Well something's supposed to happen");
-    document.querySelector('.i-did-body').innerHTML = ``;
+    document.getElementsByClassName('i-did-body')[0].innerHTML = ``;
 
     let current = new Date(today);
 
@@ -53,12 +51,12 @@ function iDidList() {
         iDidDateHeader.id = `i-did-header-${currentStr}`;
         iDidDateHeader.innerHTML = `<h5>${ISOToDateString(currentStr)}</h5>`
 
-        document.querySelector('.i-did-body').appendChild(iDidDateHeader);
+        document.getElementsByClassName('i-did-body')[0].appendChild(iDidDateHeader);
 
         current.setDate(current.getDate() - 1);
     }
 
-    allTodoBoxIds.forEach(boxId => {
+    Array.from(allTodoBoxIds).forEach(boxId => {
         let boxData = JSON.parse(localStorage.getItem(boxId));
 
         // If it's a refreshing list, log one week's worth of past completions
@@ -113,7 +111,7 @@ function iDidList() {
                     let taskId = taskData.taskId;
                     let completedDate = taskData.completedDate || todayStr;
 
-                    if (!document.querySelector(`#i-did-header-${completedDate}`)) {
+                    if (!document.getElementById(`i-did-header-${completedDate}`)) {
                         let iDidDateHeader = document.createElement('div');
                         iDidDateHeader.className = 'i-did-date-header';
                         iDidDateHeader.id = `i-did-header-${completedDate}`;
@@ -136,24 +134,33 @@ function iDidList() {
     });
 
     if (allTodoBoxIds.length < 1) {
-        let emptyHeaders = document.querySelectorAll('.i-did-date-header');
-        emptyHeaders.forEach(headerDiv => {
+        let emptyHeaders = document.getElementsByClassName('i-did-date-header');
+        Array.from(emptyHeaders).forEach(headerDiv => {
             headerDiv.style.display = 'none';
         });
+    }
+
+    if (document.getElementsByClassName('i-did-todo-task').length < 1 || allTodoBoxIds.length < 1) {
+        document.getElementsByClassName('i-did-body')[0].innerHTML = `<div id="i-did-filler">
+            <img src="../static/img/i-did-filler.svg"
+                alt="zero state illustration of minimalist, checked button">
+            <h5>Time to get crack-a-lacking!</h5>
+            <p>We're excited to see how this will fill 😉</p>
+        </div>`;
     }
 }
 
 function setListeners() {
     // To-do task buttons
-    let allAddTaskButtons = document.querySelectorAll('.add-task-btn');
-    allAddTaskButtons.forEach(button => {
+    let allAddTaskButtons = document.getElementsByClassName('add-task-btn');
+    Array.from(allAddTaskButtons).forEach(button => {
         button.onclick = () => {
             addTask(button);
         };
     });
 
-    let allTodoTasks = document.querySelectorAll('.todo-task-text');
-    allTodoTasks.forEach(textarea => {
+    let allTodoTasks = document.getElementsByClassName('todo-task-text');
+    Array.from(allTodoTasks).forEach(textarea => {
         textarea.onfocus = () => {
             textarea.parentElement.dataset.bsToggle = 'disabled';
         };
@@ -173,40 +180,41 @@ function setListeners() {
         });
     });
 
-    let allTodoDetails = document.querySelectorAll('.todo-task-details');
-    allTodoDetails.forEach(textarea => {
+    let allTodoDetails = document.getElementsByClassName('todo-task-details');
+    Array.from(allTodoDetails).forEach(textarea => {
         textarea.addEventListener('focusout', () => {
             editTaskDetails(textarea);
         });
     });
 
-    let allTodoCheckboxes = document.querySelectorAll('input[type="radio"]');
-    allTodoCheckboxes.forEach(radio => {
+    let allTodoCheckboxes = document.getElementsByClassName('input[type="radio"]');
+    Array.from(allTodoCheckboxes).forEach(radio => {
         radio.onclick = () => {
+            console.log(radio);
             completeTask(radio);
         };
     });
 
-    let allRemoveTaskButtons = document.querySelectorAll('.remove-task-btn');
-    allRemoveTaskButtons.forEach(button => {
+    let allRemoveTaskButtons = document.getElementsByClassName('remove-task-btn');
+    Array.from(allRemoveTaskButtons).forEach(button => {
         button.onclick = () => {
             removeTask(button);
         };
     });
 
     // To-do box buttons
-    let addTodoBoxButton = document.querySelector('.add-todo-box-btn');
+    let addTodoBoxButton = document.getElementsByClassName('add-todo-box-btn')[0];
     addTodoBoxButton.addEventListener('click', addTodoBox);
 
-    let allRenameTodoBoxButtons = document.querySelectorAll('.rename-todo-box-btn');
-    allRenameTodoBoxButtons.forEach(button => {
+    let allRenameTodoBoxButtons = document.getElementsByClassName('rename-todo-box-btn');
+    Array.from(allRenameTodoBoxButtons).forEach(button => {
         button.onclick = () => {
             renameTodoBox(button);
         };
     });
 
-    let allRemoveTodoBoxButton = document.querySelectorAll('.remove-todo-box-btn');
-    allRemoveTodoBoxButton.forEach(button => {
+    let allRemoveTodoBoxButton = document.getElementsByClassName('remove-todo-box-btn');
+    Array.from(allRemoveTodoBoxButton).forEach(button => {
         button.onclick = () => {
             removeTodoBox(button);
         };
@@ -223,52 +231,35 @@ function setListeners() {
         });
     };
 
-    let allAccordions = document.querySelectorAll('.accordion-item');
-    allAccordions.forEach(accordion => {
+    let allAccordions = document.getElementsByClassName('accordion-item');
+    Array.from(allAccordions).forEach(accordion => {
         accordion.onclick = (event) => {
+            console.log(event);
+            event.stopPropagation();
             var bsCollapse = new bootstrap.Collapse(accordion, {
                 toggle: false
             });
-            event.stopPropagation();
         };
     });
 
-    let allEditTaskBtns = document.querySelectorAll('.edit-todo-task-btn');
-    allEditTaskBtns.forEach(btn => {
-        btn.onfocus = () => {
-            btn.parentElement.dataset.bsToggle = 'disabled';
-            btn.parentElement.querySelector('.dropdown-menu').classList.toggle('collapsed');
-        };
-
-        btn.onblur = () => {
-            btn.parentElement.dataset.bsToggle = 'collapse';
-            btn.parentElement.querySelector('.dropdown-menu').classList.toggle('collapsed');
-        };
-    });
-
-    let allAddSubtaskBtns = document.querySelectorAll('.add-subtask-btn');
-    allAddSubtaskBtns.forEach(btn => {
+    let allAddSubtaskBtns = document.getElementsByClassName('add-subtask-btn');
+    Array.from(allAddSubtaskBtns).forEach(btn => {
         btn.onclick = () => {
-            btn.parentElement.parentElement.dataset.bsToggle = 'disabled';
-
             addSubtask(btn);
         };
-
-        btn.onblur = () => {
-            btn.parentElement.parentElement.dataset.bsToggle = 'collapse';
-        };
     });
 
-    let allCompletedRefreshingTaskBtns = document.querySelectorAll('.complete-refreshing-task-btn');
-    allCompletedRefreshingTaskBtns.forEach(btn => {
+    let allCompletedRefreshingTaskBtns = document.getElementsByClassName('complete-refreshing-task-btn');
+    Array.from(allCompletedRefreshingTaskBtns).forEach(btn => {
         btn.onclick = () => {
             completeRefreshingTask(btn);
         }
-    })
+    });
+
 }
 
 function fillIfBlank(parentElement) {
-    let oldFillText = parentElement.querySelector('.blank-todo-fill');
+    let oldFillText = parentElement.getElementsByClassName('blank-todo-fill')[0];
     if (oldFillText) {
         oldFillText.remove();
     }
@@ -285,8 +276,8 @@ function fillIfBlank(parentElement) {
 // TO-DO LIST code
 
 function addTodoBox() {
-    const refreshingBoxButton = document.querySelector('#add-refreshing-box-button');
-    const standardBoxButton = document.querySelector('#add-standard-box-button');
+    const refreshingBoxButton = document.getElementById('add-refreshing-box-button');
+    const standardBoxButton = document.getElementById('add-standard-box-button');
 
     let refreshingBool;
     let addBoxModal = bootstrap.Modal.getOrCreateInstance(document.getElementById('makeTodoBoxModal'));
@@ -304,7 +295,7 @@ function addTodoBox() {
     }
 
     refreshingBoxButton.onclick = () => {
-        let fillInText = document.querySelector('.blank-todo-fill:not(.todo-box .blank-todo-fill)');
+        let fillInText = document.getElementsByClassName('blank-todo-fill:not(.todo-box .blank-todo-fill)');
         if (fillInText) {
             fillInText.remove();
         }
@@ -316,14 +307,14 @@ function addTodoBox() {
         localStorage.setItem(newBoxId, JSON.stringify(todoBoxData));
 
         // Remove the existing zero state filler image
-        document.querySelector('#todo-screen-filler').style.display = 'none';
+        document.getElementById('todo-screen-filler').style.display = 'none';
 
         addHTMLTodoBox(newBoxId);
         makeRefreshingTodoBox(newBoxId);
     };
 
     standardBoxButton.onclick = () => {
-        let fillInText = document.querySelector('.blank-todo-fill:not(.todo-box .blank-todo-fill)');
+        let fillInText = document.querySelector('blank-todo-fill:not(.todo-box .blank-todo-fill)');
         if (fillInText) {
             fillInText.remove();
         }
@@ -335,7 +326,7 @@ function addTodoBox() {
         localStorage.setItem(newBoxId, JSON.stringify(todoBoxData));
 
         // Remove the existing zero state filler image
-        document.querySelector('#todo-screen-filler').style.display = 'none';
+        document.getElementById('todo-screen-filler').style.display = 'none';
 
         addHTMLTodoBox(newBoxId);
     };
@@ -346,10 +337,10 @@ function renameTodoBox(button) {
     let todoBoxId = parentTodoBox.id.replace('todo-box', '');
     let todoBoxData = JSON.parse(localStorage[todoBoxId]);
 
-    const todoTitleHeader = parentTodoBox.querySelector('.todo-title');
+    const todoTitleHeader = parentTodoBox.getElementsByClassName('todo-title')[0];
 
-    const renameModalInput = document.querySelector('#modal-rename-input');
-    const renameModalButton = document.querySelector('#modal-rename-button');
+    const renameModalInput = document.getElementById('modal-rename-input');
+    const renameModalButton = document.getElementById('modal-rename-button');
 
     renameModalInput.value = todoTitleHeader.textContent;
 
@@ -375,7 +366,7 @@ function removeTodoBox(button) {
     const parentTodoBox = button.parentElement.parentElement.parentElement.parentElement.parentElement;
     let todoBoxId = parentTodoBox.id.replace('todo-box', '');
 
-    const removeModalButton = document.querySelector('#modal-remove-button');
+    const removeModalButton = document.getElementById('modal-remove-button');
 
     removeModalButton.onclick = () => {
         let removeModal = bootstrap.Modal.getOrCreateInstance(document.getElementById('removeTodoBoxModal'));
@@ -383,20 +374,20 @@ function removeTodoBox(button) {
 
         localStorage.removeItem(todoBoxId);
 
-        const todoBoxesDiv = document.querySelector('.todo-box-div');
+        const todoBoxesDiv = document.getElementsByClassName('todo-box-div')[0];
         todoBoxesDiv.removeChild(parentTodoBox);
 
         // Update allTodoBoxIds and add screen filler if needed
         allTodoBoxIds = Object.keys(localStorage).filter(key => Number.isInteger(+key));
         allTodoBoxIds.sort((a, b) => a - b);
 
-        if (allTodoBoxIds.length < 1) document.querySelector('#todo-screen-filler').style.display = 'block';
+        if (allTodoBoxIds.length < 1) document.getElementById('todo-screen-filler').style.display = 'block';
     };
 }
 
 function makeRefreshingTodoBox(todoBoxId) {
     let todoBoxData = JSON.parse(localStorage[todoBoxId]);
-    let parentTodoBox = document.querySelector(`#todo-box${todoBoxId}`);
+    let parentTodoBox = document.getElementById(`todo-box${todoBoxId}`);
 
     // ✨ Change the refreshing bool and update localStorage
     todoBoxData.refreshing = true;
@@ -409,7 +400,7 @@ function makeRefreshingTodoBox(todoBoxId) {
         refreshingTag = 'Refreshing';
     }
 
-    parentTodoBox.querySelector('.refreshing-tag').innerHTML = refreshingTag;
+    parentTodoBox.getElementsByClassName('refreshing-tag')[0].innerHTML = refreshingTag;
 }
 
 // TO-DO TASK code
@@ -417,10 +408,10 @@ function makeRefreshingTodoBox(todoBoxId) {
 function addTask(button) {
 
     const todoBox = button.parentElement.parentElement.parentElement;
-    const parentTodoBox = todoBox.querySelector('.todo-box-tasks');
+    const parentTodoBox = todoBox.getElementsByClassName('todo-box-tasks')[0];
 
     // Remove the fill-in paragraph if needed
-    let fillInText = parentTodoBox.querySelector('.blank-todo-fill');
+    let fillInText = parentTodoBox.getElementsByClassName('blank-todo-fill')[0];
     if (fillInText) {
         fillInText.remove();
     }
@@ -451,13 +442,11 @@ function addTask(button) {
     // ⛰️ Create a todo-task div and add it
     addHTMLTask(todoBoxId, newTaskId, true);
 
-    document.querySelector(`#${newTaskId}`).querySelector('.todo-task-text').focus();
-
-    setListeners();
+    document.getElementById(`${newTaskId}`).getElementsByClassName('todo-task-text')[0].focus();
 }
 
 function addSubtask(button) {
-    let taskElement = button.parentElement.parentElement.parentElement.parentElement.parentElement;
+    let taskElement = button.parentElement.parentElement.parentElement.parentElement;
     let parentTaskId = taskElement.id;
 
     let parentTodoBox = taskElement.parentElement.parentElement;
@@ -505,12 +494,10 @@ function addSubtask(button) {
     addHTMLTask(todoBoxId, newTaskId, true);
 
     // Focus on the task
-    let newSubtaskElement = document.querySelector(`#${newTaskId}`);
+    let newSubtaskElement = document.getElementById(`${newTaskId}`);
     if (newSubtaskElement) {
-        newSubtaskElement.querySelector('.todo-task-text').focus();
+        newSubtaskElement.getElementsByClassName('todo-task-text')[0].focus();
     }
-
-    setListeners();
 }
 
 function completeTask(radio) {
@@ -573,7 +560,7 @@ function completeTask(radio) {
 
     // 🗻 Update DOM elements
     idsToChange.forEach(id => {
-        let taskElement = document.querySelector(`#${id}`);
+        let taskElement = document.getElementById(`${id}`);
 
         if (taskElement) taskElement.remove();
 
@@ -588,10 +575,10 @@ function completeTask(radio) {
 
     // If no active tasks anymore
     if (todoBoxData.tasks.active.length < 1) {
-        fillIfBlank(parentTodoBox.querySelector('.todo-box-tasks'));
+        fillIfBlank(parentTodoBox.getElementsByClassName('todo-box-tasks')[0]);
     }
 
-    let fillInText = parentTodoBox.querySelector('.todo-box-tasks').querySelector('.blank-todo-fill');
+    let fillInText = parentTodoBox.getElementsByClassName('todo-box-tasks')[0].getElementsByClassName('blank-todo-fill')[0];
     if (todoBoxData.tasks.active.length > 0 && fillInText) {
         console.log(fillInText);
         fillInText.remove();
@@ -601,7 +588,7 @@ function completeTask(radio) {
 }
 
 function completeRefreshingTask(button) {
-    let taskElement = button.parentElement.parentElement.parentElement.parentElement.parentElement;
+    let taskElement = button.parentElement.parentElement.parentElement.parentElement;
     let taskId = taskElement.id;
 
     let parentTodoBox = taskElement.parentElement.parentElement;
@@ -642,7 +629,7 @@ function completeRefreshingTask(button) {
 
     // 🗻 Update DOM elements
     idsToChange.forEach(id => {
-        let taskElement = document.querySelector(`#${id}`);
+        let taskElement = document.getElementById(`${id}`);
 
         if (taskElement) taskElement.remove();
 
@@ -650,12 +637,13 @@ function completeRefreshingTask(button) {
     });
 
     // Updates all the tasks in completed-tasks div & removes elements if no tasks left
+    updateHTMLCollapseDiv(todoBoxId);
     updateHTMLCompletedForGoodDiv(todoBoxId);
     iDidList();
 
     // If no active tasks anymore
     if (todoBoxData.tasks.active.length < 1) {
-        fillIfBlank(parentTodoBox.querySelector('.todo-box-tasks'));
+        fillIfBlank(parentTodoBox.getElementsByClassName('todo-box-tasks')[0]);
     }
 
     setListeners();
@@ -703,7 +691,7 @@ function editTaskDetails(textarea) {
 
 function removeTask(button) {
     // Locate all parent HTML for JSON IDs
-    let taskElement = button.parentElement.parentElement.parentElement.parentElement.parentElement;
+    let taskElement = button.parentElement.parentElement.parentElement.parentElement;
     let taskId = taskElement.id;
     let parentTodoBox = taskElement.parentElement.parentElement;
     let todoBoxId = parentTodoBox.id.replace('todo-box', '');
@@ -740,10 +728,10 @@ function removeTask(button) {
     localStorage.setItem(todoBoxId, JSON.stringify(todoBoxData));
 
     tasksToRemove.forEach(id => {
-        let taskElement = document.querySelector(`#${id}`);
+        let taskElement = document.getElementById(`${id}`);
         taskElement.remove();
 
-        let iDidTaskElement = document.querySelector(`#${id}-${todayStr}`);
+        let iDidTaskElement = document.getElementById(`${id}-${todayStr}`);
         if (iDidTaskElement) iDidTaskElement.remove();
     });
 
@@ -752,7 +740,7 @@ function removeTask(button) {
 
     // If there are no active tasks left, fill in the blank
     if (todoBoxData.tasks.active.length < 1) {
-        fillIfBlank(parentTodoBox.querySelector('.todo-box-tasks'));
+        fillIfBlank(parentTodoBox.getElementsByClassName('todo-box-tasks')[0]);
     }
 }
 
@@ -794,7 +782,7 @@ function addHTMLTodoBox(boxId) {
     <div class='todo-box-tasks accordion accordion-flush' id='accordion-flush${boxId}'></div>
     <div class='todo-box-completed-refreshing-tasks'></div>`;
 
-    let todoBoxDiv = document.querySelector('.todo-box-div');
+    let todoBoxDiv = document.getElementsByClassName('todo-box-div')[0];
     todoBoxDiv.appendChild(box);
 
     if (todoBoxData.tasks.active.length >= 1) {
@@ -805,7 +793,7 @@ function addHTMLTodoBox(boxId) {
         });
     }
     else {
-        fillIfBlank(box.querySelector('.todo-box-tasks'));
+        fillIfBlank(box.getElementsByClassName('todo-box-tasks')[0]);
     }
 
     box.appendChild(document.createElement('br'));
@@ -820,8 +808,8 @@ function addHTMLTodoBox(boxId) {
 }
 
 function addHTMLCollapseDiv(todoBoxId) {
-    const box = document.querySelector(`#todo-box${todoBoxId}`);
-    const tasksBox = box.querySelector('.todo-box-tasks');
+    const box = document.getElementById(`todo-box${todoBoxId}`);
+    const tasksBox = box.getElementsByClassName('todo-box-tasks')[0];
 
     let todoBoxData = localStorage.getItem(todoBoxId);
     todoBoxData = JSON.parse(todoBoxData);
@@ -841,15 +829,15 @@ function addHTMLCollapseDiv(todoBoxId) {
 
 function updateHTMLCollapseDiv(todoBoxId) {
 
-    const todoBox = document.querySelector(`#todo-box${todoBoxId}`);
+    const todoBox = document.getElementById(`todo-box${todoBoxId}`);
 
     let todoBoxData = localStorage.getItem(todoBoxId);
     todoBoxData = JSON.parse(todoBoxData);
 
-    let collapseToggle = todoBox.querySelector('.collapse-btn-div');
+    let collapseToggle = todoBox.getElementsByClassName('collapse-btn-div')[0];
     if (collapseToggle === null) {
         addHTMLCollapseDiv(todoBoxId);
-        collapseToggle = todoBox.querySelector('.collapse-btn-div');
+        collapseToggle = todoBox.getElementsByClassName('collapse-btn-div')[0];
     }
 
     let completedRefreshingTasks = todoBoxData.tasks.completed.filter(task => !task.completedForGood);
@@ -858,7 +846,7 @@ function updateHTMLCollapseDiv(todoBoxId) {
         Completed (${completedRefreshingTasks.length})</button>`;
 
     // Wipe the original completed-tasks div and update
-    todoBox.querySelector('.todo-box-completed-tasks').innerHTML = '';
+    todoBox.getElementsByClassName('todo-box-completed-tasks')[0].innerHTML = '';
 
     completedRefreshingTasks.forEach((task) => {
         let taskId = task['taskId'];
@@ -868,9 +856,9 @@ function updateHTMLCollapseDiv(todoBoxId) {
 
     // If no completed tasks
     if (completedRefreshingTasks.length < 1) {
-        let completedDiv = todoBox.querySelector('.todo-box-completed-tasks');
+        let completedDiv = todoBox.getElementsByClassName('todo-box-completed-tasks')[0];
         completedDiv.remove();
-        let completedButton = todoBox.querySelector('.collapse-btn-div');
+        let completedButton = todoBox.getElementsByClassName('collapse-btn-div')[0];
         todoBox.removeChild(completedButton);
     }
 
@@ -878,8 +866,8 @@ function updateHTMLCollapseDiv(todoBoxId) {
 }
 
 function updateHTMLCompletedForGoodDiv(todoBoxId) {
-    let todoBoxElement = document.querySelector(`#todo-box${todoBoxId}`);
-    let completedForGoodDiv = todoBoxElement.querySelector('.todo-box-completed-refreshing-tasks');
+    let todoBoxElement = document.getElementById(`todo-box${todoBoxId}`);
+    let completedForGoodDiv = todoBoxElement.getElementsByClassName('todo-box-completed-refreshing-tasks');
     completedForGoodDiv.innerHTML = '';
 
     let todoBoxData = localStorage.getItem(todoBoxId);
@@ -887,7 +875,7 @@ function updateHTMLCompletedForGoodDiv(todoBoxId) {
 
     let completedForGoodTasks = todoBoxData.tasks.completed.filter(task => task.completedForGood);
 
-    completedForGoodTasks.forEach(task => {
+    Array.from(completedForGoodTasks).forEach(task => {
         let taskId = task['taskId'];
 
         addHTMLCompletedRefreshingTask(todoBoxId, taskId);
@@ -915,10 +903,10 @@ function addHTMLTask(todoBoxId, taskId, active) {
         subtaskClass = 'subtask';
     } else {
         addSubtask = `
-        <li><a class='dropdown-item add-subtask-btn'>
+        <li><span class='dropdown-item add-subtask-btn' role="button" tabindex="0">
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-return-right" viewBox="0 0 16 16">
             <path fill-rule="evenodd" d="M1.5 1.5A.5.5 0 0 0 1 2v4.8a2.5 2.5 0 0 0 2.5 2.5h9.793l-3.347 3.346a.5.5 0 0 0 .708.708l4.2-4.2a.5.5 0 0 0 0-.708l-4-4a.5.5 0 0 0-.708.708L13.293 8.3H3.5A1.5 1.5 0 0 1 2 6.8V2a.5.5 0 0 0-.5-.5"/>
-        </svg>Add a subtask</a>
+        </svg>Add a subtask</span>
         </li>`;
         subtaskClass = '';
     }
@@ -927,11 +915,11 @@ function addHTMLTask(todoBoxId, taskId, active) {
     let completeRefreshingTask = '';
     if (todoBoxData.refreshing) {
         completeRefreshingTask = `
-        <li><a class='dropdown-item complete-refreshing-task-btn'>
+        <li><span class='dropdown-item complete-refreshing-task-btn'>
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-check-circle-fill" viewBox="0 0 16 16">
         <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0m-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z"/>
       </svg>
-        Mark complete</a>
+        Mark complete</span>
         </li>`;
     }
 
@@ -939,32 +927,32 @@ function addHTMLTask(todoBoxId, taskId, active) {
     let taskText = taskData['task'];
     let taskDetails = taskData.details;
 
-    let div = document.querySelector(`#todo-box${todoBoxId}`).querySelector(`.todo-box-tasks`);
+    let div = document.getElementById(`todo-box${todoBoxId}`).querySelector(`.todo-box-tasks`);
     const taskElement = document.createElement('div');
 
     taskElement.className = 'todo-task accordion-item';
     taskElement.id = `${taskId}`;
     taskElement.innerHTML = `
-        <h2 class="accordion-header task-header-container">
+        <div class="accordion-header task-header-container">
             <div class="accordion-button task-head collapsed" data-bs-toggle="collapse" data-bs-target="#details-${taskId}" aria-expanded="false" aria-controls="details-${taskId}">
                 <input type='radio'>
                 <textarea name='task-textarea' class='todo-task-text'>${taskText}</textarea>
-                <button type="button" class="btn edit-todo-task-btn" data-bs-toggle="dropdown" aria-expanded="false" data-toggle="dropdown">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-three-dots-vertical" viewBox="0 0 16 16">
-                        <path d="M9.5 13a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0m0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0m0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0"/>
-                    </svg>
-                </button>
-                <ul class="task-edit-dropdown dropdown-menu dropdown-menu-end collapsed">
-                    <li><a class='dropdown-item remove-task-btn'>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash-fill" viewBox="0 0 16 16">
-                            <path d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5M8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5m3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0"/>
-                        </svg>Delete</a>
-                    </li>
-                    ${addSubtask}
-                    ${completeRefreshingTask}
-                </ul>
+            </div>
+            <button type="button" class="btn edit-todo-task-btn" data-bs-toggle="dropdown" aria-expanded="false" data-toggle="dropdown">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-three-dots-vertical" viewBox="0 0 16 16">
+                    <path d="M9.5 13a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0m0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0m0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0"/>
+                </svg>
             </button>
-        </h2>
+            <ul class="task-edit-dropdown dropdown-menu dropdown-menu-end collapsed">
+                <li><span class='dropdown-item remove-task-btn' role="button" tabindex="0">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash-fill" viewBox="0 0 16 16">
+                        <path d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5M8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5m3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0"/>
+                    </svg>Delete</span>
+                </li>
+                ${addSubtask}
+                ${completeRefreshingTask}
+            </ul>
+        </div>
         <div id="details-${taskId}" class="accordion-collapse collapse" data-bs-parent="#accordion-flush${todoBoxId}">
             <div class="form-floating accordion-body" style="padding: 0px;">
                 <textarea id='details-${taskId}-textarea' class='form-control todo-task-details' placeholder='Leave the details here'>${taskDetails}</textarea>
@@ -976,7 +964,7 @@ function addHTMLTask(todoBoxId, taskId, active) {
 
     if (hasMatchingParentTask) {
         taskElement.className = 'todo-task accordion-item subtask';
-        let parentTaskElement = document.querySelector(`#${parentTaskId}`);
+        let parentTaskElement = document.getElementById(`${parentTaskId}`);
         if (parentTaskElement) parentTaskElement.after(taskElement);
     }
     else {
@@ -1001,42 +989,42 @@ function addHTMLCompletedTask(todoBoxId, taskId) {
 
     // Set 'complete for good' button
     let completeRefreshingTask = (todoBoxData.refreshing) ? `
-        <li><a class='dropdown-item complete-refreshing-task-btn'>
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-check-circle-fill" viewBox="0 0 16 16">
-        <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0m-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z"/>
-      </svg>
-        Mark complete</a>
+        <li>
+            <span class='dropdown-item complete-refreshing-task-btn'>
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-check-circle-fill" viewBox="0 0 16 16">
+                    <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0m-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z"/>
+                </svg>Mark complete</span>
         </li>` : '';
 
     // Locate and build HTML elements
     let taskText = taskData.task;
     let taskDetails = taskData.details;
 
-    let div = document.querySelector(`#todo-box${todoBoxId}`).querySelector(`.todo-box-completed-tasks`);
+    let div = document.getElementById(`todo-box${todoBoxId}`).querySelector(`.todo-box-completed-tasks`);
     const taskElement = document.createElement('div');
 
     taskElement.className = 'todo-task accordion-item';
     taskElement.id = `${taskId}`;
     taskElement.innerHTML = `
-        <h2 class="accordion-header task-header-container">
+        <div class="accordion-header task-header-container">
             <div class="accordion-button task-head collapsed" data-bs-toggle="collapse" data-bs-target="#details-${taskId}" aria-expanded="false" aria-controls="details-${taskId}">
                 <input type='radio' checked>
                 <textarea name='task-textarea' class='todo-completed-task-text' disabled>${taskText}</textarea>
-                <button type="button" class="btn edit-todo-task-btn" data-bs-toggle="dropdown" aria-expanded="false" data-toggle="dropdown">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-three-dots-vertical" viewBox="0 0 16 16">
-                        <path d="M9.5 13a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0m0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0m0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0"/>
-                    </svg>
-                </button>
-                <ul class="task-edit-dropdown dropdown-menu dropdown-menu-end collapsed">
-                    <li><a class='dropdown-item remove-task-btn'>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash-fill" viewBox="0 0 16 16">
-                            <path d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5M8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5m3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0"/>
-                        </svg>Delete</a>
-                    </li>
-                    ${completeRefreshingTask}
-                </ul>
+            </div>
+            <button type="button" class="btn edit-todo-task-btn" data-bs-toggle="dropdown" aria-expanded="false" data-toggle="dropdown">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-three-dots-vertical" viewBox="0 0 16 16">
+                    <path d="M9.5 13a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0m0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0m0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0"/>
+                </svg>
             </button>
-        </h2>
+            <ul class="task-edit-dropdown dropdown-menu dropdown-menu-end collapsed">
+                <li><a class='dropdown-item remove-task-btn'>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash-fill" viewBox="0 0 16 16">
+                        <path d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5M8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5m3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0"/>
+                    </svg>Delete</a>
+                </li>
+                ${completeRefreshingTask}
+            </ul>
+        </div>
         <div id="details-${taskId}" class="accordion-collapse collapse" data-bs-parent="#accordion-flush${todoBoxId}">
             <div class="form-floating accordion-body" style="padding: 0px;">
                 <textarea id='details-${taskId}-textarea' class='form-control todo-completed-task-details' placeholder='Leave the details here' disabled>${taskDetails}</textarea>
@@ -1049,7 +1037,7 @@ function addHTMLCompletedTask(todoBoxId, taskId) {
 
     if (hasMatchingParentTask) {
         taskElement.className = 'todo-task accordion-item subtask';
-        let parentTaskElement = document.querySelector(`#${parentTaskId}`);
+        let parentTaskElement = document.getElementById(`${parentTaskId}`);
         if (parentTaskElement) parentTaskElement.after(taskElement);
     }
     else {
@@ -1057,7 +1045,7 @@ function addHTMLCompletedTask(todoBoxId, taskId) {
             addHTMLCollapseDiv(todoBoxId);
 
             // Set div again
-            div = document.querySelector(`#todo-box${todoBoxId}`).querySelector(`.todo-box-completed-tasks`);
+            div = document.getElementById(`todo-box${todoBoxId}`).querySelector(`.todo-box-completed-tasks`);
         }
         div?.appendChild(taskElement);
     }
@@ -1077,30 +1065,30 @@ function addHTMLCompletedRefreshingTask(todoBoxId, taskId) {
     let taskText = taskData.task;
     let taskDetails = taskData.details;
 
-    let div = document.querySelector(`#todo-box${todoBoxId}`).querySelector(`.todo-box-completed-refreshing-tasks`);
+    let div = document.getElementById(`todo-box${todoBoxId}`).querySelector(`.todo-box-completed-refreshing-tasks`);
     const taskElement = document.createElement('div');
 
     taskElement.className = 'todo-task accordion-item';
     taskElement.id = `${taskId}`;
     taskElement.innerHTML = `
-        <h2 class="accordion-header task-header-container">
+        <div class="accordion-header task-header-container">
             <div class="accordion-button task-head collapsed" data-bs-toggle="collapse" data-bs-target="#details-${taskId}" aria-expanded="false" aria-controls="details-${taskId}">
                 <input type='radio' checked disabled>
                 <textarea name='task-textarea' class='todo-completed-task-text' disabled>${taskText}</textarea>
-                <button type="button" class="btn edit-todo-task-btn" data-bs-toggle="dropdown" aria-expanded="false" data-toggle="dropdown">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-three-dots-vertical" viewBox="0 0 16 16">
-                        <path d="M9.5 13a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0m0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0m0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0"/>
-                    </svg>
-                </button>
-                <ul class="task-edit-dropdown dropdown-menu dropdown-menu-end collapsed">
-                    <li><a class='dropdown-item remove-task-btn'>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash-fill" viewBox="0 0 16 16">
-                            <path d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5M8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5m3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0"/>
-                        </svg>Delete</a>
-                    </li>
-                </ul>
+            </div>
+            <button type="button" class="btn edit-todo-task-btn" data-bs-toggle="dropdown" aria-expanded="false" data-toggle="dropdown">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-three-dots-vertical" viewBox="0 0 16 16">
+                    <path d="M9.5 13a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0m0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0m0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0"/>
+                </svg>
             </button>
-        </h2>
+            <ul class="task-edit-dropdown dropdown-menu dropdown-menu-end collapsed">
+                <li><a class='dropdown-item remove-task-btn'>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash-fill" viewBox="0 0 16 16">
+                        <path d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5M8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5m3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0"/>
+                    </svg>Delete</a>
+                </li>
+            </ul>
+        </div>
         <div id="details-${taskId}" class="accordion-collapse collapse" data-bs-parent="#accordion-flush${todoBoxId}">
             <div class="form-floating accordion-body" style="padding: 0px;">
                 <textarea id='details-${taskId}-textarea' class='form-control todo-completed-task-details' placeholder='Leave the details here' disabled>${taskDetails}</textarea>
@@ -1113,7 +1101,7 @@ function addHTMLCompletedRefreshingTask(todoBoxId, taskId) {
 
     if (hasMatchingParentTask) {
         taskElement.className = 'todo-task accordion-item subtask';
-        let parentTaskElement = document.querySelector(`#${parentTaskId}`);
+        let parentTaskElement = document.getElementById(`${parentTaskId}`);
         if (parentTaskElement) parentTaskElement.after(taskElement);
     }
     else {
@@ -1124,7 +1112,7 @@ function addHTMLCompletedRefreshingTask(todoBoxId, taskId) {
 }
 
 // completedDate is in ISO form YYYY-MM-DD
-function addHTMLTaskIDid(todoBoxId, taskId, completedDate) {
+function addHTMLTaskIDid(todoBoxId, taskId, completedDate) { 
 
     let todoBoxData = localStorage.getItem(todoBoxId);
     todoBoxData = JSON.parse(todoBoxData);
@@ -1132,7 +1120,7 @@ function addHTMLTaskIDid(todoBoxId, taskId, completedDate) {
     let allTasks = todoBoxData.tasks['completed'].concat(todoBoxData.tasks['active']);
     let taskData = allTasks.find(task => task['taskId'] == taskId);
 
-    let div = document.querySelector(`#i-did-header-${completedDate}`);
+    let div = document.getElementById(`i-did-header-${completedDate}`);
 
     let completedTag;
     if (completedDate == todayStr || completedDate == yesterdayStr) {
@@ -1146,13 +1134,13 @@ function addHTMLTaskIDid(todoBoxId, taskId, completedDate) {
     taskElement.className = `todo-task i-did-todo-task i-did-${completedDate}`;
     taskElement.id = `${taskId}-${completedDate}`;
     taskElement.innerHTML = `
-    <h2 class="task-header-container">
+    <div>
         <div class="task-head">
             <input type='radio' checked>
             <textarea name='task-textarea' class='todo-completed-task-text' disabled>${taskData.task}</textarea>
         </div>
         <p class="i-did-completed-tag">${completedTag}</p>
-    </h2>`;
+    </div>`;
 
     div?.appendChild(taskElement);
 }

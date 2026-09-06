@@ -19,7 +19,7 @@ button {
     border-color: #f8f9fa;
     border-width: 1px;
     border-radius: 17px;
-    
+
     padding: 35px;
     padding-top: 18px;
 
@@ -100,7 +100,7 @@ button {
     transition: max-height 0.3s ease, opacity 0.3s ease;
 }
 
-.task-edit-dropdown.collapsed {
+.task-edit-dropdown.collapsed:not(.show) {
     opacity: 0;
 }
 
@@ -128,6 +128,12 @@ button {
 
 .remove-task-btn {
     margin-top: -2px;
+}
+
+.task-header-container {
+    width: 100%;
+    display: flex;
+    align-items: center;
 }
 
 .task-head {
@@ -191,13 +197,14 @@ input[type='radio'] {
 .todo-task-text,
 .todo-completed-task-text {
     margin-left: 10px;
+    margin-right: 20px;
     padding: 8px 6px;
 
     font-size: 17px;
     cursor: default;
     border-style: none;
     background: rgba(0, 0, 0, 0);
-    
+
     width: 100%;
     min-height: 36px;
 
@@ -255,7 +262,7 @@ input[type='text'] {
     cursor: default;
     border-style: none;
     background: rgba(0, 0, 0, 0);
-    
+
     width: 100%;
     max-width: 286px;
     min-height: 36px;
@@ -341,11 +348,11 @@ input[type='text'] {
     right: 0px;
     top: 90px;
     height: 100%;
-    border-radius: 8px; 
+    border-radius: 8px;
     border-top-right-radius: 0px;
     border-bottom-right-radius: 0px;
     z-index: 11;
-    
+
     width: 100%;
     max-width: 320px;
     overflow-x: hidden;
@@ -363,7 +370,9 @@ input[type='text'] {
     overflow-y: hidden;
 }
 
-#i-did-list #i-did-list-toggle { margin-left: 18px; }
+#i-did-list #i-did-list-toggle {
+    margin-left: 18px;
+}
 
 #i-did-list .i-did-date-header {
     margin-left: 13px;
@@ -381,7 +390,8 @@ input[type='text'] {
     white-space: nowrap;
 }
 
-#i-did-list.i-did-close .todo-task {
+#i-did-list.i-did-close .todo-task,
+#i-did-list.i-did-close #i-did-filler {
     max-width: 0px;
     opacity: 0;
     visibility: hidden;
@@ -392,7 +402,8 @@ input[type='text'] {
     white-space: nowrap;
 }
 
-#i-did-list:not(.i-did-close) .todo-task {
+#i-did-list:not(.i-did-close) .todo-task,
+#i-did-list:not(.i-did-close) #i-did-filler {
     max-width: 360px;
     width: 100%;
     opacity: 1;
@@ -416,8 +427,8 @@ input[type='text'] {
     margin-top: -15px;
 }
 
-#todo-screen-filler {
-    width: 100%;
+#todo-screen-filler,
+#i-did-filler {
     height: 100vh;
     display: none;
     align-content: center;
@@ -427,12 +438,21 @@ input[type='text'] {
     background-color: rgba(250, 250, 250, 0.332);
 }
 
+#todo-screen-filler {
+    width: 100%;
+}
+
 #todo-screen-filler img {
     width: 250px;
 }
 
-#todo-screen-filler p, #todo-screen-filler h5 {
+#todo-screen-filler p,
+#todo-screen-filler h5 {
     margin: 0 auto;
     margin-bottom: 21px;
     width: max-content;
+}
+
+#i-did-filler img {
+    width: 100%;
 }
