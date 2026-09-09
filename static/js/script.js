@@ -182,15 +182,30 @@ function setListeners() {
 
     let allTodoDetails = document.getElementsByClassName('todo-task-details');
     Array.from(allTodoDetails).forEach(textarea => {
-        textarea.addEventListener('focusout', () => {
+        let accordionButton = textarea.parentElement.parentElement.parentElement.getElementsByClassName('accordion-button')[0];
+
+        textarea.addEventListener('focusout', (event) => {
+            event.stopPropagation();
+            event.preventDefault();
             editTaskDetails(textarea);
+
+            accordionButton.setAttribute('data-bs-toggle', 'collapse');
+        });
+
+        textarea.addEventListener('click', (event) => {
+            event.stopPropagation();
+        });
+
+        textarea.addEventListener('mousedown', (event) => {
+            event.stopPropagation();
         });
     });
 
-    let allTodoCheckboxes = document.getElementsByClassName('input[type="radio"]');
-    Array.from(allTodoCheckboxes).forEach(radio => {
-        radio.onclick = () => {
-            console.log(radio);
+    let allTodoCheckboxes = document.querySelectorAll('input[type="radio"]');
+    allTodoCheckboxes.forEach(radio => {
+        radio.onclick = (event) => {
+            event.stopPropagation();
+            event.preventDefault();
             completeTask(radio);
         };
     });
@@ -222,25 +237,30 @@ function setListeners() {
 
     // Closing accordion when clicked elsewhere
     window.onclick = () => {
-        let openAccordions = document.querySelectorAll('.collapse.show');
+        let openDropdown = document.querySelectorAll('.collapse.show');
 
-        openAccordions.forEach(accordion => {
-            var bsCollapse = new bootstrap.Collapse(accordion, {
+        openDropdown.forEach(dropdown => {
+            var bsCollapse = new bootstrap.Collapse(dropdown, {
                 toggle: true
             });
+
+            if (!bsCollapse) {
+                dropdown.classList.toggle('show');
+            }
         });
     };
 
     let allAccordions = document.getElementsByClassName('accordion-item');
     Array.from(allAccordions).forEach(accordion => {
         accordion.onclick = (event) => {
-            console.log(event);
             event.stopPropagation();
             var bsCollapse = new bootstrap.Collapse(accordion, {
                 toggle: false
             });
         };
     });
+
+    //let allEditTaskBtns = document.getElementsByClassName('edit-todo-task-btn');
 
     let allAddSubtaskBtns = document.getElementsByClassName('add-subtask-btn');
     Array.from(allAddSubtaskBtns).forEach(btn => {
@@ -253,9 +273,8 @@ function setListeners() {
     Array.from(allCompletedRefreshingTaskBtns).forEach(btn => {
         btn.onclick = () => {
             completeRefreshingTask(btn);
-        }
+        };
     });
-
 }
 
 function fillIfBlank(parentElement) {
@@ -835,13 +854,13 @@ function updateHTMLCollapseDiv(todoBoxId) {
     todoBoxData = JSON.parse(todoBoxData);
 
     let collapseToggle = todoBox.getElementsByClassName('collapse-btn-div')[0];
-    if (collapseToggle === null) {
+    if (!collapseToggle) {
         addHTMLCollapseDiv(todoBoxId);
         collapseToggle = todoBox.getElementsByClassName('collapse-btn-div')[0];
     }
 
     let completedRefreshingTasks = todoBoxData.tasks.completed.filter(task => !task.completedForGood);
-
+    console.log(collapseToggle);
     collapseToggle.innerHTML = `<button class="btn collapse-btn" type="button" data-bs-toggle="collapse" data-bs-target="#collapseExample${todoBoxId}" aria-expanded="false" aria-controls="collapseExample${todoBoxId}">
         Completed (${completedRefreshingTasks.length})</button>`;
 
@@ -1112,7 +1131,7 @@ function addHTMLCompletedRefreshingTask(todoBoxId, taskId) {
 }
 
 // completedDate is in ISO form YYYY-MM-DD
-function addHTMLTaskIDid(todoBoxId, taskId, completedDate) { 
+function addHTMLTaskIDid(todoBoxId, taskId, completedDate) {
 
     let todoBoxData = localStorage.getItem(todoBoxId);
     todoBoxData = JSON.parse(todoBoxData);

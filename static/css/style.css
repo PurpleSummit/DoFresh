@@ -201,7 +201,7 @@ input[type='radio'] {
     padding: 8px 6px;
 
     font-size: 17px;
-    cursor: default;
+    cursor: text;
     border-style: none;
     background: rgba(0, 0, 0, 0);
 
@@ -259,7 +259,7 @@ input[type='text'] {
     padding: 0px;
 
     font-size: 17px;
-    cursor: default;
+    cursor: text !important;
     border-style: none;
     background: rgba(0, 0, 0, 0);
 
