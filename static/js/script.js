@@ -314,19 +314,22 @@ function addTodoBox() {
     }
 
     refreshingBoxButton.onclick = () => {
-        let fillInText = document.getElementsByClassName('blank-todo-fill:not(.todo-box .blank-todo-fill)');
+        let fillInText = document.querySelector('blank-todo-fill:not(.todo-box .blank-todo-fill)');
         if (fillInText) {
             fillInText.remove();
         }
 
-        refreshingBool = true;
+        let boxTitle = document.getElementById('name-todo-box').value;
+
         addBoxModal.hide();
 
-        let todoBoxData = { title: 'Refreshing To-Do List', tasks: { active: [], completed: [] }, refreshing: false };
+        let todoBoxData = { title: boxTitle, tasks: { active: [], completed: [] }, refreshing: false };
         localStorage.setItem(newBoxId, JSON.stringify(todoBoxData));
 
         // Remove the existing zero state filler image
         document.getElementById('todo-screen-filler').style.display = 'none';
+
+        document.getElementById('name-todo-box').value = '';
 
         addHTMLTodoBox(newBoxId);
         makeRefreshingTodoBox(newBoxId);
@@ -338,14 +341,17 @@ function addTodoBox() {
             fillInText.remove();
         }
 
-        refreshingBool = false;
         addBoxModal.hide();
 
-        let todoBoxData = { title: 'To-Do List', tasks: { active: [], completed: [] }, refreshing: false };
+        let boxTitle = document.getElementById('name-todo-box').value;
+
+        let todoBoxData = { title: boxTitle, tasks: { active: [], completed: [] }, refreshing: false };
         localStorage.setItem(newBoxId, JSON.stringify(todoBoxData));
 
         // Remove the existing zero state filler image
         document.getElementById('todo-screen-filler').style.display = 'none';
+
+        document.getElementById('name-todo-box').value = '';
 
         addHTMLTodoBox(newBoxId);
     };
@@ -747,11 +753,34 @@ function removeTask(button) {
     localStorage.setItem(todoBoxId, JSON.stringify(todoBoxData));
 
     tasksToRemove.forEach(id => {
-        let taskElement = document.getElementById(`${id}`);
-        taskElement.remove();
+        let taskElement = document.getElementById(id);
+        taskElement.animate([
+            { opacity: 1, height: '79.5px' },
+            { opacity: 0, height: '0px' }
+        ], {
+            duration: 500,
+            easing: 'ease-out',
+            fill: 'forwards'
+        });
+        taskElement.onfinish = () => {
+            taskElement.remove();
+        };
 
         let iDidTaskElement = document.getElementById(`${id}-${todayStr}`);
-        if (iDidTaskElement) iDidTaskElement.remove();
+        if (iDidTaskElement) {
+
+            iDidTaskElement.animate([
+                { opacity: 1, height: '79.5px' },
+                { opacity: 0, height: '0px' }
+            ], {
+                duration: 500,
+                easing: 'ease-out',
+                fill: 'forwards'
+            });
+            iDidTaskElement.onfinish = () => {
+                iDidTaskElement.remove();
+            };
+        }
     });
 
     // ⛰️ Fix the # of completed tasks
@@ -860,7 +889,6 @@ function updateHTMLCollapseDiv(todoBoxId) {
     }
 
     let completedRefreshingTasks = todoBoxData.tasks.completed.filter(task => !task.completedForGood);
-    console.log(collapseToggle);
     collapseToggle.innerHTML = `<button class="btn collapse-btn" type="button" data-bs-toggle="collapse" data-bs-target="#collapseExample${todoBoxId}" aria-expanded="false" aria-controls="collapseExample${todoBoxId}">
         Completed (${completedRefreshingTasks.length})</button>`;
 
@@ -978,6 +1006,13 @@ function addHTMLTask(todoBoxId, taskId, active) {
                 <label for="details-${taskId}-textarea">Details</label>
             </div>
     </div>`;
+    taskElement.animate([
+        { opacity: 0, height: '0px' },
+        { opacity: 1, height: '79.5px' }
+    ], {
+        duration: 200,
+        easing: 'ease-in'
+    });
 
     const hasMatchingParentTask = parentTaskId && (allTasks.some(t => t['taskId'] == parentTaskId) && allTasks.some(t => t['taskId'] == taskId));
 
@@ -989,6 +1024,7 @@ function addHTMLTask(todoBoxId, taskId, active) {
     else {
         div?.appendChild(taskElement);
     }
+
 
     setListeners();
 }

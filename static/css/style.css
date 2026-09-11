@@ -86,12 +86,25 @@ button {
 }
 
 .add-task-btn,
-.edit-todo-box-btn,
-.edit-todo-task-btn {
+.edit-todo-box-btn {
     margin-left: 10px !important;
     width: 41.8px;
     height: 39.9833px;
     border-radius: 100% !important;
+}
+
+.todo-task {
+    display: block;
+    margin-bottom: 5px;
+    padding: 3px 19px;
+    background-color: transparent;
+    border-radius: 13px !important;
+    border: none;
+    transition: all 0.25s ease-in-out;
+}
+
+.todo-task:hover {
+    background-color: rgba(252, 252, 252, 0.52);
 }
 
 .task-edit-dropdown {
@@ -112,6 +125,10 @@ button {
     box-shadow: none !important;
     padding: 3px 0px;
     height: min-content;
+
+    border-radius: 22px !important;
+    width: 37px;
+    height: 37px;
 }
 
 .edit-todo-task-btn:focus,
@@ -122,7 +139,7 @@ button {
 
 .edit-todo-task-btn:focus,
 .edit-todo-task-btn:hover {
-    transition: 0.5s;
+    transition: 0.3s;
     background-color: rgba(252, 252, 252, 0.604) !important;
 }
 
@@ -177,19 +194,6 @@ button {
     border-color: rgba(0, 0, 0, 0);
 }
 
-.todo-task {
-    display: block;
-    margin-bottom: 5px;
-    padding: 3px 19px;
-    background-color: transparent;
-    border-radius: 13px !important;
-    border: none;
-}
-
-.todo-task:hover {
-    background-color: rgba(252, 252, 252, 0.52);
-}
-
 input[type='radio'] {
     cursor: pointer;
 }
@@ -197,7 +201,6 @@ input[type='radio'] {
 .todo-task-text,
 .todo-completed-task-text {
     margin-left: 10px;
-    margin-right: 20px;
     padding: 8px 6px;
 
     font-size: 17px;
@@ -216,6 +219,10 @@ input[type='radio'] {
 
 .todo-task-text::-webkit-scrollbar {
     display: none;
+}
+
+.accordion-button::after {
+    display: none !important;
 }
 
 .todo-task-details {

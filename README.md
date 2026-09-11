@@ -11,8 +11,8 @@ While traditional to-do apps press for one-time completions, this app features t
     <li>Interactive, dynamic web interface with HTML, CSS, and JavaScript</li>
     <li>Traditional to-do list functions</li>
     <li>Automatic zero-reset tasks</li>
-    <li>Temporal completion dates</li>
-    <li>Renders real-time completion analytics with Chart.js [completion, streak, and monthly frequency charts]</li>
+    <li>Renders real-time completion analytics [activity heatmap, streak activity, completion chart]</li>
+    <li>In-app personalized AI counselor and companion</li>
 </ul>
 
 ⊹ ﹏𓊝﹏𓂁﹏⊹ ˖ 
