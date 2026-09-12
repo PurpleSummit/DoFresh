@@ -24,7 +24,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     allTodoBoxIds.forEach(boxId => {
         addHTMLTodoBox(boxId);
-        updateHTMLCompletedForGoodDiv(boxId);
+        // updateHTMLCompletedForGoodDiv(boxId);
     });
 
     if (allTodoBoxIds.length < 1) document.getElementById('todo-screen-filler').style.display = 'block';
@@ -107,19 +107,18 @@ function iDidList() {
         let completedTasks = boxData.tasks.completed;
         if (completedTasks && completedTasks.length > 0) {
             completedTasks.forEach(taskData => {
-                if (!taskData.completedForGood) {
-                    let taskId = taskData.taskId;
-                    let completedDate = taskData.completedDate || todayStr;
+                let taskId = taskData.taskId;
+                let completedDate = taskData.completedDate || todayStr;
 
-                    if (!document.getElementById(`i-did-header-${completedDate}`)) {
-                        let iDidDateHeader = document.createElement('div');
-                        iDidDateHeader.className = 'i-did-date-header';
-                        iDidDateHeader.id = `i-did-header-${completedDate}`;
-                        iDidDateHeader.innerHTML = `<h5>${ISOToDateString(completedDate)}</h5>`
-                    }
-
-                    addHTMLTaskIDid(boxId, taskId, completedDate);
+                if (!document.getElementById(`i-did-header-${completedDate}`)) {
+                    let iDidDateHeader = document.createElement('div');
+                    iDidDateHeader.className = 'i-did-date-header';
+                    iDidDateHeader.id = `i-did-header-${completedDate}`;
+                    iDidDateHeader.innerHTML = `<h5>${ISOToDateString(completedDate)}</h5>`
                 }
+
+                addHTMLTaskIDid(boxId, taskId, completedDate);
+
             });
         }
 
@@ -657,13 +656,11 @@ function completeRefreshingTask(button) {
         let taskElement = document.getElementById(`${id}`);
 
         if (taskElement) taskElement.remove();
-
-        // Add to section beneath `Completed` tasks
     });
 
     // Updates all the tasks in completed-tasks div & removes elements if no tasks left
     updateHTMLCollapseDiv(todoBoxId);
-    updateHTMLCompletedForGoodDiv(todoBoxId);
+    // updateHTMLCompletedForGoodDiv(todoBoxId);
     iDidList();
 
     // If no active tasks anymore
@@ -827,8 +824,7 @@ function addHTMLTodoBox(boxId) {
             </ul>
         </div>
     </div>
-    <div class='todo-box-tasks accordion accordion-flush' id='accordion-flush${boxId}'></div>
-    <div class='todo-box-completed-refreshing-tasks'></div>`;
+    <div class='todo-box-tasks accordion accordion-flush' id='accordion-flush${boxId}'></div>`;
 
     let todoBoxDiv = document.getElementsByClassName('todo-box-div')[0];
     todoBoxDiv.appendChild(box);
@@ -872,6 +868,7 @@ function addHTMLCollapseDiv(todoBoxId) {
     const collapseDiv = document.createElement('div');
     collapseDiv.className = 'collapse todo-box-completed-tasks accordion accordion-flush';
     collapseDiv.id = `collapseExample${todoBoxId}`;
+    collapseDiv.innerHTML = '<div class="todo-box-completed-refreshing-tasks"></div>';
     collapseToggle.after(collapseDiv);
 }
 
@@ -888,21 +885,25 @@ function updateHTMLCollapseDiv(todoBoxId) {
         collapseToggle = todoBox.getElementsByClassName('collapse-btn-div')[0];
     }
 
-    let completedRefreshingTasks = todoBoxData.tasks.completed.filter(task => !task.completedForGood);
     collapseToggle.innerHTML = `<button class="btn collapse-btn" type="button" data-bs-toggle="collapse" data-bs-target="#collapseExample${todoBoxId}" aria-expanded="false" aria-controls="collapseExample${todoBoxId}">
-        Completed (${completedRefreshingTasks.length})</button>`;
+        Completed (${todoBoxData.tasks.completed.length})</button>`;
 
     // Wipe the original completed-tasks div and update
-    todoBox.getElementsByClassName('todo-box-completed-tasks')[0].innerHTML = '';
+    todoBox.getElementsByClassName('todo-box-completed-tasks')[0].innerHTML = '<div class="todo-box-completed-refreshing-tasks"></div>';
 
-    completedRefreshingTasks.forEach((task) => {
+    todoBoxData.tasks.completed.forEach((task) => {
         let taskId = task['taskId'];
 
-        addHTMLTask(todoBoxId, taskId, false);
+        if (task.completedForGood) {
+            addHTMLCompletedRefreshingTask(todoBoxId, taskId);
+        } else {
+            addHTMLTask(todoBoxId, taskId, false);
+        }
+
     });
 
     // If no completed tasks
-    if (completedRefreshingTasks.length < 1) {
+    if (todoBoxData.tasks.completed.length < 1) {
         let completedDiv = todoBox.getElementsByClassName('todo-box-completed-tasks')[0];
         completedDiv.remove();
         let completedButton = todoBox.getElementsByClassName('collapse-btn-div')[0];
@@ -910,23 +911,6 @@ function updateHTMLCollapseDiv(todoBoxId) {
     }
 
     setListeners();
-}
-
-function updateHTMLCompletedForGoodDiv(todoBoxId) {
-    let todoBoxElement = document.getElementById(`todo-box${todoBoxId}`);
-    let completedForGoodDiv = todoBoxElement.getElementsByClassName('todo-box-completed-refreshing-tasks');
-    completedForGoodDiv.innerHTML = '';
-
-    let todoBoxData = localStorage.getItem(todoBoxId);
-    todoBoxData = JSON.parse(todoBoxData);
-
-    let completedForGoodTasks = todoBoxData.tasks.completed.filter(task => task.completedForGood);
-
-    Array.from(completedForGoodTasks).forEach(task => {
-        let taskId = task['taskId'];
-
-        addHTMLCompletedRefreshingTask(todoBoxId, taskId);
-    });
 }
 
 function addHTMLTask(todoBoxId, taskId, active) {
@@ -1055,9 +1039,9 @@ function addHTMLCompletedTask(todoBoxId, taskId) {
     let taskText = taskData.task;
     let taskDetails = taskData.details;
 
-    let div = document.getElementById(`todo-box${todoBoxId}`).querySelector(`.todo-box-completed-tasks`);
-    const taskElement = document.createElement('div');
+    let parentTodoBox = document.getElementById(`todo-box${todoBoxId}`);
 
+    const taskElement = document.createElement('div');
     taskElement.className = 'todo-task accordion-item';
     taskElement.id = `${taskId}`;
     taskElement.innerHTML = `
@@ -1096,13 +1080,14 @@ function addHTMLCompletedTask(todoBoxId, taskId) {
         if (parentTaskElement) parentTaskElement.after(taskElement);
     }
     else {
+        let div = parentTodoBox.getElementsByClassName('todo-box-completed-tasks')[0];
         if (!div) {
             addHTMLCollapseDiv(todoBoxId);
 
             // Set div again
-            div = document.getElementById(`todo-box${todoBoxId}`).querySelector(`.todo-box-completed-tasks`);
+            div = parentTodoBox.getElementsByClassName('todo-box-completed-tasks')[0];
         }
-        div?.appendChild(taskElement);
+        div.getElementsByClassName('todo-box-completed-refreshing-tasks')[0].prepend(taskElement);
     }
 
     setListeners();
@@ -1120,7 +1105,7 @@ function addHTMLCompletedRefreshingTask(todoBoxId, taskId) {
     let taskText = taskData.task;
     let taskDetails = taskData.details;
 
-    let div = document.getElementById(`todo-box${todoBoxId}`).querySelector(`.todo-box-completed-refreshing-tasks`);
+    let div = document.getElementById(`todo-box${todoBoxId}`).getElementsByClassName('todo-box-completed-refreshing-tasks')[0];
     const taskElement = document.createElement('div');
 
     taskElement.className = 'todo-task accordion-item';
