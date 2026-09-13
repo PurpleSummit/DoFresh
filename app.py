@@ -8,7 +8,7 @@ from sqlalchemy import Integer, String, delete
 from datetime import datetime
 
 from flask_cors import CORS
-from dotenv import load_dotenv
+from python-dotenv import load_dotenv
 from huggingface_hub import InferenceClient
 
 class Base(DeclarativeBase):

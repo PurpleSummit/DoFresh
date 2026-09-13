@@ -1,10 +1,8 @@
-os
 gunicorn
 requests
 flask
 flask_sqlalchemy
 sqlalchemy
-datetime
 flask_cors
-dotenv
+python-dotenv
 huggingface_hub
