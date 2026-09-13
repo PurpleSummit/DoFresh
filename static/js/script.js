@@ -296,6 +296,8 @@ function fillIfBlank(parentElement) {
 // TO-DO LIST code
 
 function addTodoBox() {
+    console.log("Adding to-do list!");
+
     const refreshingBoxButton = document.getElementById('add-refreshing-box-button');
     const standardBoxButton = document.getElementById('add-standard-box-button');
 

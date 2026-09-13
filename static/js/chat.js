@@ -48,7 +48,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // fetch for Flask backend API
         try {
             console.log(JSON.stringify({ userMessage: userPrompt }));
-            const response = await fetch('http://127.0.0.1:5000/api/respond-chat', {
+            const response = await fetch('/api/respond-chat', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ userMessage: userPrompt }, { userData: localStorage })
