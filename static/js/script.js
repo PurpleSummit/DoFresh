@@ -104,7 +104,7 @@ function iDidList() {
         }
 
         // Display all the completions
-        let completedTasks = boxData.tasks.completed;
+        let completedTasks = boxData.tasks.completed.filter(task => !task.completedForGood);
         if (completedTasks && completedTasks.length > 0) {
             completedTasks.forEach(taskData => {
                 let taskId = taskData.taskId;
@@ -203,6 +203,7 @@ function setListeners() {
     let allTodoCheckboxes = document.querySelectorAll('input[type="radio"]');
     allTodoCheckboxes.forEach(radio => {
         radio.onclick = (event) => {
+            console.log("okay, it's clicked");
             event.stopPropagation();
             event.preventDefault();
             completeTask(radio);
@@ -252,6 +253,7 @@ function setListeners() {
     let allAccordions = document.getElementsByClassName('accordion-item');
     Array.from(allAccordions).forEach(accordion => {
         accordion.onclick = (event) => {
+
             event.stopPropagation();
             var bsCollapse = new bootstrap.Collapse(accordion, {
                 toggle: false
@@ -527,6 +529,8 @@ function completeTask(radio) {
     const parentTodoBox = taskElement.parentElement.parentElement;
     const todoBoxId = parentTodoBox.id.replace('todo-box', '');
 
+    console.log(taskId, todoBoxId);
+
     let todoBoxData = JSON.parse(localStorage.getItem(todoBoxId));
     if (!todoBoxData) return;
 
@@ -599,9 +603,8 @@ function completeTask(radio) {
         fillIfBlank(parentTodoBox.getElementsByClassName('todo-box-tasks')[0]);
     }
 
-    let fillInText = parentTodoBox.getElementsByClassName('todo-box-tasks')[0].getElementsByClassName('blank-todo-fill')[0];
+    let fillInText = parentTodoBox.getElementsByClassName('blank-todo-fill')[0];
     if (todoBoxData.tasks.active.length > 0 && fillInText) {
-        console.log(fillInText);
         fillInText.remove();
     }
 
@@ -1079,7 +1082,7 @@ function addHTMLCompletedTask(todoBoxId, taskId) {
             // Set div again
             div = parentTodoBox.getElementsByClassName('todo-box-completed-tasks')[0];
         }
-        div.getElementsByClassName('todo-box-completed-refreshing-tasks')[0].prepend(taskElement);
+        div.prepend(taskElement);
     }
 
     setListeners();
