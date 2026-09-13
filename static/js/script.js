@@ -219,7 +219,10 @@ function setListeners() {
 
     // To-do box buttons
     let addTodoBoxButton = document.getElementsByClassName('add-todo-box-btn')[0];
-    addTodoBoxButton.addEventListener('click', addTodoBox);
+    addTodoBoxButton.onclick = () => {
+        console.log("Adding to-do list! 1");
+        addTodoBox();
+    };
 
     let allRenameTodoBoxButtons = document.getElementsByClassName('rename-todo-box-btn');
     Array.from(allRenameTodoBoxButtons).forEach(button => {
@@ -296,7 +299,7 @@ function fillIfBlank(parentElement) {
 // TO-DO LIST code
 
 function addTodoBox() {
-    console.log("Adding to-do list!");
+    console.log("Adding to-do list! 2");
 
     const refreshingBoxButton = document.getElementById('add-refreshing-box-button');
     const standardBoxButton = document.getElementById('add-standard-box-button');
