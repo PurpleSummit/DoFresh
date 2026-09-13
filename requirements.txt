@@ -1,0 +1,9 @@
+os
+requests
+flask
+flask_sqlalchemy
+sqlalchemy
+datetime
+flask_cors
+dotenv
+huggingface_hub
