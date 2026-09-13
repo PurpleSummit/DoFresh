@@ -470,11 +470,8 @@ function addTask(button) {
 }
 
 function addSubtask(button) {
-    let taskElement = button.parentElement.parentElement.parentElement.parentElement;
-    let parentTaskId = taskElement.id;
-
-    let parentTodoBox = taskElement.parentElement.parentElement;
-    let todoBoxId = parentTodoBox.id.replace('todo-box', '');
+    let parentTaskId = getIdsFromDropdown(button)[0];
+    let todoBoxId = getIdsFromDropdown(button)[1];
 
     // Creating a new id for the new task
     let newTaskId = "task_" + Date.now();
@@ -612,11 +609,8 @@ function completeTask(radio) {
 }
 
 function completeRefreshingTask(button) {
-    let taskElement = button.parentElement.parentElement.parentElement.parentElement;
-    let taskId = taskElement.id;
-
-    let parentTodoBox = taskElement.parentElement.parentElement;
-    let todoBoxId = parentTodoBox.id.replace('todo-box', '');
+    let taskId = getIdsFromDropdown(button)[0];
+    let todoBoxId = getIdsFromDropdown(button)[1];
 
     let todoBoxData = JSON.parse(localStorage.getItem(todoBoxId));
     if (!todoBoxData) return;
@@ -665,7 +659,7 @@ function completeRefreshingTask(button) {
 
     // If no active tasks anymore
     if (todoBoxData.tasks.active.length < 1) {
-        fillIfBlank(parentTodoBox.getElementsByClassName('todo-box-tasks')[0]);
+        fillIfBlank(document.getElementById(`todo-box${todoBoxId}`).getElementsByClassName('todo-box-tasks')[0]);
     }
 
     setListeners();
@@ -713,10 +707,8 @@ function editTaskDetails(textarea) {
 
 function removeTask(button) {
     // Locate all parent HTML for JSON IDs
-    let taskElement = button.parentElement.parentElement.parentElement.parentElement;
-    let taskId = taskElement.id;
-    let parentTodoBox = taskElement.parentElement.parentElement;
-    let todoBoxId = parentTodoBox.id.replace('todo-box', '');
+    let taskId = getIdsFromDropdown(button)[0];
+    let todoBoxId = getIdsFromDropdown(button)[1];
 
     let todoBoxData = JSON.parse(localStorage.getItem(todoBoxId));
     if (!todoBoxData) return;
@@ -727,14 +719,14 @@ function removeTask(button) {
     let taskData = todoBoxData.tasks.active.find((t => t['taskId'] == taskId)) || todoBoxData.tasks.completed.find(t => t['taskId'] == taskId);
 
     // Gather all associated sub-tasks recursively
-    if (taskData['subTasks'] && taskData['subTasks'].length > 0) {
+    if (taskData['subTasks'] !== undefined && taskData['subTasks'].length > 0) {
         taskData['subTasks'].forEach(subId => {
             tasksToRemove.push(subId);
         });
     }
 
     // If it's a subtask, remove its ID from its parent task's subTasks array
-    if (taskData['parentTask']) {
+    if (taskData['parentTask'] !== undefined) {
         let parentTaskId = taskData['parentTask'];
 
         let parentTaskData = todoBoxData.tasks.active.find(t => t['taskId'] == parentTaskId) || todoBoxData.tasks.completed.find(t => t['taskId'] == parentTaskId);
@@ -785,7 +777,7 @@ function removeTask(button) {
 
     // If there are no active tasks left, fill in the blank
     if (todoBoxData.tasks.active.length < 1) {
-        fillIfBlank(parentTodoBox.getElementsByClassName('todo-box-tasks')[0]);
+        fillIfBlank(document.getElementById(`todo-box${todoBoxId}`).getElementsByClassName('todo-box-tasks')[0]);
     }
 }
 
@@ -1202,4 +1194,19 @@ function ISOToDateString(ISOString) {
     let dateParts = ISOString.split('-');
 
     return `${months[dateParts[1] - 1]} ${dateParts[2]}, ${dateParts[0]}`;
+}
+
+function getIdsFromDropdown(dropdownElement) {
+    let taskElement = dropdownElement.parentElement.parentElement.parentElement.parentElement;
+    let taskId = taskElement.id;
+
+    let parentTodoBox = taskElement.parentElement.parentElement;
+    let todoBoxId = parentTodoBox.id.replace('todo-box', '');
+
+    if (isNaN(todoBoxId)) {
+        parentTodoBox = taskElement.parentElement.parentElement.parentElement;
+        todoBoxId = parentTodoBox.id.replace('todo-box', '');
+    }
+
+    return [taskId, todoBoxId];
 }
