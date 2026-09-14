@@ -218,11 +218,25 @@ function setListeners() {
     });
 
     // To-do box buttons
-    let addTodoBoxButton = document.getElementsByClassName('add-todo-box-btn')[0];
+    /*let addTodoBoxButton = document.getElementsByClassName('add-todo-box-btn')[0];
     addTodoBoxButton.onclick = () => {
         console.log("Adding to-do list! 1");
         addTodoBox();
-    };
+    };*/
+    document.addEventListener("click", (event) => {
+        // Check if the clicked element (or its closest parent) has your class
+        const button = event.target.closest('.add-todo-box-btn');
+        
+        if (button) {
+            console.log("Adding to-do list! 1");
+            // Ensure the function exists before calling it
+            if (typeof addTodoBox === 'function') {
+                addTodoBox();
+            } else {
+                console.error("addTodoBox function is not defined!");
+            }
+        }
+    });
 
     let allRenameTodoBoxButtons = document.getElementsByClassName('rename-todo-box-btn');
     Array.from(allRenameTodoBoxButtons).forEach(button => {
