@@ -31,7 +31,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (allTodoBoxIds.length < 1) document.getElementById('todo-screen-filler').style.display = 'block';
 
+    document.addEventListener("click", (event) => {
+        const button = event.target.closest('.add-todo-box-btn');
+        
+        if (button) {
+            console.log("Adding to-do list! 1");
+            if (typeof addTodoBox === 'function') {
+                addTodoBox();
+            } else {
+                console.error("addTodoBox function is not defined!");
+            }
+        }
+    });
+
     iDidList();
+    setListeners();
 });
 
 // LOGIC code
@@ -217,27 +231,6 @@ function setListeners() {
         button.onclick = () => {
             removeTask(button);
         };
-    });
-
-    // To-do box buttons
-    /*let addTodoBoxButton = document.getElementsByClassName('add-todo-box-btn')[0];
-    addTodoBoxButton.onclick = () => {
-        console.log("Adding to-do list! 1");
-        addTodoBox();
-    };*/
-    document.addEventListener("click", (event) => {
-        // Check if the clicked element (or its closest parent) has your class
-        const button = event.target.closest('.add-todo-box-btn');
-        
-        if (button) {
-            console.log("Adding to-do list! 1");
-            // Ensure the function exists before calling it
-            if (typeof addTodoBox === 'function') {
-                addTodoBox();
-            } else {
-                console.error("addTodoBox function is not defined!");
-            }
-        }
     });
 
     let allRenameTodoBoxButtons = document.getElementsByClassName('rename-todo-box-btn');
