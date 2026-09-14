@@ -1,5 +1,7 @@
 import { lumiStaticImg, lumiJump } from './lumi.js';
 
+console.log("👉 SCRIPT.JS HAS SUCCESSFULLY LOADED AND RUN! 👈");
+
 // INIT code
 
 let fillTextArray = ['📝 a blank canvas here!\n', "goodness me, look at that! it's time to get going 🏃\n", 'you can do this! — blue 52 🐳\n', 'may the force be with you... ✊\n', 'lettuce commence. 🥬\n', 'go you! go you! 🎉\n']
