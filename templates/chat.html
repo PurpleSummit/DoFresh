@@ -2,7 +2,6 @@
 
 {% block style %}
 <link rel="stylesheet" href="../static/css/chat.css">
-<script type="module" src="../static/js/chat.js" defer></script>
 {% endblock %}
 
 {% block body %}
@@ -77,4 +76,5 @@
     </div>
 </div>
 
+<script type="module" src="{{ url_for('static', filename='js/chat.js') }}" defer></script>
 {% endblock %}
