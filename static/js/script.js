@@ -32,20 +32,81 @@ document.addEventListener('DOMContentLoaded', () => {
     if (allTodoBoxIds.length < 1) document.getElementById('todo-screen-filler').style.display = 'block';
 
     document.addEventListener("click", (event) => {
-        const button = event.target.closest('.add-todo-box-btn');
-        
-        if (button) {
-            console.log("Adding to-do list! 1");
-            if (typeof addTodoBox === 'function') {
-                addTodoBox();
-            } else {
-                console.error("addTodoBox function is not defined!");
-            }
-        }
     });
 
     iDidList();
-    setListeners();
+});
+
+document.addEventListener("click", (event) => {
+    if (event.target.closest('.add-todo-box-btn')) addTodoBox();
+    if (event.target.closest('.add-task-btn')) addTask(event.target.closest('.add-task-btn'));
+    if (event.target.closest('.rename-todo-box-btn')) renameTodoBox(event.target.closest('.rename-todo-box-btn'));
+    if (event.target.closest('.remove-todo-box-btn')) removeTodoBox(event.target.closest('.remove-todo-box-btn'));
+    if (event.target.closest('.add-subtask-btn')) addSubtask(event.target.closest('.add-subtask-btn'));
+    if (event.target.closest('.remove-task-btn')) removeTask(event.target.closest('.remove-task-btn'));
+    if (event.target.closest('.complete-refreshing-task-btn')) completeRefreshingTask();
+
+    const radio = event.target.closest('input[type="radio"]');
+    if (radio) completeTask(radio);
+    
+    // Closing accordion when clicked elsewhere
+    if (!event.target.closest('.accordion-item')) {
+        let openDropdowns = document.querySelectorAll('.collapse.show');
+
+        openDropdowns.forEach(dropdown => {
+            let bsCollapse = bootstrap.Collapse.getInstance(dropdown) || new bootstrap.Collapse(dropdown);
+            bsCollapse.hide();
+        });
+    }
+});
+
+/*
+let allAccordions = document.getElementsByClassName('accordion-item');
+Array.from(allAccordions).forEach(accordion => {
+    accordion.onclick = (event) => {
+
+        event.stopPropagation();
+        var bsCollapse = new bootstrap.Collapse(accordion, {
+            toggle: false
+        });
+    };
+});
+*/
+
+document.addEventListener('show.bs.collapse', (event) => {
+    if (document.activeElement.closest('.todo-task-text') || document.activeElement.closest('.todo-task-details')) {
+        event.preventDefault();
+    }
+});
+
+document.addEventListener('hide.bs.collapse', (event) => {
+    if (document.activeElement.closest('.todo-task-text') || document.activeElement.closest('.todo-task-details')) {
+        event.preventDefault();
+    }
+});
+
+document.addEventListener('focusin', (event) => {
+    const textarea = event.target.closest('.todo-task-text, .todo-task-details');
+    if (!textarea) return;
+
+    textarea.addEventListener('blur', () => {
+        if (textarea.classList.contains('todo-task-text')) {
+            editTask(textarea);
+        } else if (textarea.classList.contains('todo-task-details')) {
+            console.log(textarea);
+            editTaskDetails(textarea);
+        }
+    }, { once: true });
+});
+
+document.addEventListener('keydown', (event) => {
+    const textarea = event.target.closest('.todo-task-text, .todo-task-details');
+
+    if (textarea && event.key === 'Enter') {
+        event.preventDefault();
+        editTask(textarea);
+        textarea.blur();
+    }
 });
 
 // LOGIC code
@@ -163,131 +224,6 @@ function iDidList() {
             <p>We're excited to see how this will fill 😉</p>
         </div>`;
     }
-}
-
-function setListeners() {
-    // To-do task buttons
-    let allAddTaskButtons = document.getElementsByClassName('add-task-btn');
-    Array.from(allAddTaskButtons).forEach(button => {
-        button.onclick = () => {
-            addTask(button);
-        };
-    });
-
-    let allTodoTasks = document.getElementsByClassName('todo-task-text');
-    Array.from(allTodoTasks).forEach(textarea => {
-        textarea.onfocus = () => {
-            textarea.parentElement.dataset.bsToggle = 'disabled';
-        };
-
-        textarea.addEventListener('focusout', () => {
-            textarea.parentElement.dataset.bsToggle = 'collapse';
-            editTask(textarea);
-        });
-
-        textarea.addEventListener('keydown', (event) => {
-            if (event.key === 'Enter') {
-                event.preventDefault();
-                textarea.parentElement.dataset.bsToggle = 'collapse';
-                editTask(textarea);
-                textarea.blur();
-            }
-        });
-    });
-
-    let allTodoDetails = document.getElementsByClassName('todo-task-details');
-    Array.from(allTodoDetails).forEach(textarea => {
-        let accordionButton = textarea.parentElement.parentElement.parentElement.getElementsByClassName('accordion-button')[0];
-
-        textarea.addEventListener('focusout', (event) => {
-            event.stopPropagation();
-            event.preventDefault();
-            editTaskDetails(textarea);
-
-            accordionButton.setAttribute('data-bs-toggle', 'collapse');
-        });
-
-        textarea.addEventListener('click', (event) => {
-            event.stopPropagation();
-        });
-
-        textarea.addEventListener('mousedown', (event) => {
-            event.stopPropagation();
-        });
-    });
-
-    let allTodoCheckboxes = document.querySelectorAll('input[type="radio"]');
-    allTodoCheckboxes.forEach(radio => {
-        radio.onclick = (event) => {
-            console.log("okay, it's clicked");
-            event.stopPropagation();
-            event.preventDefault();
-            completeTask(radio);
-        };
-    });
-
-    let allRemoveTaskButtons = document.getElementsByClassName('remove-task-btn');
-    Array.from(allRemoveTaskButtons).forEach(button => {
-        button.onclick = () => {
-            removeTask(button);
-        };
-    });
-
-    let allRenameTodoBoxButtons = document.getElementsByClassName('rename-todo-box-btn');
-    Array.from(allRenameTodoBoxButtons).forEach(button => {
-        button.onclick = () => {
-            renameTodoBox(button);
-        };
-    });
-
-    let allRemoveTodoBoxButton = document.getElementsByClassName('remove-todo-box-btn');
-    Array.from(allRemoveTodoBoxButton).forEach(button => {
-        button.onclick = () => {
-            removeTodoBox(button);
-        };
-    });
-
-    // Closing accordion when clicked elsewhere
-    window.onclick = () => {
-        let openDropdown = document.querySelectorAll('.collapse.show');
-
-        openDropdown.forEach(dropdown => {
-            var bsCollapse = new bootstrap.Collapse(dropdown, {
-                toggle: true
-            });
-
-            if (!bsCollapse) {
-                dropdown.classList.toggle('show');
-            }
-        });
-    };
-
-    let allAccordions = document.getElementsByClassName('accordion-item');
-    Array.from(allAccordions).forEach(accordion => {
-        accordion.onclick = (event) => {
-
-            event.stopPropagation();
-            var bsCollapse = new bootstrap.Collapse(accordion, {
-                toggle: false
-            });
-        };
-    });
-
-    //let allEditTaskBtns = document.getElementsByClassName('edit-todo-task-btn');
-
-    let allAddSubtaskBtns = document.getElementsByClassName('add-subtask-btn');
-    Array.from(allAddSubtaskBtns).forEach(btn => {
-        btn.onclick = () => {
-            addSubtask(btn);
-        };
-    });
-
-    let allCompletedRefreshingTaskBtns = document.getElementsByClassName('complete-refreshing-task-btn');
-    Array.from(allCompletedRefreshingTaskBtns).forEach(btn => {
-        btn.onclick = () => {
-            completeRefreshingTask(btn);
-        };
-    });
 }
 
 function fillIfBlank(parentElement) {
@@ -446,7 +382,6 @@ function makeRefreshingTodoBox(todoBoxId) {
 // TO-DO TASK code
 
 function addTask(button) {
-
     const todoBox = button.parentElement.parentElement.parentElement;
     const parentTodoBox = todoBox.getElementsByClassName('todo-box-tasks')[0];
 
@@ -543,8 +478,6 @@ function completeTask(radio) {
     const parentTodoBox = taskElement.parentElement.parentElement;
     const todoBoxId = parentTodoBox.id.replace('todo-box', '');
 
-    console.log(taskId, todoBoxId);
-
     let todoBoxData = JSON.parse(localStorage.getItem(todoBoxId));
     if (!todoBoxData) return;
 
@@ -621,8 +554,6 @@ function completeTask(radio) {
     if (todoBoxData.tasks.active.length > 0 && fillInText) {
         fillInText.remove();
     }
-
-    setListeners();
 }
 
 function completeRefreshingTask(button) {
@@ -678,8 +609,6 @@ function completeRefreshingTask(button) {
     if (todoBoxData.tasks.active.length < 1) {
         fillIfBlank(document.getElementById(`todo-box${todoBoxId}`).getElementsByClassName('todo-box-tasks')[0]);
     }
-
-    setListeners();
 }
 
 function editTask(textbox) {
@@ -856,8 +785,6 @@ function addHTMLTodoBox(boxId) {
         addHTMLCollapseDiv(boxId);
         updateHTMLCollapseDiv(boxId);
     }
-
-    setListeners();
 }
 
 function addHTMLCollapseDiv(todoBoxId) {
@@ -882,7 +809,6 @@ function addHTMLCollapseDiv(todoBoxId) {
 }
 
 function updateHTMLCollapseDiv(todoBoxId) {
-
     const todoBox = document.getElementById(`todo-box${todoBoxId}`);
 
     let todoBoxData = localStorage.getItem(todoBoxId);
@@ -918,8 +844,6 @@ function updateHTMLCollapseDiv(todoBoxId) {
         let completedButton = todoBox.getElementsByClassName('collapse-btn-div')[0];
         todoBox.removeChild(completedButton);
     }
-
-    setListeners();
 }
 
 function addHTMLTask(todoBoxId, taskId, active) {
@@ -1017,9 +941,6 @@ function addHTMLTask(todoBoxId, taskId, active) {
     else {
         div?.appendChild(taskElement);
     }
-
-
-    setListeners();
 }
 
 function addHTMLCompletedTask(todoBoxId, taskId) {
@@ -1098,8 +1019,6 @@ function addHTMLCompletedTask(todoBoxId, taskId) {
         }
         div.prepend(taskElement);
     }
-
-    setListeners();
 }
 
 function addHTMLCompletedRefreshingTask(todoBoxId, taskId) {
@@ -1157,7 +1076,7 @@ function addHTMLCompletedRefreshingTask(todoBoxId, taskId) {
         div?.appendChild(taskElement);
     }
 
-    setListeners();
+
 }
 
 // completedDate is in ISO form YYYY-MM-DD

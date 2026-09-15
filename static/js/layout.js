@@ -116,8 +116,6 @@ document.addEventListener('DOMContentLoaded', () => {
             let notifModal = new bootstrap.Modal(document.getElementById('refreshNotifModal'), {});
             notifModal.show();
 
-            console.log(document.getElementById('task-completion-circle'));
-
             document.getElementById('task-completion-circle').dataset.percent = totalTasksCompleted / totalTasksNum * 100;
             document.getElementById('list-completion-circle').dataset.percent = totalListsCompleted / todoBoxes.length * 100;
 
