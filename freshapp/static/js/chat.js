@@ -1,13 +1,16 @@
 import { } from './lumi.js';
 
 let months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'July', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-let fillText = ['Spill the tea! 🍵', "How ya doin'? 😉", 'How do you want to start?', "What's on your mind??", "You're here!", "Welcome", "Hey there"];
+let fillText = ['Spill the tea! 🍵', "How ya doin'? 😉", 'Where should we start? 🤭', "What's on your mind??", "You're here 🎊", "Oh, welcome in!", "Hey there 💐", "Hurry in!"];
 
 document.addEventListener('DOMContentLoaded', () => {
     // Activate sidebar link
     // document.getElementById('sidebar-chat-link').className = 'nav-link active';
+    
+    let lumi = document.getElementById('lumi');
+    document.getElementById('chat-filler').prepend(lumi);
 
-    document.getElementById('send-btn').addEventListener('click', async () => {
+    document.getElementById('send-btn').addEventListener('click', async (event) => {
         let chatFiller = document.getElementById('chat-filler');
         chatFiller.style.display = 'none';
         buttonDisable();
@@ -47,8 +50,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // fetch for Flask backend API
         try {
-            console.log(JSON.stringify({ userMessage: userPrompt }));
-            const response = await fetch('/api/respond-chat', {
+            const url = event.target.getAttribute('data-url');
+            const response = await fetch(url, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ userMessage: userPrompt }, { userData: localStorage })

@@ -90,7 +90,6 @@ document.addEventListener('focusin', (event) => {
         if (textarea.classList.contains('todo-task-text')) {
             editTask(textarea);
         } else if (textarea.classList.contains('todo-task-details')) {
-            console.log(textarea);
             editTaskDetails(textarea);
         }
     }, { once: true });
@@ -241,8 +240,6 @@ function fillIfBlank(parentElement) {
 // TO-DO LIST code
 
 function addTodoBox() {
-    console.log("Adding to-do list! 2");
-
     const refreshingBoxButton = document.getElementById('add-refreshing-box-button');
     const standardBoxButton = document.getElementById('add-standard-box-button');
 

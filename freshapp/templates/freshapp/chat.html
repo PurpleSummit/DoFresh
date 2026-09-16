@@ -1,7 +1,8 @@
-{% extends "layout.html" %}
+{% extends "freshapp/layout.html" %}
+{% load static %}
 
 {% block style %}
-<link rel="stylesheet" href="../static/css/chat.css">
+<link rel="stylesheet" href="{% static 'css/chat.css' %}">
 {% endblock %}
 
 {% block body %}
@@ -18,33 +19,28 @@
 
 <div id="chat-div">
     <div id="chat-filler">
-        <div id="lumi">
-            <object type="image/svg+xml" data="">
-                <img src="" alt="Lumi character">
-            </object>
-        </div>
     </div>
 
     <div id="sent-messages">
         {% for message in previous_messages %}
-        {% if message.author == "user" %}
-        <div class="message-container user-message">
-            <pre class="message-text">{{ message.text }}</pre>
-        </div>
-        <p class="user-message-time">{{ message.created_time }}</p>
-        {% else %}
-        <div class="message-container">
-            <pre class="message-text">{{ message.text }}</pre>
-        </div>
-        <p class="message-time">{{ message.created_time }}</p>
-        {% endif %}
+            {% if message.author == "user" %}
+            <div class="message-container user-message">
+                <pre class="message-text">{{ message.text }}</pre>
+            </div>
+            <p class="user-message-time">{{ message.created_time }}</p>
+            {% else %}
+            <div class="message-container">
+                <pre class="message-text">{{ message.text }}</pre>
+            </div>
+            <p class="message-time">{{ message.created_time }}</p>
+            {% endif %}
         {% endfor %}
     </div>
 
     <div id="user-input-container">
         <div id="user-form-container">
             <textarea id="user-input" placeholder="Ask something..." autocomplete></textarea>
-            <button id="send-btn" class="btn btn-purple">
+            <button id="send-btn" class="btn btn-purple" data-url="{% url 'api_chat' %}">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-send"
                     viewBox="0 0 16 16">
                     <path
@@ -76,5 +72,5 @@
     </div>
 </div>
 
-<script type="module" src="{{ url_for('static', filename='js/chat.js') }}" defer></script>
+<script type="module" src="{% static 'js/chat.js' %}" defer></script>
 {% endblock %}
