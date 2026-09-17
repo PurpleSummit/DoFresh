@@ -1,8 +1,3 @@
-gunicorn
-requests
-flask
-flask_sqlalchemy
-sqlalchemy
-flask_cors
+django
 python-dotenv
 huggingface_hub

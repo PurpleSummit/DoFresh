@@ -53,8 +53,7 @@ def respond_chat(request):
             user_message.save()
 
             if not user_prompt or len(user_prompt.strip()) < 1:
-                db.session.delete(user_message)
-                db.session.commit()
+                user_message.delete()
                 return jsonify({"result": "Hello! What's on your mind?"})
 
             response = client.chat_completion(
@@ -75,14 +74,12 @@ def respond_chat(request):
                 text=bot_reply,
                 created_time=bot_time
             )
-            db.session.add(ai_message)
-            db.session.commit()
+            ai_message.save()
 
             return jsonify({"result": bot_reply})
         except Exception as e:
             # Remove the user's message
-            db.session.delete(user_message)
-            db.session.commit()
+            user_message.delete()
 
             print(f"CRITICAL SERVER EXCEPTION: {str(e)}")
             return jsonify({"error": "HTTP 500 Internal Server Error", "details": str(e)}), 500
@@ -91,10 +88,8 @@ def respond_chat(request):
 def delete_chat(request):
     if request.method == "POST":
         try:
-            num_rows_deleted = db.session.query(Message).delete()
-            db.session.commit()
+            Message.all().delete()
 
             return jsonify({"message": "Chat was successfully refreshed"}), 200
         except:
-            db.session.rollback()
             return jsonify({"error": "Error refreshing the chat."}), 500

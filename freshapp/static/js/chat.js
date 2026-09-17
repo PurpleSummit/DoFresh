@@ -1,14 +1,11 @@
-import { } from './lumi.js';
-
 let months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'July', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 let fillText = ['Spill the tea! 🍵', "How ya doin'? 😉", 'Where should we start? 🤭', "What's on your mind??", "You're here 🎊", "Oh, welcome in!", "Hey there 💐", "Hurry in!"];
 
 document.addEventListener('DOMContentLoaded', () => {
     // Activate sidebar link
     // document.getElementById('sidebar-chat-link').className = 'nav-link active';
-    
-    let lumi = document.getElementById('lumi');
-    document.getElementById('chat-filler').prepend(lumi);
+
+    const csrfToken = document.querySelector('input[name="csrfmiddlewaretoken"]').value;
 
     document.getElementById('send-btn').addEventListener('click', async (event) => {
         let chatFiller = document.getElementById('chat-filler');
@@ -51,10 +48,14 @@ document.addEventListener('DOMContentLoaded', () => {
         // fetch for Flask backend API
         try {
             const url = event.target.getAttribute('data-url');
+            console.log(url, localStorage);
             const response = await fetch(url, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ userMessage: userPrompt }, { userData: localStorage })
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken
+                 },
+                body: JSON.stringify({ userMessage: userPrompt, userData: localStorage })
             });
 
             outputText.innerHTML = "";
@@ -98,11 +99,15 @@ document.addEventListener('DOMContentLoaded', () => {
         buttonEnable();
     });
 
-    document.getElementById('refresh-chat-btn').addEventListener('click', async () => {
+    document.getElementById('refresh-chat-btn').addEventListener('click', async (event) => {
         try {
-            const response = await fetch('http://127.0.0.1:5000/delete-chat', {
+            const url = event.target.getAttribute('data-url');
+            const response = await fetch(url, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' }
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken
+                }
             });
 
             console.log(response);

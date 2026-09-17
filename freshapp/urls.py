@@ -6,5 +6,6 @@ urlpatterns = [
     path("track/", views.track, name="track"),
     path("advice/", views.advice, name="advice"),
     path("chat/", views.chat, name="chat"),
-    path("respond_chat/", views.chat, name="api_chat")
+    path("api/respond-chat/", views.chat, name="api_chat"),
+    path("api/delete-chat/", views.delete_chat, name="delete_chat")
 ]
