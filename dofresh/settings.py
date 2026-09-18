@@ -23,7 +23,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-rx$afx-%lyb=1@0yq0wuh&8r#+_u-!$t9u8*2i$ea*v*!2a79!'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ["dofresh.onrender.com", "127.0.0.1"]
 
