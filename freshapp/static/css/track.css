@@ -75,6 +75,7 @@
 
 #heatmap-weekdays {
     position: fixed;
+    top: 62px;
 }
 
 .label-space {

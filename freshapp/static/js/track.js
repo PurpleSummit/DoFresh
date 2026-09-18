@@ -382,13 +382,14 @@ function activityHeatmap() {
         }
 
         let heatmapSquare = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        heatmapSquare.innerHTML = `<rect width="20" height="21" rx="3" ry="3" fill="${squareColor}cc" />`;
+        
         heatmapSquare.classList.add('heatmap-tile');
         heatmapSquare.dataset.bsToggle = 'tooltip';
         heatmapSquare.dataset.bsHtml = 'true';
         heatmapSquare.dataset.bsPlacement = 'right';
         heatmapSquare.dataset.bsTitle = `${weekday.toDateString()} • ${yValue} tasks`;
 
-        heatmapSquare.innerHTML = `<rect width="20" height="21" rx="3" ry="3" fill="${squareColor}cc" />`;
         document.getElementById(`heatmap-row-${weekday.getDay()}`).appendChild(heatmapSquare);
 
         if (weekday.getDay() == 1) {
@@ -402,6 +403,11 @@ function activityHeatmap() {
             }
         }
     });
+
+    // Initialize all tooltips on the page
+    const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+    const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
+
 }
 
 function longestStreak() {
