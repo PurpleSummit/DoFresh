@@ -1,0 +1,165 @@
+#track-body {
+    width: 100%;
+}
+
+.nav-fill {
+    border-color: #818181;
+    border-width: 1px;
+    border-style: solid;
+    border-radius: 25px !important;
+}
+
+#todo-tasks-nav {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overflow-y: visible;
+    width: 100%;
+    max-height: 300px;
+}
+
+#title-selected-list {
+    margin-left: auto;
+    margin-top: 10px;
+}
+
+#task-content {
+    margin-top: 3%;
+}
+
+#chart-fill-p {
+    margin-top: 17px;
+}
+
+#chart-settings-div {
+    margin-left: 13px;
+    display: flex;
+}
+
+.track-chart {
+    flex: 0 0 auto;
+    border-style: solid;
+    border-color: #f8f9fa;
+    border-width: 1px;
+    border-radius: 17px;
+    max-height: 466px;
+    margin: 17px;
+    padding: 20px;
+    padding-bottom: 39px;
+
+    background: rgba(255, 255, 255, 0.42);
+    backdrop-filter: blur(24px) saturate(180%);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+}
+
+.chart-title {
+    font-weight: bold;
+    font-size: 19px;
+}
+
+.full-length-chart.track-chart canvas {
+    width: 100% !important;
+    height: 100% !important;
+    max-width: 1100px;
+    justify-self: center;
+}
+
+#heatmap-div {
+    height: stretch;
+    max-width: 73%;
+    min-width: 60%;
+    width: max-content;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    backdrop-filter: blur(12px);
+}
+
+#heatmap-weekdays {
+    position: fixed;
+    top: 62px;
+}
+
+.label-space {
+    height: 19px;
+    margin-bottom: 6px;
+}
+
+#heatmap-weekdays p {
+    font-weight: 600;
+    color: #2D264B;
+    font-size: 14px;
+    width: 30px;
+    text-align: right;
+    margin-top: 2px;
+    margin-bottom: 9px;
+}
+
+#heatmap-weekdays,
+#heatmap {
+    margin-top: 17px;
+}
+
+#heatmap {
+    margin-left: 47px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    white-space: nowrap;
+    width: calc(100% - 57px);
+}
+
+#heatmap-weeks {
+    display: flex;
+    gap: 2px;
+}
+
+#heatmap-weeks span {
+    font-size: 8px;
+    display: flex;
+    width: 23px;
+    flex-shrink: 0;
+    justify-content: center;
+}
+
+.heatmap-row {
+    height: 21px;
+    margin-bottom: 9px;
+}
+
+.heatmap-tile {
+    margin: 0px 2px;
+    width: 21px;
+    height: 21px;
+    border: 1px solid rgba(124, 77, 255, 0.08);
+    border-radius: 3px;
+    transition: transform 0.1s ease, filter 0.1s ease;
+}
+
+.heatmap-tile:hover {
+    transform: scale(1.25);
+    cursor: pointer;
+    z-index: 2;
+}
+
+#longest-active-streak-div,
+#longest-streak-div {
+    margin-left: 0px;
+    margin-right: 0px;
+}
+
+#longest-active-streak-task,
+#longest-active-streak-num,
+#longest-streak-task,
+#longest-streak-num {
+    text-align: center;
+}
+
+.filler-div {
+    display: none;
+    align-content: center;
+    text-align: center;
+    width: 250px;
+    margin: 0px auto;
+}
+
+.filler-div img {
+    width: 100%;
+}

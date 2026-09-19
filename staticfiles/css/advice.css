@@ -1,0 +1,24 @@
+#advice-body {
+    transition: 0.5s;
+    margin-left: 17px;
+    justify-content: center;
+    width: 100%;
+}
+
+.advice-article-div {
+    width: 80%;
+    font-family: body;
+}
+
+.advice-article-div img {
+    display: block;
+    margin: 0 auto;
+    max-width: fit-content;
+    width: 91%;
+}
+
+.card {
+    padding: 0px;
+    margin-left: 12px;
+    width: 31%;
+}
