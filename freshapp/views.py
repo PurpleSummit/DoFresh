@@ -1,9 +1,10 @@
 from django.shortcuts import render
+from django.http import JsonResponse
 
 from freshapp.models import User, Message
 
 # Create your views here.
-import os
+import os, json
 from datetime import datetime
 from dotenv import load_dotenv
 from huggingface_hub import InferenceClient
@@ -36,17 +37,24 @@ def chat(request):
 
 def respond_chat(request):
     if request.method == "POST":
-        try: 
-            data = request.json
+        user_message = None
+        try:
+            data = json.loads(request.body)
+
+            if request.user.is_authenticated:
+                user = request.user
+            else:
+                return JsonResponse({"error": "HTTP 401 Unauthorized", "details": "Sorry, looks like you're not logged in..."}, status=401)
+
             user_prompt = data.get("userMessage", "")
             user_data = data.get("userData", "The user doesn't have any recorded task or completion data yet.")
 
             # Time of the message stored as {month} {date}, {yyyy}, {h}:{min} {am/pm}
             user_time = datetime.now().astimezone()
-            user_time = f"{user_time.strftime("%b")} {user_time.strftime("%d")}, {user_time.strftime("%Y")}, {user_time.strftime("%I")}:{user_time.strftime("%M")} {user_time.strftime("%p")}"
+            user_time = f"{user_time.strftime('%b')} {user_time.strftime('%d')}, {user_time.strftime('%Y')}, {user_time.strftime('%I')}:{user_time.strftime('%M')} {user_time.strftime('%p')}"
             
             user_message = Message(
-                author="user",
+                author=user,
                 text=user_prompt,
                 created_time=user_time
             )
@@ -54,9 +62,9 @@ def respond_chat(request):
 
             if not user_prompt or len(user_prompt.strip()) < 1:
                 user_message.delete()
-                return jsonify({"result": "Hello! What's on your mind?"})
+                return JsonResponse({"result": "Hello! What's on your mind?"})
 
-            response = client.chat_completion(
+            llm_response = client.chat_completion(
                 model="meta-llama/Llama-3.1-8B-Instruct",
                 messages=[
                     {"role": "user", "content": user_prompt},
@@ -65,31 +73,31 @@ def respond_chat(request):
                 max_tokens=500
             )
 
-            bot_reply = response.choices[0].message.content
+            bot_reply = llm_response.choices[0].message.content
             bot_time = datetime.now().astimezone()
-            bot_time = f"{bot_time.strftime("%b")} {bot_time.strftime("%d")}, {bot_time.strftime("%Y")}, {bot_time.strftime("%I")}:{bot_time.strftime("%M")} {bot_time.strftime("%p")}"
+            bot_time = f"{bot_time.strftime('%b')} {bot_time.strftime('%d')}, {bot_time.strftime('%Y')}, {bot_time.strftime('%I')}:{bot_time.strftime('%M')} {bot_time.strftime('%p')}"
 
             ai_message = Message(
-                author="ai",
                 text=bot_reply,
                 created_time=bot_time
             )
             ai_message.save()
 
-            return jsonify({"result": bot_reply})
+            return JsonResponse({"result": bot_reply})
         except Exception as e:
             # Remove the user's message
-            user_message.delete()
+            if user_message and user_message.pk:
+                user_message.delete()
 
             print(f"CRITICAL SERVER EXCEPTION: {str(e)}")
-            return jsonify({"error": "HTTP 500 Internal Server Error", "details": str(e)}), 500
+            return JsonResponse({"error": "HTTP 500 Internal Server Error", "details": str(e)}, status=500)
 
 
 def delete_chat(request):
     if request.method == "POST":
         try:
-            Message.all().delete()
+            Message.objects().all().delete()
 
-            return jsonify({"message": "Chat was successfully refreshed"}), 200
+            return JsonResponse({"message": "Chat was successfully refreshed"}), 200
         except:
-            return jsonify({"error": "Error refreshing the chat."}), 500
+            return JsonResponse({"error": "Error refreshing the chat."}), 500

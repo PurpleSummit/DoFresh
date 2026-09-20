@@ -8,6 +8,6 @@ class User(AbstractUser):
 
 
 class Message(models.Model):
-    author = models.ForeignKey(User, on_delete=models.CASCADE, related_name="messages")
     text = models.CharField(max_length=10000)
     created_time = models.CharField(max_length=128)
+    author = models.ForeignKey(User, on_delete=models.CASCADE, related_name="messages", null=True, blank=True)

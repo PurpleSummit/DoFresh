@@ -48,18 +48,25 @@ document.addEventListener('DOMContentLoaded', () => {
         // fetch for Flask backend API
         try {
             const url = event.target.getAttribute('data-url');
-            console.log(url, localStorage);
-            const response = await fetch(url, {
+            
+            const cleanLocalStorage = {};
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                cleanLocalStorage[key] = localStorage.getItem(key);
+            }
+
+            const response = await fetch("/api/respond-chat/", {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'X-CSRFToken': csrfToken
                  },
-                body: JSON.stringify({ userMessage: userPrompt, userData: localStorage })
+                body: JSON.stringify({ userMessage: userPrompt, userData: cleanLocalStorage })
             });
 
             outputText.innerHTML = "";
             const data = await response.json();
+            console.log(data);
 
             if (data.error) {
                 throw new Error(data.error);
@@ -68,10 +75,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 const botTimeElement = document.createElement('p');
                 botTimeElement.className = 'message-time';
 
-                date = new Date();
-                date = `${months[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}, ${date.toLocaleString([], {hour: "2-digit",minute: "2-digit"})}`;
+                let date = new Date();
+                const formattedDate = `${months[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}, ${date.toLocaleString([], {hour: "2-digit", minute: "2-digit"})}`;
 
-                botTimeElement.textContent = `${date}`;
+                botTimeElement.textContent = `${formattedDate}`;
                 sentMessageContainer.appendChild(botTimeElement);
 
                 outputText.textContent = "";
