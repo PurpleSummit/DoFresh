@@ -5,6 +5,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // Activate sidebar link
     // document.getElementById('sidebar-chat-link').className = 'nav-link active';
 
+    window.scrollTo(0, document.body.scrollHeight);
+
     const csrfToken = document.querySelector('input[name="csrfmiddlewaretoken"]').value;
 
     document.getElementById('send-btn').addEventListener('click', async (event) => {

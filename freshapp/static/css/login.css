@@ -1,0 +1,32 @@
+input[type='text'], input[type='password'] {
+    margin-left: 10px;
+    margin-bottom: 10px;
+    padding: 10px;
+
+    font-size: 17px;
+    cursor: text !important;
+    border-style: none;
+    border-radius: 17px;
+    background-color: rgba(255, 255, 255, 0.622) !important;
+
+    width: 100%;
+    max-width: 400px;
+    min-height: 36px;
+}
+
+input[type='submit'] {
+    margin-left: 355px;
+    margin-bottom: 10px;
+    border-style: none;
+    border-radius: 11px;
+    width: auto;
+    font-size: 15px;
+    padding: 9px;
+}
+
+#lumi {
+    width: 94px;
+    position: absolute;
+    top: -23px;
+    left: 220px;
+}

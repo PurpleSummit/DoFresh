@@ -1,0 +1,30 @@
+{% extends "freshapp/layout.html" %}
+{% load static %}
+
+{% block style %}
+<link rel="stylesheet" href="{% static 'css/style.css' %}">
+<link rel="stylesheet" href="{% static 'css/login.css' %}">
+{% endblock %}
+
+{% block body %}
+
+    <h1>Sign Up</h1>
+    <img id="lumi" src="{% static 'img/lumi_main.svg' %}">
+
+    {% if message %}
+    <div>{{message}}</div>
+    {% endif %}
+
+    <div style="height: 28px;"></div>
+
+    <form action="{% url 'signup' %}" method="post">
+        {% csrf_token %}
+        <input type="text" name="username" placeholder="Username">
+        <br>
+        <input type="password" name="password" placeholder="Password">
+        <br>
+        <p>Already have an account? Login <a href="{% url 'login' %}">here</a>!</p>
+        <input class="btn-purple" type="submit" value="Join Us!">
+    </form>
+
+{% endblock %}
