@@ -44,7 +44,7 @@ def tasks_api(request):
         tasks = parent_list.tasks.all()
         print(tasks)
 
-        data = list(tasks.values('id', 'active', 'task', 'details', 'completed_date', 'completed_for_good', 'completed_dates', 'parent_task'))
+        data = list(tasks.values('id', 'active', 'parent_list', 'task', 'details', 'completed_date', 'completed_for_good', 'completed_dates', 'parent_task'))
         
         return JsonResponse({"tasks-data": data}, safe=False)
 
@@ -55,8 +55,32 @@ def tasks_api(request):
         return JsonResponse({'error': str(e)}, status=500)
 
 
+def add_list(request):
+    if request.method == "POST" and request.user.is_authenticated:
+        data = json.loads(request.body)
+        title = data.get("title")
+        refreshing = data.get("refreshing", False)
+        
+        new_list = TodoList(title=title, user=request.user, refreshing=refreshing)
+        new_list.save()
+        
+        return JsonResponse({"response": "List successfully created", "id": new_list.id})
+
+def rename_list(request):
+    if request.method == "POST" and request.user.is_authenticated:
+        data = json.loads(request.body)
+        id = data.get("list_id")
+        new_title = data.get("new_title")
+        
+        list = TodoList.objects.get(id=id)
+        list.title = new_title
+        list.save()
+
+        return JsonResponse({"response": "List successfully created", "id": list.id})
+
+
 def add_task(request):
-    if request.method == "POST":
+    if request.method == "POST" and request.user.is_authenticated:
         ...
 
 # Track Functions

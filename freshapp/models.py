@@ -34,7 +34,7 @@ class TodoList(models.Model):
     user = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name="todo_lists", null=True, blank=True
     )
-    refreshing = models.BooleanField()
+    refreshing = models.BooleanField(default=False)
 
     def __str__(self):
         return f"{self.user} list: {self.title}"

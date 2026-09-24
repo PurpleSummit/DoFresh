@@ -12,7 +12,7 @@
     <button type="button" class="btn btn-outline-purple add-todo-box-btn" data-bs-toggle="modal"
         data-bs-target="#makeTodoBoxModal">+ Create List</button>
 </div>
-
+{% csrf_token %}
 <div class="todo-box-div">
     <div id="todo-screen-filler">
         <img src="{% static 'img/main-screen-filler.svg' %}"
