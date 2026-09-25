@@ -17,6 +17,7 @@ API_KEY = os.getenv("HUGGINGFACE_API_KEY")
 
 client = InferenceClient(api_key=API_KEY)
 
+
 # Index Page Functions
 def index(request):
     if request.user.is_authenticated:
@@ -27,32 +28,46 @@ def index(request):
 def lists_api(request):
     if request.user.is_authenticated:
         todo_lists = request.user.todo_lists.all()
-        data = list(todo_lists.values('id', 'title', 'refreshing'))
+        data = list(todo_lists.values("id", "title", "refreshing"))
         print(data)
         return JsonResponse({"todo-lists": data}, safe=False)
 
 
 def tasks_api(request):
     try:
-        list_id = request.GET.get('list_id')
+        list_id = request.GET.get("list_id")
 
         if not list_id:
-            return JsonResponse({'error': 'Missing list_id parameter'}, status=400)
+            return JsonResponse({"error": "Missing list_id parameter"}, status=400)
 
         parent_list = TodoList.objects.get(id=list_id)
         print(parent_list)
         tasks = parent_list.tasks.all()
         print(tasks)
 
-        data = list(tasks.values('id', 'active', 'parent_list', 'task', 'details', 'completed_date', 'completed_for_good', 'completed_dates', 'parent_task'))
-        
+        data = list(
+            tasks.values(
+                "id",
+                "active",
+                "parent_list",
+                "task",
+                "details",
+                "completed_date",
+                "completed_for_good",
+                "completed_dates",
+                "parent_task",
+            )
+        )
+
         return JsonResponse({"tasks-data": data}, safe=False)
 
     except TodoList.DoesNotExist:
-        return JsonResponse({'error': f"TodoList with id {list_id} not found"}, status=444)
+        return JsonResponse(
+            {"error": f"TodoList with id {list_id} not found"}, status=444
+        )
 
     except Exception as e:
-        return JsonResponse({'error': str(e)}, status=500)
+        return JsonResponse({"error": str(e)}, status=500)
 
 
 def add_list(request):
@@ -60,18 +75,21 @@ def add_list(request):
         data = json.loads(request.body)
         title = data.get("title")
         refreshing = data.get("refreshing", False)
-        
+
         new_list = TodoList(title=title, user=request.user, refreshing=refreshing)
         new_list.save()
-        
-        return JsonResponse({"response": "List successfully created", "id": new_list.id})
+
+        return JsonResponse(
+            {"response": "List successfully created", "id": new_list.id}
+        )
+
 
 def rename_list(request):
     if request.method == "POST" and request.user.is_authenticated:
         data = json.loads(request.body)
         id = data.get("list_id")
         new_title = data.get("new_title")
-        
+
         list = TodoList.objects.get(id=id)
         list.title = new_title
         list.save()
@@ -79,9 +97,30 @@ def rename_list(request):
         return JsonResponse({"response": "List successfully created", "id": list.id})
 
 
+def remove_list(request):
+    if request.method == "POST" and request.user.is_authenticated:
+        data = json.loads(request.body)
+        id = data.get("list_id")
+
+        list = TodoList.objects.get(id=id)
+        list.delete()
+        
+        return JsonResponse({"response": "List successfully removed"})
+
+
 def add_task(request):
     if request.method == "POST" and request.user.is_authenticated:
-        ...
+        data = json.loads(request.body)
+        parent_list_id = data.get("parent_list_id")
+        parent_list = TodoList.objects.get(id=parent_list_id)
+
+        new_task = Task(parent_list=parent_list)
+        new_task.save()
+
+        return JsonResponse(
+            {"response": "List successfully created", "id": new_task.id}
+        )
+
 
 # Track Functions
 def track(request):
@@ -92,6 +131,7 @@ def track(request):
 
 def advice(request):
     return render(request, "freshapp/advice.html")
+
 
 # Chat Functions
 def chat(request):
@@ -208,10 +248,7 @@ def signup_view(request):
         username = request.POST["username"]
         password = request.POST["password"]
 
-        new_user = User.objects.create_user(
-            username=username,
-            password=password
-        )
+        new_user = User.objects.create_user(username=username, password=password)
 
         new_user.save()
 

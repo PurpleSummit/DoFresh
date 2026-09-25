@@ -47,7 +47,7 @@ class Task(models.Model):
     ]
 
     active = models.BooleanField(default=True)
-    task = models.CharField(max_length=512)
+    task = models.CharField(default="", max_length=512, blank=True)
     details = models.TextField(blank=True)
     parent_list = models.ForeignKey(
         TodoList, on_delete=models.CASCADE, related_name="tasks"
