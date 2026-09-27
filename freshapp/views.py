@@ -41,9 +41,7 @@ def tasks_api(request):
             return JsonResponse({"error": "Missing list_id parameter"}, status=400)
 
         parent_list = TodoList.objects.get(id=list_id)
-        print(parent_list)
         tasks = parent_list.tasks.all()
-        print(tasks)
 
         data = list(
             tasks.values(
@@ -56,8 +54,11 @@ def tasks_api(request):
                 "completed_for_good",
                 "completed_dates",
                 "parent_task",
+                "subtasks"
             )
-        )
+        ) # CHECK IF SUBTASKS WORK LIKE THAT OR ONLY WITH PARENT_TASK
+
+        print(data)
 
         return JsonResponse({"tasks-data": data}, safe=False)
 
@@ -121,6 +122,48 @@ def add_task(request):
             {"response": "List successfully created", "id": new_task.id}
         )
 
+
+def add_subtask(request):
+    if request.method == "POST" and request.user.is_authenticated:
+        data = json.loads(request.body)
+
+        parent_list_id = data.get("parent_list_id")
+        parent_list = TodoList.objects.get(id=parent_list_id)
+
+        parent_task_id = data.get("parent_task_id")
+        parent_task = Task.objects.get(id=parent_task_id)
+
+        new_task = Task(parent_list=parent_list, parent_task=parent_task)
+        new_task.save()
+
+        return JsonResponse(
+            {"response": "List successfully created", "id": new_task.id}
+        )
+
+
+def complete_task(request):
+    if request.method == "POST" and request.user.is_authenticated:
+        data = json.loads(request.body)
+        task_id = data.get("task_id")
+
+        task = Task.objects.get(id=task_id)
+
+        # Change active state
+        task.active = not task.active
+
+        today = datetime.now().astimezone()
+        today = f"{today.strftime('%b')} {today.strftime('%d')}, {today.strftime('%Y')}"
+
+        if (task.parent_list.refreshing):
+            ...
+        else:
+            task.completed_date = today
+
+        task.save()
+
+        return JsonResponse(
+            {"response": "List successfully created", "id": task.id}
+        )
 
 # Track Functions
 def track(request):
