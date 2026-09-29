@@ -5,5 +5,4 @@ from freshapp.models import *
 admin.site.register(User)
 admin.site.register(TodoList)
 admin.site.register(Task)
-admin.site.register(AIMessage)
-admin.site.register(UserMessage)
+admin.site.register(Message)

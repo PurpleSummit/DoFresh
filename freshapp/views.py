@@ -18,6 +18,19 @@ API_KEY = os.getenv("HUGGINGFACE_API_KEY")
 client = InferenceClient(api_key=API_KEY)
 
 
+# Layout
+def last_date_api(request):
+    if request.user.is_authenticated:
+        return JsonResponse({"last_accessed_date": request.user.last_accessed_date})
+    return HttpResponseRedirect(reverse("login"))
+
+
+def record(request):
+    if request.user.is_authenticated:
+        return render(request, "freshapp/index.html")
+    return HttpResponseRedirect(reverse("login"))
+
+
 # Index Page Functions
 def index(request):
     if request.user.is_authenticated:
@@ -56,7 +69,7 @@ def tasks_api(request):
                 "parent_task": t.parent_task.id if t.parent_task is not None else None,
                 "subtasks": list(t.subtasks.values_list('id', flat=True))
             } for t in tasks
-        ] # CHECK IF SUBTASKS WORK LIKE THAT OR ONLY WITH PARENT_TASK
+        ]
 
         print(data)
 
@@ -234,10 +247,9 @@ def advice(request):
 # Chat Functions
 def chat(request):
     if request.user.is_authenticated:
-        user_messages = list(request.user.sent_messages.all())
-        ai_messages = list(request.user.ai_messages.all())
+        messages = list(request.user.messages.all())
         return render(
-            request, "freshapp/chat.html", {"previous_messages": user_messages}
+            request, "freshapp/chat.html", {"previous_messages": messages}
         )
     return HttpResponseRedirect(reverse("login"))
 
@@ -269,8 +281,8 @@ def respond_chat(request):
             user_time = datetime.now().astimezone()
             user_time = f"{user_time.strftime('%b')} {user_time.strftime('%d')}, {user_time.strftime('%Y')}, {user_time.strftime('%I')}:{user_time.strftime('%M')} {user_time.strftime('%p')}"
 
-            user_message = Message(
-                author=user, text=user_prompt, created_time=user_time
+            user_message = UserMessage(
+                text=user_prompt, created_time=user_time, user=user
             )
             user_message.save()
 
@@ -294,7 +306,7 @@ def respond_chat(request):
             bot_time = datetime.now().astimezone()
             bot_time = f"{bot_time.strftime('%b')} {bot_time.strftime('%d')}, {bot_time.strftime('%Y')}, {bot_time.strftime('%I')}:{bot_time.strftime('%M')} {bot_time.strftime('%p')}"
 
-            ai_message = Message(text=bot_reply, created_time=bot_time)
+            ai_message = AIMessage(text=bot_reply, created_time=bot_time, user=user)
             ai_message.save()
 
             return JsonResponse({"result": bot_reply})

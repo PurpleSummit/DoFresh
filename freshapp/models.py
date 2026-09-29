@@ -3,6 +3,7 @@ from django.db import models
 
 # Create your models here.
 class User(AbstractUser):
+    last_accessed_date = models.CharField(max_length=128, blank=True, null=True, default="")
 
     def __str__(self):
         return f"{self.username}"
@@ -11,19 +12,10 @@ class User(AbstractUser):
 class Message(models.Model):
     text = models.TextField()
     created_time = models.CharField(max_length=128)
-
-
-class UserMessage(Message):
     user = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name="sent_messages"
+        User, on_delete=models.CASCADE, related_name="messages"
     )
-
-    def __str__(self):
-        return f"{self.user} message: {self.id}"
-
-
-class AIMessage(Message):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="ai_messages")
+    user_prompt_bool = models.BooleanField(default=True)
 
     def __str__(self):
         return f"{self.user} response message: {self.id}"

@@ -134,7 +134,7 @@ function iDidList() {
 
     let current = new Date(today);
 
-    let datesArray = [];
+    let datesArray = []; // Array of Date objects
 
     for (let i = 0; i < 8; i++) {
         datesArray.push(new Date(current));
@@ -157,12 +157,12 @@ function iDidList() {
         // If it's a refreshing list, log one week's worth of past completions
         if (boxData.refreshing) {
             datesArray.forEach(date => {
-                // Task's range of completed dates
-                let tasks = boxData.tasks;
+                // Get each task's range of completed dates
+                const tasks = tasksData.get(Number(listId));
+
                 if (tasks && tasks.length > 0) {
                     tasks.forEach(task => {
                         let completed_dates = task.completed_dates;
-
                         for (const range of completed_dates) {
                             let dateOneParts = range[0].split('-');
                             let dateOne = new Date(dateOneParts[0], dateOneParts[1] - 1, dateOneParts[2]);

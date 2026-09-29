@@ -28,7 +28,7 @@
 
     <div id="sent-messages">
         {% for message in previous_messages %}
-            {% if message.author != null %}
+            {% if message.user_prompt_bool %}
             <div class="message-container user-message">
                 <pre class="message-text">{{ message.text }}</pre>
             </div>
