@@ -43,20 +43,20 @@ def tasks_api(request):
         parent_list = TodoList.objects.get(id=list_id)
         tasks = parent_list.tasks.all()
 
-        data = list(
-            tasks.values(
-                "id",
-                "active",
-                "parent_list",
-                "task",
-                "details",
-                "completed_date",
-                "completed_for_good",
-                "completed_dates",
-                "parent_task",
-                "subtasks"
-            )
-        ) # CHECK IF SUBTASKS WORK LIKE THAT OR ONLY WITH PARENT_TASK
+        data = [
+            {
+                "id": t.id,
+                "active": t.active,
+                "parent_list": t.parent_list.id,
+                "task": t.task,
+                "details": t.details,
+                "completed_date": t.completed_date,
+                "completed_for_good": t.completed_for_good,
+                "completed_dates": t.completed_dates,
+                "parent_task": t.parent_task.id if t.parent_task is not None else None,
+                "subtasks": list(t.subtasks.values_list('id', flat=True))
+            } for t in tasks
+        ] # CHECK IF SUBTASKS WORK LIKE THAT OR ONLY WITH PARENT_TASK
 
         print(data)
 
@@ -95,7 +95,7 @@ def rename_list(request):
         list.title = new_title
         list.save()
 
-        return JsonResponse({"response": "List successfully created", "id": list.id})
+        return JsonResponse({"response": "List successfully renamed", "id": list.id})
 
 
 def remove_list(request):
@@ -119,7 +119,7 @@ def add_task(request):
         new_task.save()
 
         return JsonResponse(
-            {"response": "List successfully created", "id": new_task.id}
+            {"response": "Task successfully created", "id": new_task.id}
         )
 
 
@@ -137,7 +137,7 @@ def add_subtask(request):
         new_task.save()
 
         return JsonResponse(
-            {"response": "List successfully created", "id": new_task.id}
+            {"response": "Task successfully created", "id": new_task.id}
         )
 
 
@@ -162,13 +162,68 @@ def complete_task(request):
         task.save()
 
         return JsonResponse(
-            {"response": "List successfully created", "id": task.id}
+            {"response": "Task successfully completed"}
         )
+
+
+def edit_task(request):
+    if request.method == "POST" and request.user.is_authenticated:
+        data = json.loads(request.body)
+        task_id = data.get("task_id")
+        new_contents = data.get("task_contents")
+
+        task = Task.objects.get(id=task_id)
+
+        # Change active state
+        task.task = new_contents
+        task.save()
+
+        return JsonResponse(
+            {"response": "Task successfully edited"}
+        )
+
+
+def edit_details(request):
+    if request.method == "POST" and request.user.is_authenticated:
+        data = json.loads(request.body)
+        task_id = data.get("task_id")
+        new_details = data.get("task_details")
+
+        task = Task.objects.get(id=task_id)
+
+        # Change active state
+        task.details = new_details
+        task.save()
+
+        return JsonResponse(
+            {"response": "Task details successfully edited"}
+        )
+
+
+def remove_task(request):
+    if request.method == "POST" and request.user.is_authenticated:
+        data = json.loads(request.body)
+        task_id = data.get("task_id")
+
+        task = Task.objects.get(id=task_id)
+        task.delete()
+
+        return JsonResponse({"response": "Task successfully deleted"})
+
 
 # Track Functions
 def track(request):
     if request.user.is_authenticated:
         return render(request, "freshapp/track.html")
+    return HttpResponseRedirect(reverse("login"))
+
+
+def refreshing_lists_api(request):
+    if request.user.is_authenticated:
+        todo_lists = request.user.todo_lists.filter(refreshing=True)
+        data = list(todo_lists.values("id", "title"))
+        print(data)
+        return JsonResponse({"todo-lists": data}, safe=False)
     return HttpResponseRedirect(reverse("login"))
 
 

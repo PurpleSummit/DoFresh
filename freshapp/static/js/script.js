@@ -17,7 +17,6 @@ function getFetch(init) {
         .then(async (data) => {
             globalThis.todoListsData = data;
             globalThis.allListIds = todoListsData["todo-lists"].map(todoList => todoList.id);
-            console.log('To-do list ids:', allListIds);
 
             const taskEntries = await Promise.all(
                 allListIds.map(async (listId) => {
@@ -530,84 +529,89 @@ async function completeTask(radio) {
     });
 }
 
-function editTask(textbox) {
+async function editTask(textbox) {
     let taskElement = textbox.parentElement.parentElement.parentElement;
     let taskId = taskElement.id.replace("task_", "");
 
-    let parentTodoBox = taskElement.parentElement.parentElement;
-    let listId = parentTodoBox.id.replace('todo-box', '');
-
-    // ✨ Change the task's content in localStorage
-    let todoBoxData = localStorage.getItem(listId);
-    todoBoxData = JSON.parse(todoBoxData);
-
-    let targetTask = todoBoxData.tasks.active.find(task => task['taskId'] == taskId);
-
-    if (targetTask) {
-        targetTask['task'] = textbox.value;
-    }
-
-    localStorage.setItem(listId, JSON.stringify(todoBoxData));
+    // ✨ Change the task's content in the database
+    await fetch("edit-task/", {
+        method: "POST",
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken
+        },
+        body: JSON.stringify({ task_id: taskId, task_contents: textbox.value })
+    })
+        .then(response => response.json())
+        .then(async data => {
+            await getFetch(false);
+        });
 }
 
-function editTaskDetails(textarea) {
+async function editTaskDetails(textarea) {
     let taskElement = textarea.parentElement.parentElement.parentElement;
     let taskId = taskElement.id.replace("task_", "");
 
-    let parentTodoBox = taskElement.parentElement.parentElement;
-    let listId = parentTodoBox.id.replace('todo-box', '');
-
-    // ✨ Change the task's content in localStorage
-    let todoBoxData = localStorage.getItem(listId);
-    todoBoxData = JSON.parse(todoBoxData);
-
-    let targetTask = todoBoxData.tasks.active.find(task => task['taskId'] == taskId);
-
-    if (targetTask) {
-        targetTask['details'] = textarea.value;
-    }
-
-    localStorage.setItem(listId, JSON.stringify(todoBoxData));
+    // ✨ Change the task's content in the database
+    await fetch("edit-details/", {
+        method: "POST",
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken
+        },
+        body: JSON.stringify({ task_id: taskId, task_details: textarea.value })
+    })
+        .then(response => response.json())
+        .then(async data => {
+            await getFetch(false);
+        });
 }
 
-function removeTask(button) {
+async function removeTask(button) {
     // Locate all parent HTML for JSON IDs
     let taskId = getIdsFromDropdown(button)[0];
     let listId = getIdsFromDropdown(button)[1];
 
-    let todoBoxData = JSON.parse(localStorage.getItem(listId));
-    if (!todoBoxData) return;
+    let listTasksData = tasksData.get(Number(listId));
+    let taskData = listTasksData.find(task => task.id == taskId);
 
     // Consolidate all the tasks that should be moved with the selected task
     let tasksToRemove = [taskId];
 
-    let taskData = todoBoxData.tasks.active.find((t => t['taskId'] == taskId)) || todoBoxData.tasks.completed.find(t => t['taskId'] == taskId);
-
     // Gather all associated sub-tasks recursively
-    if (taskData['subTasks'] !== undefined && taskData['subTasks'].length > 0) {
-        taskData['subTasks'].forEach(subId => {
+    if (taskData.subtasks !== undefined && taskData.subtasks.length > 0) {
+        taskData.subtasks.forEach(subId => {
             tasksToRemove.push(subId);
         });
     }
 
     // If it's a subtask, remove its ID from its parent task's subTasks array
-    if (taskData['parentTask'] !== undefined) {
-        let parentTaskId = taskData['parentTask'];
+    if (taskData['parent_task'] !== undefined) {
+        let parentTaskId = taskData['parent_task'];
 
-        let parentTaskData = todoBoxData.tasks.active.find(t => t['taskId'] == parentTaskId) || todoBoxData.tasks.completed.find(t => t['taskId'] == parentTaskId);
+        let parentTaskData = listTasksData.find(task => task.id == parentTaskId);
 
-        if (parentTaskData && parentTaskData['subTasks']) {
-            parentTaskData['subTasks'] = parentTaskData['subTasks'].filter(subId => subId != taskId);
+        if (parentTaskData && parentTaskData.subtasks) {
+            parentTaskData.subtasks = parentTaskData.subtasks.filter(subId => subId != taskId);
         }
     }
+    
+    tasksToRemove.forEach(async (id) => {
+        await fetch("remove-task/", {
+            method: "POST",
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
+            },
+            body: JSON.stringify({ task_id: taskId })
+        })
+            .then(response => response.json())
+            .then(async data => {
+                await getFetch(false);
+            });
 
-    todoBoxData.tasks.active = todoBoxData.tasks.active.filter(t => !tasksToRemove.includes(t['taskId']));
-    todoBoxData.tasks.completed = todoBoxData.tasks.completed.filter(t => !tasksToRemove.includes(t['taskId']));
-
-    localStorage.setItem(listId, JSON.stringify(todoBoxData));
-
-    tasksToRemove.forEach(id => {
         let taskElement = document.getElementById(`task_${id}`);
+        console.log(taskElement);
         taskElement.animate([
             { opacity: 1, height: '79.5px' },
             { opacity: 0, height: '0px' }
@@ -622,7 +626,6 @@ function removeTask(button) {
 
         let iDidTaskElement = document.getElementById(`task_${id}-${todayStr}`);
         if (iDidTaskElement) {
-
             iDidTaskElement.animate([
                 { opacity: 1, height: '79.5px' },
                 { opacity: 0, height: '0px' }
@@ -638,10 +641,10 @@ function removeTask(button) {
     });
 
     // ⛰️ Fix the # of completed tasks
-    updateHTMLCollapseDiv(listId);
+    //updateHTMLCollapseDiv(listId);
 
     // If there are no active tasks left, fill in the blank
-    if (todoBoxData.tasks.active.length < 1) {
+    if (tasksData.get(Number(listId)).filter(t => t.active).length < 1) {
         fillIfBlank(document.getElementById(`todo-box${listId}`).getElementsByClassName('todo-box-tasks')[0]);
     }
 }

@@ -13,13 +13,18 @@ urlpatterns = [
     path("add-task/", views.add_task, name="add_task"),
     path("add-subtask/", views.add_subtask, name="add_subtask"),
     path("complete-task/", views.complete_task, name="complete_task"),
+    path("edit-task/", views.edit_task, name="edit_task"),
+    path("edit-details/", views.edit_details, name="edit_details"),
+    path("remove-task/", views.remove_task, name="remove_task"),
 
     path("track/", views.track, name="track"),
+
     path("advice/", views.advice, name="advice"),
     path("chat/", views.chat, name="chat"),
 
     path("api/respond-chat/", views.respond_chat, name="api_chat"),
     path("api/delete-chat/", views.delete_chat, name="delete_chat"),
     path("api/get-lists/", views.lists_api, name="lists_api"),
-    path("api/get-tasks/", views.tasks_api, name="tasks_api")
+    path("api/get-tasks/", views.tasks_api, name="tasks_api"),
+    path("api/get-refreshing-lists/", views.refreshing_lists_api, name="refreshing_lists_api")
 ]
