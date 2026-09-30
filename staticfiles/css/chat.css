@@ -82,6 +82,7 @@ pre {
     padding-right: 17px;
     padding-left: 93px;
     transition: all .25s ease-in-out;
+    z-index: 1000000;
 }
 
 #user-form-container {

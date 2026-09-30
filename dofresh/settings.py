@@ -24,10 +24,20 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.getenv('SECRET_KEY', 'your-default-fallback-key')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = ["https://dofresh.onrender.com", "dofresh.onrender.com", "127.0.0.1"]
+ALLOWED_HOSTS = ["https://dofresh.onrender.com", "dofresh.onrender.com", "127.0.0.1", "localhost"]
 
+CSRF_TRUSTED_ORIGINS = [
+    'https://onrender.com',
+]
+# Ensure cookies are only sent over HTTPS
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
+
+# Prevent frontend scripts from stealing the session cookie
+SESSION_COOKIE_HTTPONLY = True
+CSRF_COOKIE_HTTPONLY = False  # Keep False if your JavaScript needs to read it
 
 # Application definition
 

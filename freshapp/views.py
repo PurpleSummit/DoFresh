@@ -42,7 +42,6 @@ def lists_api(request):
     if request.user.is_authenticated:
         todo_lists = request.user.todo_lists.all()
         data = list(todo_lists.values("id", "title", "refreshing"))
-        print(data)
         return JsonResponse({"todo-lists": data}, safe=False)
 
 
