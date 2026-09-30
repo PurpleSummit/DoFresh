@@ -270,7 +270,7 @@ async function addTodoBox() {
 
     // ✨ Fetching to Django to add a new list
     refreshingBoxButton.onclick = async () => {
-        let fillInText = document.querySelector('blank-todo-fill:not(.todo-box .blank-todo-fill)');
+        let fillInText = document.querySelector('blank-todo-fill:not( .blank-todo-fill)');
         if (fillInText) {
             fillInText.remove();
         }
@@ -299,7 +299,7 @@ async function addTodoBox() {
     };
 
     standardBoxButton.onclick = async () => {
-        let fillInText = document.querySelector('blank-todo-fill:not(.todo-box .blank-todo-fill)');
+        let fillInText = document.querySelector('blank-todo-fill:not( .blank-todo-fill)');
         if (fillInText) {
             fillInText.remove();
         }
@@ -477,9 +477,9 @@ async function completeTask(radio) {
     const parentTodoBox = radio.closest('.todo-box');
     if (!parentTodoBox) return;
 
-    const listId = parentTodoBox.id.replace('todo-box', '');
+    const listId = Number(parentTodoBox.id.replace('todo-box', ''));
 
-    let listTasksData = tasksData.get(Number(listId));
+    let listTasksData = tasksData.get(listId);
     if (!listTasksData) return;
 
     let taskData = listTasksData.find(task => task.id == taskId);
@@ -503,30 +503,10 @@ async function completeTask(radio) {
                 },
                 body: JSON.stringify({ task_id: id })
             });
+
             if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-            const data = await response.json();
 
-            console.log(1);
-
-            let el = document.getElementById(`task_${id}`);
-
-            if (el) {
-                const animation = el.animate([
-                    { opacity: 1, height: '79.5px' },
-                    { opacity: 0, height: '0px' }
-                ], {
-                    duration: 500,
-                    easing: 'ease-out',
-                    fill: 'forwards'
-                });
-
-                await new Promise((resolve) => {
-                    animation.onfinish = () => {
-                        el.remove();
-                        resolve();
-                    };
-                });
-            }
+            return response.json();
         }));
     } catch (taskError) {
         console.log("Loop failed", taskError);
@@ -534,29 +514,46 @@ async function completeTask(radio) {
     }
 
     await getFetch(false);
+    
+    for (const id of idsToChange) {
+        let el = document.getElementById(`task_${id}`);
 
-    console.log(tasksData);
+        if (el) {
+            const animation = el.animate([
+                { opacity: 1, height: '79.5px' },
+                { opacity: 0, height: '0px' }
+            ], {
+                duration: 500,
+                easing: 'ease-out',
+                fill: 'forwards'
+            });
 
-    // Updates all the tasks in completed-tasks div & removes elements if no tasks left
-    console.log("List id:", listId);
-    updateHTMLCollapseDiv(listId);
+            await animation.finished;
+            el.remove();
+        }
+
+        if (!activeBefore) {
+            await addHTMLTask(listId, id);
+        }
+    }
+    await updateHTMLCollapseDiv(listId);
     iDidList();
 
-    listTasksData = tasksData.get(Number(listId));
+    let updatedListTasks = tasksData.get(Number(listId));
 
     // If no active tasks anymore
-    if (listTasksData.filter(task => task.active).length < 1) {
+    if (updatedListTasks.filter(task => task.active).length < 1) {
         fillIfBlank(parentTodoBox.getElementsByClassName('todo-box-tasks')[0]);
     }
 
     let fillInText = parentTodoBox.getElementsByClassName('blank-todo-fill')[0];
-    if (listTasksData.filter(task => task.active).length > 0 && fillInText) {
+    if (updatedListTasks.filter(task => task.active).length > 0 && fillInText) {
         fillInText.remove();
     }
 }
 
 async function editTask(textbox) {
-    const taskElement = radio.closest('.todo-task');
+    const taskElement = textbox.closest('.todo-task');
     if (!taskElement) return;
 
     const taskId = taskElement.id.replace("task_", "");
@@ -744,8 +741,6 @@ async function addHTMLTodoBox(listId) {
 
 async function updateHTMLCollapseDiv(listId) {
     const listTasksData = tasksData.get(Number(listId));
-
-    console.log(listId);
 
     const todoBox = document.getElementById(`todo-box${listId}`);
     todoBox.getElementsByClassName('collapse-btn-div')[0].innerHTML = `
@@ -968,7 +963,7 @@ function getIdsFromDropdown(dropdownElement) {
     if (!taskElement) return;
     let taskId = taskElement.id.replace("task_", "");
 
-    let parentTodoBox = dropdownElement.closest('.todo-list');
+    let parentTodoBox = dropdownElement.closest('.todo-box');
     if (!parentTodoBox) return;
     let listId = parentTodoBox.id.replace('todo-box', '');
 

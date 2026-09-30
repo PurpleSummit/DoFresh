@@ -164,7 +164,7 @@ def complete_task(request):
         task.active = not task.active
 
         today = datetime.now().astimezone()
-        today = f"{today.strftime('%b')} {today.strftime('%d')}, {today.strftime('%Y')}"
+        today = f"{today.strftime("%Y")}-{today.strftime("%m")}-{today.strftime("%d")}"
 
         if (task.parent_list.refreshing):
             ...

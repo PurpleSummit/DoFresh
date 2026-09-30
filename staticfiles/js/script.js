@@ -56,17 +56,17 @@ function initCode() {
 getFetch(true);
 
 // LISTENERS code
-document.addEventListener("click", (event) => {
-    if (event.target.closest('.add-todo-box-btn')) addTodoBox();
-    if (event.target.closest('.add-task-btn')) addTask(event.target.closest('.add-task-btn'));
-    if (event.target.closest('.rename-todo-box-btn')) renameTodoBox(event.target.closest('.rename-todo-box-btn'));
-    if (event.target.closest('.remove-todo-box-btn')) removeTodoBox(event.target.closest('.remove-todo-box-btn'));
-    if (event.target.closest('.add-subtask-btn')) addSubtask(event.target.closest('.add-subtask-btn'));
-    if (event.target.closest('.remove-task-btn')) removeTask(event.target.closest('.remove-task-btn'));
-    if (event.target.closest('.complete-refreshing-task-btn')) completeRefreshingTask();
+document.addEventListener("click", async (event) => {
+    if (event.target.closest('.add-todo-box-btn')) await addTodoBox();
+    if (event.target.closest('.add-task-btn')) await addTask(event.target.closest('.add-task-btn'));
+    if (event.target.closest('.rename-todo-box-btn')) await renameTodoBox(event.target.closest('.rename-todo-box-btn'));
+    if (event.target.closest('.remove-todo-box-btn')) await removeTodoBox(event.target.closest('.remove-todo-box-btn'));
+    if (event.target.closest('.add-subtask-btn')) await addSubtask(event.target.closest('.add-subtask-btn'));
+    if (event.target.closest('.remove-task-btn')) await removeTask(event.target.closest('.remove-task-btn'));
+    if (event.target.closest('.complete-refreshing-task-btn')) await completeRefreshingTask();
 
     const radio = event.target.closest('input[type="radio"]');
-    if (radio) completeTask(radio);
+    if (radio) await completeTask(radio);
 
     // Closing accordion when clicked elsewhere
     if (!event.target.closest('.accordion-item')) {
@@ -270,7 +270,7 @@ async function addTodoBox() {
 
     // ✨ Fetching to Django to add a new list
     refreshingBoxButton.onclick = async () => {
-        let fillInText = document.querySelector('blank-todo-fill:not(.todo-box .blank-todo-fill)');
+        let fillInText = document.querySelector('blank-todo-fill:not( .blank-todo-fill)');
         if (fillInText) {
             fillInText.remove();
         }
@@ -299,7 +299,7 @@ async function addTodoBox() {
     };
 
     standardBoxButton.onclick = async () => {
-        let fillInText = document.querySelector('blank-todo-fill:not(.todo-box .blank-todo-fill)');
+        let fillInText = document.querySelector('blank-todo-fill:not( .blank-todo-fill)');
         if (fillInText) {
             fillInText.remove();
         }
@@ -470,13 +470,20 @@ async function addSubtask(button) {
 }
 
 async function completeTask(radio) {
-    const taskElement = radio.parentElement.parentElement.parentElement;
-    const taskId = taskElement.id.replace("task_", "");
-    const parentTodoBox = taskElement.parentElement.parentElement;
-    const listId = parentTodoBox.id.replace('todo-box', '');
+    const taskElement = radio.closest('.todo-task');
+    if (!taskElement) return;
 
-    let listTasksData = tasksData.get(Number(listId));
+    const taskId = taskElement.id.replace("task_", "");
+    const parentTodoBox = radio.closest('.todo-box');
+    if (!parentTodoBox) return;
+
+    const listId = Number(parentTodoBox.id.replace('todo-box', ''));
+
+    let listTasksData = tasksData.get(listId);
+    if (!listTasksData) return;
+
     let taskData = listTasksData.find(task => task.id == taskId);
+    if (!taskData) return;
 
     let idsToChange = [taskId];
     const activeBefore = taskData["active"];
@@ -486,22 +493,27 @@ async function completeTask(radio) {
         idsToChange = [...idsToChange, ...taskData['subTasks']];
     }
 
-    idsToChange.forEach(async taskId => {
-        await fetch("complete-task/", {
-            method: "POST",
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': csrfToken
-            },
-            body: JSON.stringify({ task_id: taskId })
-        })
-            .then(response => response.json())
-            .then(async data => {
-                await getFetch(false);
-                console.log(1);
+    try {
+        await Promise.all(idsToChange.map(async (id) => {
+            const response = await fetch("complete-task/", {
+                method: "POST",
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken
+                },
+                body: JSON.stringify({ task_id: id })
+            });
 
-                let taskElement = document.getElementById(`task_${taskId}`);
-                taskElement.animate([
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+
+            return response.json();
+        }));
+
+        for (const id of idsToChange) {
+            let el = document.getElementById(`task_${id}`);
+
+            if (el) {
+                const animation = el.animate([
                     { opacity: 1, height: '79.5px' },
                     { opacity: 0, height: '0px' }
                 ], {
@@ -509,34 +521,39 @@ async function completeTask(radio) {
                     easing: 'ease-out',
                     fill: 'forwards'
                 });
-                taskElement.onfinish = () => {
-                    taskElement.remove();
-                };
-            });
-    });
 
-    console.log(2);
+                await animation.finished;
+                el.remove();
+            }
+        }
+    } catch (taskError) {
+        console.log("Loop failed", taskError);
+        throw taskError;
+    }
 
-    // Updates all the tasks in completed-tasks div & removes elements if no tasks left
-    updateHTMLCollapseDiv(listId);
+    await getFetch(false);
+    await updateHTMLCollapseDiv(listId);
     iDidList();
 
-    listTasksData = tasksData.get(Number(listId));
+    let updatedListTasks = tasksData.get(Number(listId));
+    console.log(updatedListTasks);
 
     // If no active tasks anymore
-    if (listTasksData.filter(task => task.active).length < 1) {
+    if (updatedListTasks.filter(task => task.active).length < 1) {
         fillIfBlank(parentTodoBox.getElementsByClassName('todo-box-tasks')[0]);
     }
 
     let fillInText = parentTodoBox.getElementsByClassName('blank-todo-fill')[0];
-    if (listTasksData.filter(task => task.active).length > 0 && fillInText) {
+    if (updatedListTasks.filter(task => task.active).length > 0 && fillInText) {
         fillInText.remove();
     }
 }
 
 async function editTask(textbox) {
-    let taskElement = textbox.parentElement.parentElement.parentElement;
-    let taskId = taskElement.id.replace("task_", "");
+    const taskElement = radio.closest('.todo-task');
+    if (!taskElement) return;
+
+    const taskId = taskElement.id.replace("task_", "");
 
     // ✨ Change the task's content in the database
     await fetch("edit-task/", {
@@ -554,8 +571,10 @@ async function editTask(textbox) {
 }
 
 async function editTaskDetails(textarea) {
-    let taskElement = textarea.parentElement.parentElement.parentElement;
-    let taskId = taskElement.id.replace("task_", "");
+    const taskElement = textarea.closest('.todo-task');
+    if (!taskElement) return;
+
+    const taskId = taskElement.id.replace("task_", "");
 
     // ✨ Change the task's content in the database
     await fetch("edit-details/", {
@@ -646,7 +665,7 @@ async function removeTask(button) {
     });
 
     // ⛰️ Fix the # of completed tasks
-    //updateHTMLCollapseDiv(listId);
+    updateHTMLCollapseDiv(listId);
 
     // If there are no active tasks left, fill in the blank
     if (tasksData.get(Number(listId)).filter(t => t.active).length < 1) {
@@ -720,6 +739,8 @@ async function addHTMLTodoBox(listId) {
 async function updateHTMLCollapseDiv(listId) {
     const listTasksData = tasksData.get(Number(listId));
 
+    console.log(listId);
+
     const todoBox = document.getElementById(`todo-box${listId}`);
     todoBox.getElementsByClassName('collapse-btn-div')[0].innerHTML = `
     <button class="btn collapse-btn" type="button" data-bs-toggle="collapse" data-bs-target="#collapseExample${listId}" aria-expanded="false" aria-controls="collapseExample${listId}">
@@ -742,6 +763,7 @@ async function updateHTMLCollapseDiv(listId) {
     if (listTasksData.filter(task => !task.active).length < 1) {
         let completedDiv = todoBox.getElementsByClassName('todo-box-completed-tasks')[0];
         completedDiv.style.display = 'none';
+        let collapseToggle = todoBox.getElementsByClassName('collapse-btn')[0];
         collapseToggle.style.display = 'none';
     }
 }
@@ -936,16 +958,13 @@ function ISOToDateString(ISOString) {
 }
 
 function getIdsFromDropdown(dropdownElement) {
-    let taskElement = dropdownElement.parentElement.parentElement.parentElement.parentElement;
+    let taskElement = dropdownElement.closest('.todo-task');
+    if (!taskElement) return;
     let taskId = taskElement.id.replace("task_", "");
 
-    let parentTodoBox = taskElement.parentElement.parentElement;
+    let parentTodoBox = dropdownElement.closest('.todo-box');
+    if (!parentTodoBox) return;
     let listId = parentTodoBox.id.replace('todo-box', '');
-
-    if (isNaN(listId)) {
-        parentTodoBox = taskElement.parentElement.parentElement.parentElement;
-        listId = parentTodoBox.id.replace('todo-box', '');
-    }
 
     return [taskId, listId];
 }
