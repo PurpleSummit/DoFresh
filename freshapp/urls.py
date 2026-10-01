@@ -27,5 +27,7 @@ urlpatterns = [
     path("api/get-lists/", views.lists_api, name="lists_api"),
     path("api/get-tasks/", views.tasks_api, name="tasks_api"),
     path("api/get-refreshing-lists/", views.refreshing_lists_api, name="refreshing_lists_api"),
-    path("api/get-last-date/", views.last_date_api, name="refreshing_lists_api")
+    path("api/get-last-date/", views.last_date_api, name="refreshing_lists_api"),
+
+    path("set-last-date/", views.set_last_date, name="set_last_date")
 ]

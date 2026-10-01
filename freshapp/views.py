@@ -25,8 +25,84 @@ def last_date_api(request):
     return HttpResponseRedirect(reverse("login"))
 
 
+def set_last_date(request):
+    if request.user.is_authenticated:
+        today = datetime.now().astimezone()
+        today = f"{today.strftime("%Y")}-{today.strftime("%m")}-{today.strftime("%d")}"
+
+        request.user.last_accessed_date = today
+        request.user.save()
+
+        return JsonResponse({"last_accessed_date": request.user.last_accessed_date})
+    return HttpResponseRedirect(reverse("login"))
+
+
 def record(request):
     if request.user.is_authenticated:
+        last_accessed_date = request.user.last_accessed_date
+        total_tasks_num = 0
+        total_tasks_completed = 0
+        total_lists_completed = 0
+
+        todo_lists = request.user.todo_lists.all()
+        for todo_list in todo_lists:
+            total_tasks_num += len(todo_list.tasks)
+            total_tasks_completed += len(
+                todo_list.tasks.filter(completed_date=last_accessed_date)
+            )
+
+            if todo_list.refreshing:
+                # Add all currently completed tasks
+                total_tasks_completed += len(todo_list.tasks.filter(active=False))
+
+            if total_tasks_completed > 0:
+                total_lists_completed += 1
+
+        date1 = datetime.strptime(str1, "%Y-%m-%d")
+        date2 = datetime.strptime(str2, "%Y-%m-%d")
+        delta = date2 - date1
+        diff = delta.days
+
+        for todo_list in request.user.todo_lists.filter(refreshing=True):
+            for task in todo_list.tasks.filter(active=True):
+                if task:
+                    completed_date_ranges = task.completed_dates
+                    recent_completed_pair = completed_date_ranges[-1]
+
+                    if recent_completed_pair and recent_completed_pair[1] == None:
+                        previous_date = datetime.strptime(
+                            recent_completed_pair, "%Y-%m-%d"
+                        ) - timedelta(days=1)
+                        completed_date_ranges[-1][1] = previous_date.strftime(
+                            "%Y-%m-%d"
+                        )
+
+                task.save()
+
+            for task in todo_list.tasks.filter(active=False):
+                if task and not task.completed_for_good:
+                    completed_date_ranges = task.completed_dates
+                    recent_completed_pair = completed_date_ranges[-1]
+
+                    if diff > 1:
+                        if recent_completed_pair:
+                            completed_date_ranges[-1][1] = last_accessed_date
+                        else:
+                            task.completed_dates.append(
+                                [last_accessed_date, last_accessed_date]
+                            )
+                    else:
+                        if len(completed_date_ranges) > 1:
+                            # If there was a closed streak, start another
+                            if recent_completed_pair[1] != null:
+                                task.completed_dates.append([last_accessed_date, None])
+                            # Else don't do anything
+                        else:
+                            task.completed_dates = [last_accessed_date, None]
+                task.active = True
+
+                task.save()
+
         return render(request, "freshapp/index.html")
     return HttpResponseRedirect(reverse("login"))
 
@@ -66,8 +142,9 @@ def tasks_api(request):
                 "completed_for_good": t.completed_for_good,
                 "completed_dates": t.completed_dates,
                 "parent_task": t.parent_task.id if t.parent_task is not None else None,
-                "subtasks": list(t.subtasks.values_list('id', flat=True))
-            } for t in tasks
+                "subtasks": list(t.subtasks.values_list("id", flat=True)),
+            }
+            for t in tasks
         ]
 
         print(data)
@@ -117,7 +194,7 @@ def remove_list(request):
 
         list = TodoList.objects.get(id=id)
         list.delete()
-        
+
         return JsonResponse({"response": "List successfully removed"})
 
 
@@ -164,18 +241,16 @@ def complete_task(request):
         task.active = not task.active
 
         today = datetime.now().astimezone()
-        today = f"{today.strftime("%Y")}-{today.strftime("%m")}-{today.strftime("%d")}"
+        today = today.strftime("%m/%d/%Y")
 
-        if (task.parent_list.refreshing):
+        if task.parent_list.refreshing:
             ...
         else:
             task.completed_date = today
 
         task.save()
 
-        return JsonResponse(
-            {"response": "Task successfully completed"}
-        )
+        return JsonResponse({"response": "Task successfully completed"})
 
 
 def edit_task(request):
@@ -190,9 +265,7 @@ def edit_task(request):
         task.task = new_contents
         task.save()
 
-        return JsonResponse(
-            {"response": "Task successfully edited"}
-        )
+        return JsonResponse({"response": "Task successfully edited"})
 
 
 def edit_details(request):
@@ -207,9 +280,7 @@ def edit_details(request):
         task.details = new_details
         task.save()
 
-        return JsonResponse(
-            {"response": "Task details successfully edited"}
-        )
+        return JsonResponse({"response": "Task details successfully edited"})
 
 
 def remove_task(request):
@@ -247,9 +318,7 @@ def advice(request):
 def chat(request):
     if request.user.is_authenticated:
         messages = list(request.user.messages.all())
-        return render(
-            request, "freshapp/chat.html", {"previous_messages": messages}
-        )
+        return render(request, "freshapp/chat.html", {"previous_messages": messages})
     return HttpResponseRedirect(reverse("login"))
 
 
