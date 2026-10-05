@@ -374,7 +374,7 @@ def respond_chat(request):
 
             # Time of the message stored as {month} {date}, {yyyy}, {h}:{min} {am/pm}
             user_time = datetime.now().astimezone()
-            user_time = f"{user_time.strftime('%b')} {user_time.strftime('%d')}, {user_time.strftime('%Y')}, {user_time.strftime('%I')}:{user_time.strftime('%M')} {user_time.strftime('%p')}"
+            user_time = f"{user_time.strftime("%b")} {user_time.strftime("%d")}, {user_time.strftime("%Y")}, {user_time.strftime("%I")}:{user_time.strftime("%M")} {user_time.strftime("%p")}"
 
             user_message = UserMessage(
                 text=user_prompt, created_time=user_time, user=user
@@ -399,7 +399,7 @@ def respond_chat(request):
 
             bot_reply = llm_response.choices[0].message.content
             bot_time = datetime.now().astimezone()
-            bot_time = f"{bot_time.strftime('%b')} {bot_time.strftime('%d')}, {bot_time.strftime('%Y')}, {bot_time.strftime('%I')}:{bot_time.strftime('%M')} {bot_time.strftime('%p')}"
+            bot_time = f"{bot_time.strftime("%b")} {bot_time.strftime("%d")}, {bot_time.strftime("%Y")}, {bot_time.strftime("%I")}:{bot_time.strftime("%M")} {bot_time.strftime("%p")}"
 
             ai_message = AIMessage(text=bot_reply, created_time=bot_time, user=user)
             ai_message.save()

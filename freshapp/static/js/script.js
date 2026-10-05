@@ -555,14 +555,12 @@ async function completeTask(radio) {
     }
 }
 
-// TODO: Debug this
 async function completeRefreshingTask(button) {
     // Locate all parent HTML for JSON IDs
     let taskId = getIdsFromDropdown(button)[0];
     let listId = getIdsFromDropdown(button)[1];
     const parentTodoBox = document.getElementById(`todo-box${listId}`);
 
-    console.log(tasksData);
     const taskData = tasksData.get(Number(listId)).find(task => task.id == taskId);
 
     // Consolidate all the tasks that should be moved with the selected task
@@ -606,7 +604,6 @@ async function completeRefreshingTask(button) {
         fillInText.remove();
     }
 
-    console.log(idsToChange);
     for (const id of idsToChange) {
         let el = document.getElementById(`task_${id}`);
 
@@ -622,7 +619,6 @@ async function completeRefreshingTask(button) {
 
             await animation.finished;
             
-            console.log(listId, id);
             addHTMLCompletedRefreshingTask(listId, id);
             el.remove();
         }
@@ -729,7 +725,6 @@ async function removeTask(button) {
             });
 
             await animation.finished;
-            console.log(el);
 
             el.remove();
         }
@@ -988,12 +983,9 @@ async function addHTMLCompletedRefreshingTask(listId, taskId) {
         taskElement.className = 'todo-task accordion-item subtask';
         let parentTaskElement = document.getElementById(`task_${parentTaskId}`);
         if (parentTaskElement) parentTaskElement.after(taskElement);
-
-        console.log()
     } else {
         div?.appendChild(taskElement);
     }
-    console.log(taskElement);
 }
 
 // completed_date is in ISO form YYYY-MM-DD
