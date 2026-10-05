@@ -96,7 +96,7 @@ def record(request):
                     else:
                         if len(completed_date_ranges) > 1:
                             # If there was a closed streak, start another
-                            if recent_completed_pair[1] != null:
+                            if recent_completed_pair[1] != None:
                                 task.completed_dates.append([last_accessed_date, None])
                             # Else don't do anything
                         else:

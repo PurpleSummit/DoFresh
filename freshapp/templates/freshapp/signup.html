@@ -22,6 +22,7 @@
         <br>
         <input type="password" name="password" placeholder="Password">
         <br>
+        {% csrf_token %}
         <p>Already have an account? Login <a href="{% url 'login' %}">here</a>!</p>
         <input class="btn-purple" type="submit" value="Join Us!">
     </form>

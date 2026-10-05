@@ -473,8 +473,9 @@
             maxStreakText = 'No streak now... 🪻';
         } else {
             maxStreakTasks.forEach(taskName => {
-                maxStreakText += `${taskName}<br> ${ISOToDateString(rangeStartDate)} ~ today`;
+                maxStreakText += `${taskName}<br>`;
             });
+            maxStreakText += `${ISOToDateString(rangeStartDate)} ~ today`;
         }
 
         document.getElementById('longest-active-streak-num').textContent = maxStreak;

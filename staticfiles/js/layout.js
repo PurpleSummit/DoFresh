@@ -3,118 +3,59 @@ const date = new Date();
 const offset = date.getTimezoneOffset() * 60000;
 const today = new Date(date.getTime() - offset).toISOString().split('T')[0]; // Formatting into local-time ISO string
 
+console.log(today);
 fetch("/api/get-last-date/")
     .then(response => response.json())
     .then(async (data) => {
         const lastAccessedDate = data["last_accessed_date"];
         // REFRESHING LOGIC ☑️
-        console.log("New date?", lastAccessedDate != today);
+        console.log("last accessed on", lastAccessedDate);
+        globalThis.csrfToken = document.querySelector('input[name="csrfmiddlewaretoken"]').value;
 
         if (lastAccessedDate == null) {
             let welcomeModal = new bootstrap.Modal(document.getElementById('welcomeModal'), {});
             welcomeModal.show();
 
-            localStorage.setItem('lastAccessedDate', today);
+            await fetch("/set-last-date/", {
+                method: "POST",
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken
+                }
+            });
         }
         else {
             if (today != lastAccessedDate) {
-                let totalTasksNum = 0;
-                let totalTasksCompleted = 0;
-                let totalListsCompleted = 0;
-
                 // Get all the refreshing to-do boxes
-                let todoBoxes = Object.entries(localStorage).filter((entry) => Number.isInteger(+entry[0]));
-                let allRefreshingTodoBoxes = [];
-                todoBoxes.forEach(boxData => {
-                    let boxId = boxData[0];
-                    boxData = JSON.parse(boxData[1]);
-
-                    // Gather data from last time for display
-                    totalTasksNum += boxData.tasks.active.length + boxData.tasks.completed.length;
-                    totalTasksCompleted += boxData.tasks.completed.filter(t => (t.completedDate && t.completedDate == lastAccessedDate)).length;
-
-                    if (boxData.refreshing) {
-                        allRefreshingTodoBoxes.push(boxId);
-
-                        totalTasksCompleted += boxData.tasks.completed.length;
+                await fetch("/record/", {
+                    method: "POST",
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrfToken
                     }
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        let totalTasksNum = data["total_tasks_num"];
+                        let totalListsNum = data["total_lists_num"];
+                        let totalTasksCompleted = data["total_tasks_completed"];
+                        let totalListsCompleted = data["total_lists_completed"];
 
-                    if (totalTasksCompleted > 0) {
-                        totalListsCompleted++;
-                    }
-                });
+                        document.getElementById('task-completion-circle').dataset.percent = totalTasksCompleted / totalTasksNum * 100;
+                        document.getElementById('list-completion-circle').dataset.percent = totalListsCompleted / totalListsNum * 100;
 
-                const diff = (new Date(today) - new Date(lastAccessedDate)) / (1000 * 60 * 60 * 24);
-
-                // Record streaks
-                allRefreshingTodoBoxes.forEach(todoBoxId => {
-                    let todoBoxData = JSON.parse(localStorage.getItem(todoBoxId));
-
-                    // Process the active tasks and break their streaks
-                    todoBoxData.tasks.active.forEach(taskData => {
-                        if (!taskData || !taskData.completedDates) return;
-
-                        let completedDateRanges = taskData.completedDates;
-                        let recentCompletedPair = completedDateRanges.at(-1);
-
-                        // If there was an ongoing streak, it ended the day before lastAccessedDate (the task wasn't completed on lastAccessedDate)
-                        if (recentCompletedPair && recentCompletedPair[1] === null) {
-                            let previousDate = new Date(lastAccessedDate);
-                            previousDate.setDate(previousDate.getDate() - 1);
-
-                            recentCompletedPair[1] = previousDate.toISOString().split('T')[0];
-                        }
-                    });
-
-                    // Process the completed tasks and break their streaks
-                    todoBoxData.tasks.completed.forEach(taskData => {
-                        if (!taskData || !taskData.completedDates) return;
-
-                        // Process only the still-refreshing tasks
-                        if (!taskData.completedForGood) {
-                            let completedDateRanges = taskData.completedDates;
-                            let recentCompletedPair = completedDateRanges.at(-1);
-
-                            // If the user didn't access the website for more than 1 day
-                            // All ongoing streaks were broken with lastAccessedDate as the final date
-                            if (diff > 1) {
-                                // If a streak was ongoing, ended on lastAccessedDate
-                                if (recentCompletedPair && recentCompletedPair[1] === null) {
-                                    recentCompletedPair[1] = lastAccessedDate;
-                                }
-                                // If no ongoing streak, add a one-day streak
-                                else {
-                                    taskData.completedDates.push([lastAccessedDate, lastAccessedDate]);
-                                }
+                        fetch("/set-last-date/", {
+                            method: "POST",
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRFToken': csrfToken
                             }
-                            else {
-                                if (completedDateRanges.length >= 1) {
-                                    // If there was a closed streak, start a new streak
-                                    if (recentCompletedPair && recentCompletedPair[1] !== null) {
-                                        taskData.completedDates.push([lastAccessedDate, null]);
-                                    }
-                                }
-                                // If there were no completed dates yet but the task was completed
-                                else {
-                                    taskData.completedDates = [[lastAccessedDate, null]];
-                                }
-                            }
-                        }
+                        });
+
+                        showRefreshModal();
                     });
-
-                    // Refresh the completed tasks
-                    todoBoxData.tasks.active = todoBoxData.tasks.active.concat(todoBoxData.tasks.completed.filter(task => !task.completedForGood));
-
-                    todoBoxData.tasks.completed = todoBoxData.tasks.completed.filter(task => task.completedForGood);
-
-                    localStorage.setItem(todoBoxId, JSON.stringify(todoBoxData));
-                });
-
-                document.getElementById('task-completion-circle').dataset.percent = totalTasksCompleted / totalTasksNum * 100;
-                document.getElementById('list-completion-circle').dataset.percent = totalListsCompleted / todoBoxes.length * 100;
             }
         }
-
     });
 
 document.addEventListener('DOMContentLoaded', () => {

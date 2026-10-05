@@ -21,6 +21,7 @@
         <br>
         <input type="password" name="password" placeholder="Password">
         <br>
+        {% csrf_token %}
         <p>First time? Hustle <a href="{% url 'signup' %}">here</a>!</p>
         <input class="btn-purple" type="submit" value="Login">
     </form>

@@ -63,7 +63,7 @@ document.addEventListener("click", async (event) => {
     if (event.target.closest('.remove-todo-box-btn')) await removeTodoBox(event.target.closest('.remove-todo-box-btn'));
     if (event.target.closest('.add-subtask-btn')) await addSubtask(event.target.closest('.add-subtask-btn'));
     if (event.target.closest('.remove-task-btn')) await removeTask(event.target.closest('.remove-task-btn'));
-    if (event.target.closest('.complete-refreshing-task-btn')) await completeRefreshingTask();
+    if (event.target.closest('.complete-refreshing-task-btn')) await completeRefreshingTask(event.target.closest('.complete-refreshing-task-btn'));
 
     const radio = event.target.closest('input[type="radio"]');
     if (radio) await completeTask(radio);
@@ -488,9 +488,13 @@ async function completeTask(radio) {
     let idsToChange = [taskId];
     const activeBefore = taskData["active"];
 
+    if (activeBefore) {
+        lumiJump();
+    }
+
     // If active, mainstream task, all its subtasks should be completed too
-    if (activeBefore && taskData['subTasks']?.length > 0) {
-        idsToChange = [...idsToChange, ...taskData['subTasks']];
+    if (activeBefore && taskData['subtasks']?.length > 0) {
+        idsToChange = [taskId, ...(taskData['subtasks'] ?? [])].flat();
     }
 
     try {
@@ -508,35 +512,37 @@ async function completeTask(radio) {
 
             return response.json();
         }));
-
-        for (const id of idsToChange) {
-            let el = document.getElementById(`task_${id}`);
-
-            if (el) {
-                const animation = el.animate([
-                    { opacity: 1, height: '79.5px' },
-                    { opacity: 0, height: '0px' }
-                ], {
-                    duration: 500,
-                    easing: 'ease-out',
-                    fill: 'forwards'
-                });
-
-                await animation.finished;
-                el.remove();
-            }
-        }
     } catch (taskError) {
         console.log("Loop failed", taskError);
         throw taskError;
     }
 
     await getFetch(false);
-    await updateHTMLCollapseDiv(listId);
+
+    for (const id of idsToChange) {
+        let el = document.getElementById(`task_${id}`);
+
+        if (el) {
+            const animation = el.animate([
+                { opacity: 1, height: '79.5px' },
+                { opacity: 0, height: '0px' }
+            ], {
+                duration: 100,
+                easing: 'ease-out',
+                fill: 'forwards'
+            });
+
+            await animation.finished;
+
+            addHTMLTask(listId, id);
+            el.remove();
+        }
+    }
+
+    await updateHTMLCollapseDiv(listId, false);
     iDidList();
 
     let updatedListTasks = tasksData.get(Number(listId));
-    console.log(updatedListTasks);
 
     // If no active tasks anymore
     if (updatedListTasks.filter(task => task.active).length < 1) {
@@ -549,8 +555,78 @@ async function completeTask(radio) {
     }
 }
 
+async function completeRefreshingTask(button) {
+    // Locate all parent HTML for JSON IDs
+    let taskId = getIdsFromDropdown(button)[0];
+    let listId = getIdsFromDropdown(button)[1];
+    const parentTodoBox = document.getElementById(`todo-box${listId}`);
+
+    const taskData = tasksData.get(Number(listId)).find(task => task.id == taskId);
+
+    // Consolidate all the tasks that should be moved with the selected task
+    let idsToChange = [Number(taskId), ...(taskData['subtasks'] ?? [])].flat();
+    console.log(idsToChange);
+
+    try {
+        await Promise.all(idsToChange.map(async (id) => {
+            const response = await fetch("complete-refreshing-task/", {
+                method: "POST",
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken
+                },
+                body: JSON.stringify({ task_id: id })
+            });
+
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+
+            return response.json();
+        }));
+    } catch (taskError) {
+        console.log("Loop failed", taskError);
+        throw taskError;
+    }
+
+    await getFetch(false);
+
+    await updateHTMLCollapseDiv(listId, false);
+    iDidList();
+
+    let updatedListTasks = tasksData.get(Number(listId));
+
+    // If no active tasks anymore
+    if (updatedListTasks.filter(task => task.active).length < 1) {
+        fillIfBlank(parentTodoBox.getElementsByClassName('todo-box-tasks')[0]);
+    }
+
+    let fillInText = parentTodoBox.getElementsByClassName('blank-todo-fill')[0];
+    if (updatedListTasks.filter(task => task.active).length > 0 && fillInText) {
+        fillInText.remove();
+    }
+
+    for (const id of idsToChange) {
+        let el = document.getElementById(`task_${id}`);
+
+        if (el) {
+            const animation = el.animate([
+                { opacity: 1, height: '79.5px' },
+                { opacity: 0, height: '0px' }
+            ], {
+                duration: 100,
+                easing: 'ease-out',
+                fill: 'forwards'
+            });
+
+            await animation.finished;
+            
+            addHTMLCompletedRefreshingTask(listId, id);
+            el.remove();
+        }
+    }
+}
+
 async function editTask(textbox) {
-    const taskElement = radio.closest('.todo-task');
+    const taskElement = textbox.closest('.todo-task');
     if (!taskElement) return;
 
     const taskId = taskElement.id.replace("task_", "");
@@ -600,12 +676,12 @@ async function removeTask(button) {
     let taskData = listTasksData.find(task => task.id == taskId);
 
     // Consolidate all the tasks that should be moved with the selected task
-    let tasksToRemove = [taskId];
+    let idsToRemove = [taskId];
 
     // Gather all associated sub-tasks recursively
     if (taskData.subtasks !== undefined && taskData.subtasks.length > 0) {
         taskData.subtasks.forEach(subId => {
-            tasksToRemove.push(subId);
+            idsToRemove.push(subId);
         });
     }
 
@@ -620,7 +696,7 @@ async function removeTask(button) {
         }
     }
 
-    tasksToRemove.forEach(async (id) => {
+    idsToRemove.forEach(async (id) => {
         await fetch("remove-task/", {
             method: "POST",
             headers: {
@@ -633,24 +709,29 @@ async function removeTask(button) {
             .then(async data => {
                 await getFetch(false);
             });
+    });
 
-        let taskElement = document.getElementById(`task_${id}`);
-        console.log(taskElement);
-        taskElement.animate([
-            { opacity: 1, height: '79.5px' },
-            { opacity: 0, height: '0px' }
-        ], {
-            duration: 500,
-            easing: 'ease-out',
-            fill: 'forwards'
-        });
-        taskElement.onfinish = () => {
-            taskElement.remove();
-        };
+    for (const id of idsToRemove) {
+        let el = document.getElementById(`task_${id}`);
+
+        if (el) {
+            const animation = el.animate([
+                { opacity: 1, height: '79.5px' },
+                { opacity: 0, height: '0px' }
+            ], {
+                duration: 300,
+                easing: 'ease-out',
+                fill: 'forwards'
+            });
+
+            await animation.finished;
+
+            el.remove();
+        }
 
         let iDidTaskElement = document.getElementById(`task_${id}-${todayStr}`);
         if (iDidTaskElement) {
-            iDidTaskElement.animate([
+            const animation = iDidTaskElement.animate([
                 { opacity: 1, height: '79.5px' },
                 { opacity: 0, height: '0px' }
             ], {
@@ -658,14 +739,14 @@ async function removeTask(button) {
                 easing: 'ease-out',
                 fill: 'forwards'
             });
-            iDidTaskElement.onfinish = () => {
-                iDidTaskElement.remove();
-            };
+
+            await animation.finished;
+            iDidTaskElement.remove();
         }
-    });
+    }
 
     // ⛰️ Fix the # of completed tasks
-    updateHTMLCollapseDiv(listId);
+    updateHTMLCollapseDiv(listId, false);
 
     // If there are no active tasks left, fill in the blank
     if (tasksData.get(Number(listId)).filter(t => t.active).length < 1) {
@@ -710,7 +791,11 @@ async function addHTMLTodoBox(listId) {
         </div>
     </div>
     <div class='todo-box-tasks accordion accordion-flush' id='accordion-flush${listId}'></div>
-    <div class='collapse-btn-div d-inline-flex gap-1'></div>
+    <div class='collapse-btn-div d-inline-flex gap-1'>
+        <button class="btn collapse-btn" type="button" data-bs-toggle="collapse" data-bs-target="#collapseExample${listId}" aria-expanded="false" aria-controls="collapseExample${listId}">
+            Completed (0)
+        </button>
+    </div>
     <div class='collapse todo-box-completed-tasks accordion accordion-flush' id='collapseExample${listId}'>
         <div class="todo-box-completed-refreshing-tasks"></div>
     </div>`;
@@ -730,41 +815,37 @@ async function addHTMLTodoBox(listId) {
 
     box.appendChild(document.createElement('br'));
 
-    if (listTasksData.filter(task => !task.active).length >= 1) {
-        // Add the collapsing div for the completed tasks
-        updateHTMLCollapseDiv(listId);
-    }
+    // Add the collapsing div for the completed tasks
+    updateHTMLCollapseDiv(listId, true);
 }
 
-async function updateHTMLCollapseDiv(listId) {
+async function updateHTMLCollapseDiv(listId, addTasksBool) {
     const listTasksData = tasksData.get(Number(listId));
 
-    console.log(listId);
-
     const todoBox = document.getElementById(`todo-box${listId}`);
-    todoBox.getElementsByClassName('collapse-btn-div')[0].innerHTML = `
-    <button class="btn collapse-btn" type="button" data-bs-toggle="collapse" data-bs-target="#collapseExample${listId}" aria-expanded="false" aria-controls="collapseExample${listId}">
-        Completed (${listTasksData.filter(task => !task.active).length})
-    </button>`;
-    todoBox.getElementsByClassName('todo-box-completed-tasks')[0].innerHTML = '<div class="todo-box-completed-refreshing-tasks"></div>';
+    const toggleBtn = todoBox.getElementsByClassName('collapse-btn-div')[0].getElementsByClassName('btn')[0];
+    toggleBtn.innerHTML = `Completed (${listTasksData.filter(task => !task.active).length})`;
 
-    listTasksData.filter(task => !task.active).forEach((task) => {
-        let taskId = task.id;
+    if (addTasksBool) {
+        listTasksData.filter(task => !task.active).forEach((task) => {
+            let taskId = task.id;
 
-        if (task.completed_for_good) {
-            addHTMLCompletedRefreshingTask(listId, taskId);
-        } else {
-            addHTMLTask(listId, taskId);
-        }
+            if (task.completed_for_good) {
+                addHTMLCompletedRefreshingTask(listId, taskId);
+            } else {
+                addHTMLTask(listId, taskId);
+            }
 
-    });
+        });
+    }
 
     // If no completed tasks
     if (listTasksData.filter(task => !task.active).length < 1) {
-        let completedDiv = todoBox.getElementsByClassName('todo-box-completed-tasks')[0];
-        completedDiv.style.display = 'none';
-        let collapseToggle = todoBox.getElementsByClassName('collapse-btn')[0];
-        collapseToggle.style.display = 'none';
+        let collapseToggle = todoBox.getElementsByClassName('collapse-btn-div')[0];
+        collapseToggle.style.setProperty("display", "none", "important");
+    } else {
+        let collapseToggle = todoBox.getElementsByClassName('collapse-btn-div')[0];
+        collapseToggle.style.setProperty("display", "inline-flex", "important");
     }
 }
 
@@ -775,7 +856,7 @@ async function addHTMLTask(listId, taskId) {
     let taskData = listTasksData.find(task => task.id == taskId);
 
     // Set apart active/completed task
-    let completed = !taskData.active;
+    let completed = !taskData['active'];
 
     // Enable/disable subtask adding
     let parentTaskId = taskData["parent_task"] || null;
@@ -895,8 +976,8 @@ async function addHTMLCompletedRefreshingTask(listId, taskId) {
             </div>
     </div>`;
 
-    let parentTaskId = taskData['parentTask'] || null;
-    const hasMatchingParentTask = parentTaskId && (listTasksData.some(t => t['taskId'] == parentTaskId) && listTasksData.some(t => t['taskId'] == taskId));
+    let parentTaskId = taskData['parent_task'] || null;
+    const hasMatchingParentTask = parentTaskId && (listTasksData.some(t => t.id == parentTaskId) && listTasksData.some(t => t.id == taskId));
 
     if (hasMatchingParentTask) {
         taskElement.className = 'todo-task accordion-item subtask';
