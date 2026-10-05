@@ -10,30 +10,52 @@ fetch("/api/get-last-date/")
         const lastAccessedDate = data["last_accessed_date"];
         // REFRESHING LOGIC ☑️
         console.log("last accessed on", lastAccessedDate);
+        globalThis.csrfToken = document.querySelector('input[name="csrfmiddlewaretoken"]').value;
 
         if (lastAccessedDate == null) {
             let welcomeModal = new bootstrap.Modal(document.getElementById('welcomeModal'), {});
             welcomeModal.show();
 
-            fetch("/set-last-date/");
+            await fetch("/set-last-date/", {
+                method: "POST",
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken
+                }
+            });
         }
         else {
             if (today != lastAccessedDate) {
-
-                let totalTasksNum = 0;
-                let totalTasksCompleted = 0;
-                let totalListsCompleted = 0;
-
                 // Get all the refreshing to-do boxes
-                
+                await fetch("/record/", {
+                    method: "POST",
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrfToken
+                    }
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        let totalTasksNum = data["total_tasks_num"];
+                        let totalListsNum = data["total_lists_num"];
+                        let totalTasksCompleted = data["total_tasks_completed"];
+                        let totalListsCompleted = data["total_lists_completed"];
 
-                document.getElementById('task-completion-circle').dataset.percent = totalTasksCompleted / totalTasksNum * 100;
-                document.getElementById('list-completion-circle').dataset.percent = totalListsCompleted / todoBoxes.length * 100;
+                        document.getElementById('task-completion-circle').dataset.percent = totalTasksCompleted / totalTasksNum * 100;
+                        document.getElementById('list-completion-circle').dataset.percent = totalListsCompleted / totalListsNum * 100;
 
-                fetch("/set-last-date/");
+                        fetch("/set-last-date/", {
+                            method: "POST",
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRFToken': csrfToken
+                            }
+                        });
+
+                        showRefreshModal();
+                    });
             }
         }
-
     });
 
 document.addEventListener('DOMContentLoaded', () => {

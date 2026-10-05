@@ -2,6 +2,7 @@ from django.shortcuts import render
 from django.http import JsonResponse, HttpResponseRedirect
 from django.urls import reverse
 from django.contrib.auth import authenticate, login, logout
+from datetime import timedelta
 
 from freshapp.models import *
 
@@ -26,7 +27,7 @@ def last_date_api(request):
 
 
 def set_last_date(request):
-    if request.user.is_authenticated:
+    if request.user.is_authenticated and request.method == "POST":
         today = datetime.now().astimezone()
         today = f"{today.strftime("%Y")}-{today.strftime("%m")}-{today.strftime("%d")}"
 
@@ -38,7 +39,10 @@ def set_last_date(request):
 
 
 def record(request):
-    if request.user.is_authenticated:
+    if request.user.is_authenticated and request.method == "POST":
+        today = datetime.now().astimezone()
+        today = f"{today.strftime("%Y")}-{today.strftime("%m")}-{today.strftime("%d")}"
+
         last_accessed_date = request.user.last_accessed_date
         total_tasks_num = 0
         total_tasks_completed = 0
@@ -46,21 +50,19 @@ def record(request):
 
         todo_lists = request.user.todo_lists.all()
         for todo_list in todo_lists:
-            total_tasks_num += len(todo_list.tasks)
-            total_tasks_completed += len(
-                todo_list.tasks.filter(completed_date=last_accessed_date)
-            )
+            total_tasks_num += todo_list.tasks.count()
+            total_tasks_completed += todo_list.tasks.filter(completed_date=last_accessed_date, completed_for_good=False).count()
 
             if todo_list.refreshing:
                 # Add all currently completed tasks
-                total_tasks_completed += len(todo_list.tasks.filter(active=False))
+                total_tasks_completed += todo_list.tasks.filter(active=False).count()
 
             if total_tasks_completed > 0:
                 total_lists_completed += 1
-
-        date1 = datetime.strptime(str1, "%Y-%m-%d")
-        date2 = datetime.strptime(str2, "%Y-%m-%d")
-        delta = date2 - date1
+        
+        date1 = datetime.strptime(today, "%Y-%m-%d")
+        date2 = datetime.strptime(last_accessed_date, "%Y-%m-%d")
+        delta = date1 - date2
         diff = delta.days
 
         for todo_list in request.user.todo_lists.filter(refreshing=True):
@@ -71,7 +73,7 @@ def record(request):
 
                     if recent_completed_pair and recent_completed_pair[1] == None:
                         previous_date = datetime.strptime(
-                            recent_completed_pair, "%Y-%m-%d"
+                            last_accessed_date, "%Y-%m-%d"
                         ) - timedelta(days=1)
                         completed_date_ranges[-1][1] = previous_date.strftime(
                             "%Y-%m-%d"
@@ -99,11 +101,12 @@ def record(request):
                             # Else don't do anything
                         else:
                             task.completed_dates = [last_accessed_date, None]
-                task.active = True
+                    
+                    task.active = True
 
                 task.save()
 
-        return render(request, "freshapp/index.html")
+        return JsonResponse({"total_tasks_num": total_tasks_num, "total_lists_num": request.user.todo_lists.count(), "total_tasks_completed": total_tasks_completed, "total_lists_completed": total_lists_completed})
     return HttpResponseRedirect(reverse("login"))
 
 
@@ -237,16 +240,40 @@ def complete_task(request):
 
         task = Task.objects.get(id=task_id)
 
+        today = datetime.now().astimezone()
+        today = today.strftime("%Y-%m-%d")
+
+        if task.parent_list.refreshing == False:
+            # If it is being completed
+            if task.active:
+                task.completed_date = today
+            else:
+                task.completed_date = None
+
         # Change active state
         task.active = not task.active
 
+        task.save()
+
+        return JsonResponse({"response": "Task successfully completed"})
+
+
+def complete_refreshing_task(request):
+    if request.method == "POST" and request.user.is_authenticated:
+        data = json.loads(request.body)
+        task_id = data.get("task_id")
+
+        task = Task.objects.get(id=task_id)
+
         today = datetime.now().astimezone()
-        today = today.strftime("%m/%d/%Y")
+        today = today.strftime("%Y-%m-%d")
 
         if task.parent_list.refreshing:
-            ...
-        else:
             task.completed_date = today
+            task.completed_for_good = True
+
+        # Change active state
+        task.active = False
 
         task.save()
 
