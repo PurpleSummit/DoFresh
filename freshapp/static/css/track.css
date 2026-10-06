@@ -2,6 +2,10 @@
     width: 100%;
 }
 
+#title {
+    margin-left: 17px;
+}
+
 .nav-fill {
     border-color: #818181;
     border-width: 1px;

@@ -494,7 +494,7 @@ async function completeTask(radio) {
 
     // If active, mainstream task, all its subtasks should be completed too
     if (activeBefore && taskData['subtasks']?.length > 0) {
-        idsToChange = [taskId, ...(taskData['subtasks'] ?? [])].flat();
+        idsToChange = [taskId, ...(taskData['subtasks'].filter(t => t.active) ?? [])].flat();
     }
 
     try {

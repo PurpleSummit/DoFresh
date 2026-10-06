@@ -337,11 +337,12 @@ input[type='text'] {
 
 #lumi {
     width: 114px;
-    position: absolute;
+    position: fixed;
     z-index: 10;
-    top: 0px;
     opacity: 1;
     transform: scale(1);
+    bottom: 37px;
+    left: -17px;
 }
 
 #lumi.lumi-swapping {
@@ -361,7 +362,7 @@ input[type='text'] {
     z-index: 11;
 
     width: 100%;
-    max-width: 320px;
+    max-width: 390px;
     overflow-x: hidden;
     overflow-y: auto;
     transition: max-width 0.25s ease-in-out;
@@ -432,6 +433,10 @@ input[type='text'] {
     font-weight: 400;
     color: rgb(93, 91, 91);
     margin-top: -15px;
+}
+
+.i-did-number {
+    margin-left: 13px;
 }
 
 #todo-screen-filler,
