@@ -7,16 +7,7 @@ document.addEventListener("DOMContentLoaded", () => {
         <img src="" alt="Lumi character">
     </object>`;
 
-    if (localStorage.length >= 2) {
-        lumi.style.left = '515px';
-        const todoBox = document.body.querySelector('.todo-box-div');
-
-        if (todoBox) {
-            todoBox.prepend(lumi);
-        }
-    } else {
-        document.body.prepend(lumi);
-    }
+    document.body.prepend(lumi);
 
     lumiMainBlink();
 });
