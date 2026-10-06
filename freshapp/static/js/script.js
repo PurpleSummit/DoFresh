@@ -199,6 +199,8 @@ function iDidList() {
                     });
                 }
             });
+
+            num_refreshing_tasks_completed += tasksData.get(Number(listId)).filter(task => !task.active).length;
         }
 
         // Display all the completions
@@ -217,7 +219,6 @@ function iDidList() {
                 }
 
                 addHTMLTaskIDid(taskId, completed_date);
-
             });
         }
 

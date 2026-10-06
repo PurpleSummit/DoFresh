@@ -133,6 +133,7 @@ function iDidList() {
     document.getElementsByClassName('i-did-body')[0].innerHTML = ``;
 
     let current = new Date(today);
+    let num_refreshing_tasks_completed = 0;
 
     let datesArray = []; // Array of Date objects
 
@@ -144,7 +145,7 @@ function iDidList() {
         let iDidDateHeader = document.createElement('div');
         iDidDateHeader.className = 'i-did-date-header';
         iDidDateHeader.id = `i-did-header-${currentStr}`;
-        iDidDateHeader.innerHTML = `<h5>${ISOToDateString(currentStr)}</h5>`
+        iDidDateHeader.innerHTML = `<h5>${ISOToDateString(currentStr)}</h5><h3></h3>`;
 
         document.getElementsByClassName('i-did-body')[0].appendChild(iDidDateHeader);
 
@@ -190,12 +191,16 @@ function iDidList() {
                                     completedTag += 'Yesterday';
                                 }
 
+                                num_refreshing_tasks_completed++;
+
                                 addHTMLTaskIDid(taskId, completed_date);
                             }
                         }
                     });
                 }
             });
+
+            num_refreshing_tasks_completed += tasksData.get(Number(listId)).filter(task => !task.active).length;
         }
 
         // Display all the completions
@@ -210,11 +215,10 @@ function iDidList() {
                     let iDidDateHeader = document.createElement('div');
                     iDidDateHeader.className = 'i-did-date-header';
                     iDidDateHeader.id = `i-did-header-${completed_date}`;
-                    iDidDateHeader.innerHTML = `<h5>${ISOToDateString(completed_date)}</h5>`
+                    iDidDateHeader.innerHTML = `<h5>${ISOToDateString(completed_date)}</h5>`;
                 }
 
                 addHTMLTaskIDid(taskId, completed_date);
-
             });
         }
 
@@ -227,6 +231,11 @@ function iDidList() {
             headerDiv.style.display = 'block';
         });
     });
+
+    const refreshingNumberLabel = document.createElement('h5');
+    refreshingNumberLabel.className = 'i-did-number';
+    refreshingNumberLabel.textContent = `🍀 Refreshing tasks completed: ${num_refreshing_tasks_completed}`;
+    document.getElementsByClassName('i-did-body')[0].prepend(refreshingNumberLabel);
 
     if (allListIds.length < 1) {
         let emptyHeaders = document.getElementsByClassName('i-did-date-header');
@@ -490,6 +499,7 @@ async function completeTask(radio) {
 
     if (activeBefore) {
         lumiJump();
+        confetti({ particleCount: 143, spread: 120, startVelocity: 35, origin: { x: 0.1, y: 1 }, disableForReducedMotion: true });
     }
 
     // If active, mainstream task, all its subtasks should be completed too
@@ -561,11 +571,38 @@ async function completeRefreshingTask(button) {
     let listId = getIdsFromDropdown(button)[1];
     const parentTodoBox = document.getElementById(`todo-box${listId}`);
 
+    // Lumi Animations
+    lumiJump();
+
+    // Code from https://www.kirilv.com/canvas-confetti/
+    var duration = 15 * 250;
+    var animationEnd = Date.now() + duration;
+    var defaults = {
+        startVelocity: 30, spread: 360, ticks: 60, zIndex: 10, gravity: 0,
+        colors: ['FFE400', 'FFBD00', 'E89400', 'FFCA6C', 'FDFFB8']
+    };
+
+    function randomInRange(min, max) {
+        return Math.random() * (max - min) + min;
+    }
+
+    var interval = setInterval(function () {
+        var timeLeft = animationEnd - Date.now();
+
+        if (timeLeft <= 0) {
+            return clearInterval(interval);
+        }
+
+        var particleCount = 67 * (timeLeft / duration);
+        confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 }, shapes: ['star'] });
+        confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 }, shapes: ['star'] });
+    }, 250);
+
+
     const taskData = tasksData.get(Number(listId)).find(task => task.id == taskId);
 
     // Consolidate all the tasks that should be moved with the selected task
     let idsToChange = [Number(taskId), ...(taskData['subtasks'] ?? [])].flat();
-    console.log(idsToChange);
 
     try {
         await Promise.all(idsToChange.map(async (id) => {
@@ -618,7 +655,7 @@ async function completeRefreshingTask(button) {
             });
 
             await animation.finished;
-            
+
             addHTMLCompletedRefreshingTask(listId, id);
             el.remove();
         }

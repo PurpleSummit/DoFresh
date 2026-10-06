@@ -387,7 +387,9 @@ input[type='text'] {
     margin-bottom: 0px;
 }
 
-#i-did-list.i-did-close .i-did-date-header {
+
+#i-did-list.i-did-close .i-did-date-header,
+#i-did-list.i-did-close .i-did-number {
     max-width: 0px;
     opacity: 0;
     visibility: hidden;
