@@ -36,14 +36,6 @@ fetch("/api/get-last-date/")
                 })
                     .then(response => response.json())
                     .then(data => {
-                        let totalTasksNum = data["total_tasks_num"];
-                        let totalListsNum = data["total_lists_num"];
-                        let totalTasksCompleted = data["total_tasks_completed"];
-                        let totalListsCompleted = data["total_lists_completed"];
-
-                        document.getElementById('task-completion-circle').dataset.percent = totalTasksCompleted / totalTasksNum * 100;
-                        document.getElementById('list-completion-circle').dataset.percent = totalListsCompleted / totalListsNum * 100;
-
                         fetch("/set-last-date/", {
                             method: "POST",
                             headers: {
@@ -51,14 +43,19 @@ fetch("/api/get-last-date/")
                                 'X-CSRFToken': csrfToken
                             }
                         });
-
+                        
+                        globalThis.totalTasksNum = data["total_tasks_num"];
+                        globalThis.totalListsNum = data["total_lists_num"];
+                        globalThis.totalTasksCompleted = data["total_tasks_completed"];
+                        globalThis.totalListsCompleted = data["total_lists_completed"];
+                        
                         showRefreshModal();
                     });
             }
         }
     });
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
 
     // sidebar toggle button
     const toggleBtn = document.getElementsByClassName('toggle-btn')[0];
@@ -92,38 +89,43 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // track page sidebar
-    const allRefreshingTodoBoxes = Object.entries(localStorage).filter((entry) => Number.isInteger(+entry[0]) && JSON.parse(entry[1]).refreshing);
-    const trackTodoBoxIds = allRefreshingTodoBoxes.map(data => data[0]);
+    await fetch('/api/get-refreshing-lists/')
+        .then(response => response.json())
+        .then(async (data) => {
+            let allTodoBoxes = data['todo-lists'];
+            console.log(allTodoBoxes);
 
-    const trackSidebarList = document.getElementById('track-lists');
+            const trackSidebarList = document.getElementById('track-lists');
 
-    if (trackSidebarList) {
-        trackTodoBoxIds.forEach(boxId => {
-            let todoBoxData = JSON.parse(localStorage[`${boxId}`]);
+            if (trackSidebarList) {
+                for (boxData in allTodoBoxes) {
+                    let listLabel = document.createElement('li');
+                    listLabel.innerHTML = `<a class='sidebar-link' style='cursor: pointer;'>${boxData.title}</a>`;
 
-            let listLabel = document.createElement('li');
-            listLabel.innerHTML = `<a class='sidebar-link' style='cursor: pointer;'>${todoBoxData.title}</a>`
+                    // If in the track page
+                    // Else travel to the track page and run this
+                    listLabel.addEventListener('click', () => {
+                        if (typeof selectTodoList === 'function') {
+                            selectTodoList(boxId);
+                        }
+                        else {
+                            window.location.href = '/track';
+                        }
+                    });
 
-            // If in the track page
-            // Else travel to the track page and run this
-            listLabel.addEventListener('click', () => {
-                if (typeof selectTodoList === 'function') {
-                    selectTodoList(boxId);
+                    trackSidebarList.appendChild(listLabel);
                 }
-                else {
-                    window.location.href = '/track';
-                }
-            });
-
-            trackSidebarList.appendChild(listLabel);
+            }
         });
-    }
 });
 
 function showRefreshModal() {
     // Display the refresh notification w/ information
     let notifModal = new bootstrap.Modal(document.getElementById('refreshNotifModal'), {});
     notifModal.show();
+
+    document.getElementById('task-completion-circle').dataset.percent = totalTasksCompleted / totalTasksNum * 100;
+    document.getElementById('list-completion-circle').dataset.percent = totalListsCompleted / totalListsNum * 100;
 
     const progressCircles = document.getElementsByClassName('progress-circle');
     const animateCircle = (progressCircle) => {
