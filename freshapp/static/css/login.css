@@ -23,10 +23,3 @@ input[type='submit'] {
     font-size: 15px;
     padding: 9px;
 }
-
-#lumi {
-    width: 94px;
-    position: absolute;
-    top: -23px;
-    left: 220px;
-}

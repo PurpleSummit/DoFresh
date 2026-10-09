@@ -7,7 +7,11 @@ console.log(today);
 fetch("/api/get-last-date/")
     .then(response => response.json())
     .then(async (data) => {
-        const lastAccessedDate = data["last_accessed_date"];
+        let lastAccessedDate = data["last_accessed_date"];
+        if (!lastAccessedDate) {
+            lastAccessedDate = (await fetch("/api/set-last-date/")).json()["last_accessed_date"];
+        }
+
         // REFRESHING LOGIC ☑️
         console.log("last accessed on", lastAccessedDate);
         globalThis.csrfToken = document.querySelector('input[name="csrfmiddlewaretoken"]').value;

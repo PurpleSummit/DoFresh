@@ -422,7 +422,7 @@ async function addTask(button) {
         fillInText.remove();
     }
 
-    // ✨ Add the new task to localStorage
+    // ✨ Add the new task to storage
     let listId = todoBox.id.replace('todo-box', '');
 
     await fetch("add-task/", {

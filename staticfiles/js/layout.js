@@ -7,7 +7,11 @@ console.log(today);
 fetch("/api/get-last-date/")
     .then(response => response.json())
     .then(async (data) => {
-        const lastAccessedDate = data["last_accessed_date"];
+        let lastAccessedDate = data["last_accessed_date"];
+        if (!lastAccessedDate) {
+            lastAccessedDate = (await fetch("/api/set-last-date/")).json()["last_accessed_date"];
+        }
+
         // REFRESHING LOGIC ☑️
         console.log("last accessed on", lastAccessedDate);
         globalThis.csrfToken = document.querySelector('input[name="csrfmiddlewaretoken"]').value;
@@ -74,19 +78,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
     const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
-
-    // home page sidebar
-    const homeSidebarList = document.getElementById('home-lists');
-    let allTodoBoxIds = Object.keys(localStorage).filter(key => Number.isInteger(+key));
-
-    allTodoBoxIds.forEach(boxId => {
-        let todoBoxData = JSON.parse(localStorage[`${boxId}`]);
-
-        let listLabel = document.createElement('li');
-        listLabel.className = 'sidebar-item';
-        listLabel.innerHTML = `<a class='sidebar-link'>${todoBoxData.title}</a>`
-        homeSidebarList.appendChild(listLabel);
-    });
 
     // track page sidebar
     await fetch('/api/get-refreshing-lists/')
@@ -160,7 +151,6 @@ function showRefreshModal() {
         });
     }, { threshold: 0.5 });
     Array.from(progressCircles).forEach(progressCircle => observer.observe(progressCircle));
-
 }
 
 function openSidebar() {

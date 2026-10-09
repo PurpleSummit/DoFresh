@@ -44,6 +44,10 @@ def record(request):
         today = f"{today.strftime("%Y")}-{today.strftime("%m")}-{today.strftime("%d")}"
 
         last_accessed_date = request.user.last_accessed_date
+        if (not last_accessed_date):
+            last_accessed_date = today
+            return
+
         total_tasks_num = 0
         total_tasks_completed = 0
         total_lists_completed = 0
