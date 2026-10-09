@@ -490,6 +490,7 @@ async function completeTask(radio) {
 
     let listTasksData = tasksData.get(listId);
     if (!listTasksData) return;
+    console.log(listTasksData);
 
     let taskData = listTasksData.find(task => task.id == taskId);
     if (!taskData) return;
@@ -504,7 +505,11 @@ async function completeTask(radio) {
 
     // If active, mainstream task, all its subtasks should be completed too
     if (activeBefore && taskData['subtasks']?.length > 0) {
-        idsToChange = [taskId, ...(taskData['subtasks'].filter(t => t.active) ?? [])].flat();
+        for (let subtaskId of taskData['subtasks']) {
+            if (listTasksData.find(t => t.id == subtaskId).active) {
+                idsToChange.push(Number(subtaskId));
+            }
+        }
     }
 
     try {
