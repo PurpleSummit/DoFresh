@@ -8,13 +8,6 @@ fetch("/api/get-last-date/")
     .then(response => response.json())
     .then(async (data) => {
         let lastAccessedDate = data["last_accessed_date"];
-        if (!lastAccessedDate) {
-            lastAccessedDate = (await fetch("/api/set-last-date/")).json()["last_accessed_date"];
-        }
-
-        // REFRESHING LOGIC ☑️
-        console.log("last accessed on", lastAccessedDate);
-        globalThis.csrfToken = document.querySelector('input[name="csrfmiddlewaretoken"]').value;
 
         if (lastAccessedDate == null) {
             let welcomeModal = new bootstrap.Modal(document.getElementById('welcomeModal'), {});
@@ -27,6 +20,9 @@ fetch("/api/get-last-date/")
                     'X-CSRFToken': csrfToken
                 }
             });
+
+        console.log("last accessed on", lastAccessedDate);
+        globalThis.csrfToken = document.querySelector('input[name="csrfmiddlewaretoken"]').value;
         }
         else {
             if (today != lastAccessedDate) {
