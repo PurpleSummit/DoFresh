@@ -19,7 +19,7 @@
 <body>
     {% csrf_token %}
     <div class="background"></div>
-    
+
     <div class="wrapper">
         <aside id="sidebar">
             <div class="sidebar-header d-flex justify-content-between p-4 ">
@@ -30,30 +30,41 @@
                 </div>
 
                 <button class="toggle-btn border-0" type="button">
-                    <svg id="icon" xmlns="http://www.w3.org/2000/svg" width="16"
-                        height="16" fill="currentColor" class="bi bi-layout-sidebar" viewBox="0 0 16 16">
-                        <path d="M0 3a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2zm5-1v12h9a1 1 0 0 0 1-1V3a1 1 0 0 0-1-1zM4 2H2a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h2z" />
+                    <svg id="icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                        class="bi bi-layout-sidebar" viewBox="0 0 16 16">
+                        <path
+                            d="M0 3a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2zm5-1v12h9a1 1 0 0 0 1-1V3a1 1 0 0 0-1-1zM4 2H2a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h2z" />
                     </svg>
                 </button>
             </div>
 
             <hr style="margin-top: 1px;">
-    
+
             <ul class="sidebar-nav">
-                <li class="sidebar-item" class="collapsed has-dropdown" data-bs-toggle="collapse" data-bs-target="#home-lists" href="#home-lists" role="button" aria-expanded="false" aria-controls="home-lists">
-                    <a href="{% url 'index' %}" id="sidebar-home-link" class="sidebar-link" data-bs-toggle="tooltip" data-bs-placement="right" data-bs-custom-class="sidebar-tooltip" data-bs-title="Dashboard">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-grid-1x2-fill" viewBox="0 0 16 16">
-                            <path d="M0 1a1 1 0 0 1 1-1h5a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H1a1 1 0 0 1-1-1zm9 0a1 1 0 0 1 1-1h5a1 1 0 0 1 1 1v5a1 1 0 0 1-1 1h-5a1 1 0 0 1-1-1zm0 9a1 1 0 0 1 1-1h5a1 1 0 0 1 1 1v5a1 1 0 0 1-1 1h-5a1 1 0 0 1-1-1z"/>
+                <li class="sidebar-item" class="collapsed has-dropdown" data-bs-toggle="collapse"
+                    data-bs-target="#home-lists" href="#home-lists" role="button" aria-expanded="false"
+                    aria-controls="home-lists">
+                    <a href="{% url 'index' %}" id="sidebar-home-link" class="sidebar-link" data-bs-toggle="tooltip"
+                        data-bs-placement="right" data-bs-custom-class="sidebar-tooltip" data-bs-title="Dashboard">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                            class="bi bi-grid-1x2-fill" viewBox="0 0 16 16">
+                            <path
+                                d="M0 1a1 1 0 0 1 1-1h5a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H1a1 1 0 0 1-1-1zm9 0a1 1 0 0 1 1-1h5a1 1 0 0 1 1 1v5a1 1 0 0 1-1 1h-5a1 1 0 0 1-1-1zm0 9a1 1 0 0 1 1-1h5a1 1 0 0 1 1 1v5a1 1 0 0 1-1 1h-5a1 1 0 0 1-1-1z" />
                         </svg>
                         <span>Dashboard</span>
                     </a>
                     <ul id="home-lists" class="sidebar-dropdown list-unstyled collapse" data-bs-parent="#sidebar">
                     </ul>
                 </li>
-                <li class="sidebar-item" class="collapsed has-dropdown" data-bs-toggle="collapse" data-bs-target="#track-lists" href="#track-lists" role="button" aria-expanded="false" aria-controls="track-lists">
-                    <a href="{% url 'track' %}" id="sidebar-track-link" class="sidebar-link" data-bs-toggle="tooltip" data-bs-placement="right" data-bs-custom-class="sidebar-tooltip" data-bs-title="Track">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-file-earmark-bar-graph-fill" viewBox="0 0 16 16">
-                            <path d="M9.293 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V4.707A1 1 0 0 0 13.707 4L10 .293A1 1 0 0 0 9.293 0M9.5 3.5v-2l3 3h-2a1 1 0 0 1-1-1m.5 10v-6a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5m-2.5.5a.5.5 0 0 1-.5-.5v-4a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v4a.5.5 0 0 1-.5.5zm-3 0a.5.5 0 0 1-.5-.5v-2a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-.5.5z"/>
+                <li class="sidebar-item" class="collapsed has-dropdown" data-bs-toggle="collapse"
+                    data-bs-target="#track-lists" href="#track-lists" role="button" aria-expanded="false"
+                    aria-controls="track-lists">
+                    <a href="{% url 'track' %}" id="sidebar-track-link" class="sidebar-link" data-bs-toggle="tooltip"
+                        data-bs-placement="right" data-bs-custom-class="sidebar-tooltip" data-bs-title="Track">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                            class="bi bi-file-earmark-bar-graph-fill" viewBox="0 0 16 16">
+                            <path
+                                d="M9.293 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V4.707A1 1 0 0 0 13.707 4L10 .293A1 1 0 0 0 9.293 0M9.5 3.5v-2l3 3h-2a1 1 0 0 1-1-1m.5 10v-6a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5m-2.5.5a.5.5 0 0 1-.5-.5v-4a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v4a.5.5 0 0 1-.5.5zm-3 0a.5.5 0 0 1-.5-.5v-2a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-.5.5z" />
                         </svg>
                         <span>Track</span>
                     </a>
@@ -61,36 +72,45 @@
                     </ul>
                 </li>
                 <li class="sidebar-item">
-                    <a href="{% url 'chat' %}" id="sidebar-chat-link" class="sidebar-link" data-bs-toggle="tooltip" data-bs-placement="right" data-bs-custom-class="sidebar-tooltip" data-bs-title="Chat">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chat-text-fill" viewBox="0 0 16 16">
-                            <path d="M16 8c0 3.866-3.582 7-8 7a9 9 0 0 1-2.347-.306c-.584.296-1.925.864-4.181 1.234-.2.032-.352-.176-.273-.362.354-.836.674-1.95.77-2.966C.744 11.37 0 9.76 0 8c0-3.866 3.582-7 8-7s8 3.134 8 7M4.5 5a.5.5 0 0 0 0 1h7a.5.5 0 0 0 0-1zm0 2.5a.5.5 0 0 0 0 1h7a.5.5 0 0 0 0-1zm0 2.5a.5.5 0 0 0 0 1h4a.5.5 0 0 0 0-1z"/>
-                          </svg>
+                    <a href="{% url 'chat' %}" id="sidebar-chat-link" class="sidebar-link" data-bs-toggle="tooltip"
+                        data-bs-placement="right" data-bs-custom-class="sidebar-tooltip" data-bs-title="Chat">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                            class="bi bi-chat-text-fill" viewBox="0 0 16 16">
+                            <path
+                                d="M16 8c0 3.866-3.582 7-8 7a9 9 0 0 1-2.347-.306c-.584.296-1.925.864-4.181 1.234-.2.032-.352-.176-.273-.362.354-.836.674-1.95.77-2.966C.744 11.37 0 9.76 0 8c0-3.866 3.582-7 8-7s8 3.134 8 7M4.5 5a.5.5 0 0 0 0 1h7a.5.5 0 0 0 0-1zm0 2.5a.5.5 0 0 0 0 1h7a.5.5 0 0 0 0-1zm0 2.5a.5.5 0 0 0 0 1h4a.5.5 0 0 0 0-1z" />
+                        </svg>
                         <span>Chat</span>
                     </a>
                 </li>
                 <li class="sidebar-item">
-                    <a href="{% url 'advice' %}" id="sidebar-advice-link" class="sidebar-link" data-bs-toggle="tooltip" data-bs-placement="right" data-bs-custom-class="sidebar-tooltip" data-bs-title="Advice">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pencil-fill" viewBox="0 0 16 16">
-                            <path d="M12.854.146a.5.5 0 0 0-.707 0L10.5 1.793 14.207 5.5l1.647-1.646a.5.5 0 0 0 0-.708zm.646 6.061L9.793 2.5 3.293 9H3.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.207zm-7.468 7.468A.5.5 0 0 1 6 13.5V13h-.5a.5.5 0 0 1-.5-.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.5-.5V10h-.5a.5.5 0 0 1-.175-.032l-.179.178a.5.5 0 0 0-.11.168l-2 5a.5.5 0 0 0 .65.65l5-2a.5.5 0 0 0 .168-.11z"/>
-                          </svg>
+                    <a href="{% url 'advice' %}" id="sidebar-advice-link" class="sidebar-link" data-bs-toggle="tooltip"
+                        data-bs-placement="right" data-bs-custom-class="sidebar-tooltip" data-bs-title="Advice">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                            class="bi bi-pencil-fill" viewBox="0 0 16 16">
+                            <path
+                                d="M12.854.146a.5.5 0 0 0-.707 0L10.5 1.793 14.207 5.5l1.647-1.646a.5.5 0 0 0 0-.708zm.646 6.061L9.793 2.5 3.293 9H3.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.207zm-7.468 7.468A.5.5 0 0 1 6 13.5V13h-.5a.5.5 0 0 1-.5-.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.5-.5V10h-.5a.5.5 0 0 1-.175-.032l-.179.178a.5.5 0 0 0-.11.168l-2 5a.5.5 0 0 0 .65.65l5-2a.5.5 0 0 0 .168-.11z" />
+                        </svg>
                         <span>Advice</span>
                     </a>
                 </li>
                 <li class="sidebar-item">
-                    <a href="#" id="sidebar-disabled-link" class="sidebar-link disabled" data-bs-toggle="tooltip" data-bs-placement="right" data-bs-custom-class="sidebar-tooltip" data-bs-title="Disabled">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-question" viewBox="0 0 16 16">
-                            <path d="M5.255 5.786a.237.237 0 0 0 .241.247h.825c.138 0 .248-.113.266-.25.09-.656.54-1.134 1.342-1.134.686 0 1.314.343 1.314 1.168 0 .635-.374.927-.965 1.371-.673.489-1.206 1.06-1.168 1.987l.003.217a.25.25 0 0 0 .25.246h.811a.25.25 0 0 0 .25-.25v-.105c0-.718.273-.927 1.01-1.486.609-.463 1.244-.977 1.244-2.056 0-1.511-1.276-2.241-2.673-2.241-1.267 0-2.655.59-2.75 2.286m1.557 5.763c0 .533.425.927 1.01.927.609 0 1.028-.394 1.028-.927 0-.552-.42-.94-1.029-.94-.584 0-1.009.388-1.009.94" />
+                    <a href="#" id="sidebar-disabled-link" class="sidebar-link disabled" data-bs-toggle="tooltip"
+                        data-bs-placement="right" data-bs-custom-class="sidebar-tooltip" data-bs-title="Disabled">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                            class="bi bi-question" viewBox="0 0 16 16">
+                            <path
+                                d="M5.255 5.786a.237.237 0 0 0 .241.247h.825c.138 0 .248-.113.266-.25.09-.656.54-1.134 1.342-1.134.686 0 1.314.343 1.314 1.168 0 .635-.374.927-.965 1.371-.673.489-1.206 1.06-1.168 1.987l.003.217a.25.25 0 0 0 .25.246h.811a.25.25 0 0 0 .25-.25v-.105c0-.718.273-.927 1.01-1.486.609-.463 1.244-.977 1.244-2.056 0-1.511-1.276-2.241-2.673-2.241-1.267 0-2.655.59-2.75 2.286m1.557 5.763c0 .533.425.927 1.01.927.609 0 1.028-.394 1.028-.927 0-.552-.42-.94-1.029-.94-.584 0-1.009.388-1.009.94" />
                         </svg>
                         <span><s>Disabled</s></span>
                     </a>
                 </li>
             </ul>
-    
+
             <hr>
 
             <div class="sidebar-footer dropdown">
                 <a href="#" class="sidebar-link d-flex align-items-center  text-decoration-none dropdown-toggle"
-                id="dropdownUser1" data-bs-toggle="dropdown" aria-expanded="false">
+                    id="dropdownUser1" data-bs-toggle="dropdown" aria-expanded="false">
                     <img src="{% static 'img/img2.jpg' %}" alt="" width="32" height="32" class="rounded-circle me-2">
                     <span><strong>{{ request.user.username }}</strong></span>
                 </a>
@@ -102,13 +122,104 @@
 
         <div class="main">
             {% block body %}
-        
+
             {% endblock %}
+            <div class="modal fade" id="refreshNotifModal" tabindex="-1" aria-labelledby="refreshNotifModalLabel"
+                aria-hidden="false">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-body">
+
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            <h5>It's a new day! 🌱</h5>
+
+                            <p>Last time, you had...</p>
+
+                            <div class="widget-container-div" style="display: flex;">
+                                <div id="task-completion-circle" class="progress-circle animated" data-percent="0">
+                                    <svg class="progress-circle-svg">
+                                        <circle class="bg" cx="70" cy="70" r="70"></circle>
+                                        <circle class="progress" cx="70" cy="70" r="70"></circle>
+                                    </svg>
+                                    <div class="progress-text">
+                                        <div class="progress-text-percentage">0%</div>
+                                    </div>
+                                    <div class="progress-text-name">Tasks completed</div>
+                                </div>
+
+                                <div id="list-completion-circle" class="progress-circle animated" data-percent="0"
+                                    style="margin-left: 85px;">
+                                    <svg class="progress-circle-svg">
+                                        <circle class="bg" cx="70" cy="70" r="70"></circle>
+                                        <circle class="progress" cx="70" cy="70" r="70"></circle>
+                                    </svg>
+                                    <div class="progress-text">
+                                        <div class="progress-text-percentage">0%</div>
+                                    </div>
+                                    <div class="progress-text-name">Lists reached</div>
+                                </div>
+                            </div>
+
+                            <br>
+                            <p>Welcome to Today™! It's a new day and a fresh start. Ready to begin?</p>
+
+                        </div>
+
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-purple" data-bs-dismiss="modal">Let's go!</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal fade" id="welcomeModal" tabindex="-1" aria-labelledby="welcomeModalLabel"
+                aria-hidden="false">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-body">
+
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            <h3>Welcome to DoFresh!</h3>
+
+                            <h5>We're so glad to see you 😊</h5>
+
+                            <br>
+
+                            <p>Our goal is to help you accomplish <i>your</i> goals, duties, and callings step by step.
+                                We know that
+                                many of your goals will take time and effort and serious dedication—all components that
+                                are
+                                extremely important and extremely difficult. Yet do not fear! We want to help.</p>
+
+                            <h3>1. Dashboard 🗒️</h3>
+                            <p>We have a dashboard to keep track of all your tasks and to-do lists. (Wow!) Organize your life by time, location, color, music, or emotional frequency. </p>
+                            <h3>2. Track 📊</h3>
+                            <p>Here's a fun, very purple page! You can use this section to reflect on your productivity
+                                and your
+                                priorities. Pat yourself on the back if you have a streak you're proud of. Track keeps <i>track</i>
+                                of what tasks you complete so that you have accurate data about your habits, your
+                                persistence, and
+                                your hiatuses.</p>
+                            <h3>3. Chat 💬💫</h3>
+                            <p>You can spill your thoughts to Lumi in this page. Lumi is your cheerleader, friend, and
+                                counselor who can listen to your thought when you need a star to listen to you and offer you advice, feedback, or an invitation to take a break.
+                                Go say hi to Lumi here!</p>
+                            <h3>4. Advice 💭🤔</h3>
+                            <p>Peek at ancient wisdom and contemporary tips in this page for advice about productivity, including ways to manage workload and to motivate yourself.</p>
+                        </div>
+
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-purple" data-bs-dismiss="modal">Let's go!</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
-    
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
+        crossorigin="anonymous"></script>
     <script src="{% static 'js/layout.js' %}"></script>
 </body>
 

@@ -52,3 +52,11 @@ class Task(models.Model):
     parent_task = models.ForeignKey(
         'self', on_delete=models.CASCADE, related_name="subtasks", blank=True, null=True
     )
+
+
+class Article(models.Model):
+    title = models.CharField(max_length=128)
+    content = models.TextField()
+    subtitle = models.TextField()
+    # photo = models.ImageField(upload_to='products/', blank=True, null=True) <- need a cloud service!!
+    # category = models.ForeignKey(ArticleCategory, on_delete=models.CASCADE, related_name="articles", null=True, blank=True)

@@ -7,61 +7,21 @@
 {% endblock %}
 
 {% block body %}
-<div style="display: flex;">
-    <!-- <div id="conversations-sidebar" class="sidebar">
-        <p>Conversations</p>
-    </div> -->
+<div id="advice-body">
+    <h1 id="title">Advice</h1>
 
-    <div id="advice-body">
-        <div style="display: flex;">
-            <h1 id="title">Advice</h1>
+    <div id="display-div" class="row row-cols-1 row-cols-md-3 g-4">
+        {% for article in all_articles %}
+        <div id="advice{{article.id}}" class="card">
+            <a href="{% url 'article' article.id %}"><img src="{% get_static_prefix %}img/img{{ article.id }}.jpg" class="card-img-top go-to-article" alt="..."></a>
+            <div class="card-body">
+                <h5 class="card-title">{{ article.title }}</h5>
+                <p class="card-text"> {{ article.subtitle }} </p>
+                <a href="{% url 'article' article.id %}" class="btn btn-purple go-to-article">Read more</a>
+            </div>
         </div>
-
-        <div id="display-div" class="row row-cols-1 row-cols-md-3 g-4">
-                <div id="advice1" class="card">
-                    <img src="{% static 'img/img5.jpg' %}" class="card-img-top" alt="...">
-                    <div class="card-body">
-                        <h5 class="card-title">Strong Burn, Slow Burn</h5>
-                        <p class="card-text">"Why am I even doing this?" On avoiding burn-outs without a toxic,
-                            unrealistic, or competitive mindset.</p>
-                        <a class="btn btn-purple advice-read-more">Read more</a>
-                    </div>
-                </div>
-                <div id="advice2" class="card">
-                    <img src="{% static 'img/img2.jpg' %}" class="card-img-top" alt="...">
-                    <div class="card-body">
-                        <h5 class="card-title">Studying Until the Ice Melts?</h5>
-                        <p class="card-text">Ways to study</p>
-                        <a class="btn btn-purple advice-read-more">Read more</a>
-                    </div>
-
-                    <!-- If you're feeling unmotivated, a clear schedule allows you to commit with dedication!
-                    1. Write down what you need to do. 
-                    2. Review their priority levels.
-                    3. Consider how tired you'll be after one task, how excited you are for another, and how much time one would take. -->
-                </div>
-                <div id="advice3" class="card">
-                    <img src="{% static 'img/img3.jpg' %}" class="card-img-top" alt="...">
-                    <div class="card-body">
-                        <h5 class="card-title">Aim High? How High?</h5>
-                        <p class="card-text">On practical goals, unfortunate assumptions, and fallacies of human wishes.
-                        </p>
-                        <a class="btn btn-purple advice-read-more">Read more</a>
-                    </div>
-                </div>
-                <div id="advice4" class="card">
-                    <img src="{% static 'img/img4.jpg' %}" class="card-img-top" alt="...">
-                    <div class="card-body">
-                        <h5 class="card-title">Just Keep Swimming</h5>
-                        <p class="card-text">On motivating yourself throughout long runs.</p>
-                        <a class="btn btn-purple advice-read-more">Read more</a>
-                    </div>
-                </div>
-        </div>
+        {% endfor %}
     </div>
-
 </div>
-
-<script src="{% static 'js/advice.js' %}" defer></script>
 
 {% endblock %}

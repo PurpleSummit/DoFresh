@@ -1,4 +1,6 @@
 from django.urls import path
+from django.conf import settings
+from django.conf.urls.static import static
 from . import views
 
 urlpatterns = [
@@ -21,6 +23,7 @@ urlpatterns = [
     path("track/", views.track, name="track"),
 
     path("advice/", views.advice, name="advice"),
+    path("article/<int:article_id>", views.article, name="article"),
     path("chat/", views.chat, name="chat"),
 
     path("api/respond-chat/", views.respond_chat, name="api_chat"),
@@ -32,4 +35,4 @@ urlpatterns = [
 
     path("set-last-date/", views.set_last_date, name="set_last_date"),
     path("record/", views.record, name="record")
-]
+] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

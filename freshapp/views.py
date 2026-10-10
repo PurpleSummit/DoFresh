@@ -44,7 +44,7 @@ def record(request):
         today = f"{today.strftime("%Y")}-{today.strftime("%m")}-{today.strftime("%d")}"
 
         last_accessed_date = request.user.last_accessed_date
-        if (not last_accessed_date):
+        if not last_accessed_date:
             last_accessed_date = today
             return
 
@@ -55,7 +55,9 @@ def record(request):
         todo_lists = request.user.todo_lists.all()
         for todo_list in todo_lists:
             total_tasks_num += todo_list.tasks.count()
-            total_tasks_completed += todo_list.tasks.filter(completed_date=last_accessed_date, completed_for_good=False).count()
+            total_tasks_completed += todo_list.tasks.filter(
+                completed_date=last_accessed_date, completed_for_good=False
+            ).count()
 
             if todo_list.refreshing:
                 # Add all currently completed tasks
@@ -63,7 +65,7 @@ def record(request):
 
             if total_tasks_completed > 0:
                 total_lists_completed += 1
-        
+
         date1 = datetime.strptime(today, "%Y-%m-%d")
         date2 = datetime.strptime(last_accessed_date, "%Y-%m-%d")
         delta = date1 - date2
@@ -105,12 +107,19 @@ def record(request):
                             # Else don't do anything
                         else:
                             task.completed_dates = [last_accessed_date, None]
-                    
+
                     task.active = True
 
                 task.save()
 
-        return JsonResponse({"total_tasks_num": total_tasks_num, "total_lists_num": request.user.todo_lists.count(), "total_tasks_completed": total_tasks_completed, "total_lists_completed": total_lists_completed})
+        return JsonResponse(
+            {
+                "total_tasks_num": total_tasks_num,
+                "total_lists_num": request.user.todo_lists.count(),
+                "total_tasks_completed": total_tasks_completed,
+                "total_lists_completed": total_lists_completed,
+            }
+        )
     return HttpResponseRedirect(reverse("login"))
 
 
@@ -341,8 +350,18 @@ def refreshing_lists_api(request):
     return HttpResponseRedirect(reverse("login"))
 
 
+# Advice Functions
 def advice(request):
-    return render(request, "freshapp/advice.html")
+    all_articles = Article.objects.all()
+    print(all_articles)
+
+    return render(request, "freshapp/advice.html", {"all_articles": all_articles})
+
+
+def article(request, article_id):
+    article_data = Article.objects.get(id=article_id)
+
+    return render(request, "freshapp/article.html", {"article": article_data})
 
 
 # Chat Functions

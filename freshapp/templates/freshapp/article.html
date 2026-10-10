@@ -1,0 +1,18 @@
+{% extends "freshapp/layout.html" %}
+{% load static %}
+
+{% block style %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link rel="stylesheet" href="{% static 'css/article.css' %}">
+{% endblock %}
+
+{% block body %}
+
+<div class='advice-article-div'>
+    <h1>{{article.title}}</h1>
+    <h6>{{article.subtitle}}</h6>
+    <img src="{% get_static_prefix %}img/img{{ article.id }}.jpg" alt="{{article.title}}">
+    <pre class='article-text'>{{article.content}}</pre>
+</div>
+
+{% endblock %}

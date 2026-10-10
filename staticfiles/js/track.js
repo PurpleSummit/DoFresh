@@ -39,12 +39,11 @@
                 })
             );
             globalThis.tasksData = [...taskEntries].flat()[0];
-            console.log(tasksData);
 
             // COMPLETION DATA. date: array of completed tasks (names) 
             globalThis.completionData = {};
 
-            tasksData.forEach(taskData => {
+            tasksData?.forEach(taskData => {
                 let completedRanges = taskData['completed_dates'];
                 let completedDates = [];
 
@@ -77,7 +76,6 @@
                     });
                 }
             });
-            console.log(completionData);
 
             // STREAK DATA. task: arrays of ranges
             globalThis.streakData = {};
@@ -87,7 +85,9 @@
 
                 streakData[taskData.task] = completedRanges;
             });
-            console.log(streakData);
+            if (streakData?.length < 1) {
+                setFillers();
+            }
 
             // DATE SETTINGS
             globalThis.dateRanges = Object.values(streakData);
@@ -111,18 +111,15 @@
         });
 
     function initCode() {
-        if (dateRanges?.length < 1) {
-            let fillers = document.getElementsByClassName('filler-div');
-            Array.from(fillers).forEach((filler) => {
-                filler.style.display = 'block';
-            });
-            return;
-        } else {
+        if (dateRanges.length >= 1 && streakData.length >= 1 && completionData.length >= 1) {
             chartCompletion();
             activityHeatmap();
             streakActivity();
             longestStreak();
             longestActiveStreak();
+        } else {
+            setFillers();
+            return;
         }
     }
 
@@ -482,27 +479,16 @@
         document.getElementById('longest-active-streak-task').innerHTML = maxStreakText;
     }
 
-    function whenBlankChart() {
-        if (taskChartInstance !== null) {
-            taskChartInstance.destroy();
-        }
+    function setFillers() {
+        let fillers = document.getElementsByClassName('filler-div');
+        Array.from(fillers).forEach((filler) => {
+            filler.style.display = 'block';
+        });
 
-        removeFillerText();
+        let fillText = `No data yet... it's time to get cracking! 🔮`;
 
-        let fillText = document.createElement('p');
-        fillText.id = `chart-fill-p`;
-        fillText.textContent = `No data yet... it's time to get cracking! 🔮`;
-
-        document.getElementById('track-dashboard').prepend(fillText);
-
-        document.getElementById('chart-settings-div').style.opacity = 0;
-    }
-
-    function removeFillerText() {
-        let chartFillText = document.getElementById('chart-fill-p');
-        if (chartFillText) {
-            chartFillText.remove();
-        }
+        document.getElementById('longest-streak-task').textContent = fillText;
+        document.getElementById('longest-active-streak-task').textContent = fillText;
     }
 
     // Small date-formatting functions

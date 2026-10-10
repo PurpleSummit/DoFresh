@@ -500,7 +500,7 @@ async function completeTask(radio) {
 
     if (activeBefore) {
         lumiJump();
-        confetti({ particleCount: 143, spread: 120, startVelocity: 35, origin: { x: 0.1, y: 1 }, disableForReducedMotion: true });
+        confetti({ particleCount: 255, spread: 120, startVelocity: 35, origin: { x: 0.1, y: 1 }, disableForReducedMotion: true });
     }
 
     // If active, mainstream task, all its subtasks should be completed too
