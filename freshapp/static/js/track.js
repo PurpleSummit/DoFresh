@@ -80,7 +80,7 @@
             // STREAK DATA. task: arrays of ranges
             globalThis.streakData = {};
 
-            tasksData.forEach(taskData => {
+            tasksData?.forEach(taskData => {
                 let completedRanges = taskData['completed_dates'];
 
                 streakData[taskData.task] = completedRanges;
