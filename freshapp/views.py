@@ -4,6 +4,8 @@ from django.urls import reverse
 from django.db.models import Count, Q
 from django.contrib.auth import authenticate, login, logout
 from datetime import timedelta
+import html
+import re
 
 from freshapp.models import *
 
@@ -409,8 +411,9 @@ def advice(request):
 
 def article(request, article_id):
     article_data = Article.objects.get(id=article_id)
+    article_content = html.unescape(html.unescape(article_data.content))
 
-    return render(request, "freshapp/article.html", {"article": article_data})
+    return render(request, "freshapp/article.html", {"article": article_data, "article_content": (article_content)})
 
 
 # Chat Functions

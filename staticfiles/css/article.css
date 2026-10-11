@@ -1,18 +1,35 @@
-.advice-article-div {
-    width: 100%;
+.article-div {
+    width: 80%;
+    margin: 0 auto;
 }
 
-.advice-article-div img {
+.article-div img {
     display: block;
     margin: 0 auto;
     max-width: 50vw;
 }
 
 .article-text {
-    width: 80%;
     margin: 0 auto;
     font-family: var(--bs-font-sans-serif);
-    font-size: 16px;
+    font-size: 17px;
     font-weight: 400;
     line-height: 24px;
+    white-space: pre-line;
+}
+
+.article-text h1,
+.article-text h2,
+.article-text h3,
+.article-text h4,
+.article-text li {
+  white-space: normal;
+}
+
+.article-text li {
+    list-style: circle;
+}
+
+code, pre {
+    white-space: pre-line;
 }

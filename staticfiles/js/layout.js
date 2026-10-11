@@ -91,7 +91,9 @@ document.addEventListener('DOMContentLoaded', async () => {
                             globalThis.totalTasksCompleted = data["total_tasks_completed"];
                             globalThis.totalListsCompleted = data["total_lists_completed"];
                             
-                            showRefreshModal();
+                            if (totalListsCompleted > 0) {
+                                showRefreshModal();
+                            }
                         });
                 }
             }
