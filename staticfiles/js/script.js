@@ -48,7 +48,7 @@ function initCode() {
         addHTMLTodoBox(listId);
     });
 
-    if (allListIds.length < 1) document.getElementById('todo-screen-filler').style.display = 'block';
+    if (allListIds.length < 1) document.getElementById('todo-screen-filler').style.setProperty('display', 'block', 'important');;
 
     iDidList();
 }
@@ -224,11 +224,11 @@ function iDidList() {
 
         let emptyHeaders = document.querySelectorAll('.i-did-date-header:not(:has(.i-did-todo-task))');
         emptyHeaders.forEach(headerDiv => {
-            headerDiv.style.display = 'none';
+            headerDiv.style.setProperty('display', 'none', 'important');
         });
         let otherHeaders = document.querySelectorAll('.i-did-date-header:has(.i-did-todo-task)');
         otherHeaders.forEach(headerDiv => {
-            headerDiv.style.display = 'block';
+            headerDiv.style.setProperty('display', 'block', 'important');
         });
     });
 
@@ -240,7 +240,7 @@ function iDidList() {
     if (allListIds.length < 1) {
         let emptyHeaders = document.getElementsByClassName('i-did-date-header');
         Array.from(emptyHeaders).forEach(headerDiv => {
-            headerDiv.style.display = 'none';
+            headerDiv.style.setProperty('display', 'none', 'important');
         });
     }
 
@@ -299,7 +299,7 @@ async function addTodoBox() {
                 const newBoxId = data.id;
 
                 // Remove the existing zero state filler image
-                document.getElementById('todo-screen-filler').style.display = 'none';
+                document.getElementById('todo-screen-filler').style.setProperty('display', 'none', 'important');
                 document.getElementById('name-todo-box').value = '';
                 await getFetch(false);
 
@@ -328,7 +328,7 @@ async function addTodoBox() {
                 const newBoxId = data.id;
 
                 // Remove the existing zero state filler image
-                document.getElementById('todo-screen-filler').style.display = 'none';
+                document.getElementById('todo-screen-filler').style.setProperty('display', 'none', 'important');
                 document.getElementById('name-todo-box').value = '';
                 await getFetch(false);
 
@@ -366,7 +366,7 @@ async function renameTodoBox(button) {
                 .then(response => response.json())
                 .then(async data => {
                     // Remove the existing zero state filler image
-                    document.getElementById('todo-screen-filler').style.display = 'none';
+                    document.getElementById('todo-screen-filler').style.setProperty('display', 'none', 'important');
                     document.getElementById('name-todo-box').value = '';
                     await getFetch(false);
 
@@ -398,14 +398,16 @@ async function removeTodoBox(button) {
             body: JSON.stringify({ list_id: listId })
         })
             .then(response => response.json())
-            .then(data => {
+            .then(async (data) => {
                 const todoBoxesDiv = document.getElementsByClassName('todo-box-div')[0];
                 todoBoxesDiv.removeChild(parentTodoBox);
 
                 // Update allListIds and add screen filler if needed
-                getFetch(false);
+                await getFetch(false);
+                
+                iDidList();
 
-                if (allListIds.length < 1) document.getElementById('todo-screen-filler').style.display = 'block';
+                if (allListIds.length < 1) document.getElementById('todo-screen-filler').style.setProperty('display', 'block', 'important');;
             });
     };
 }

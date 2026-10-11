@@ -1,6 +1,7 @@
 from django.shortcuts import render
 from django.http import JsonResponse, HttpResponseRedirect
 from django.urls import reverse
+from django.db.models import Count, Q
 from django.contrib.auth import authenticate, login, logout
 from datetime import timedelta
 
@@ -29,9 +30,9 @@ def last_date_api(request):
 def set_last_date(request):
     if request.user.is_authenticated and request.method == "POST":
         today = datetime.now().astimezone()
-        today = f"{today.strftime("%Y")}-{today.strftime("%m")}-{today.strftime("%d")}"
+        today_str = today.strftime("%Y-%m-%d")
 
-        request.user.last_accessed_date = today
+        request.user.last_accessed_date = today_str
         request.user.save()
 
         return JsonResponse({"last_accessed_date": request.user.last_accessed_date})
@@ -41,81 +42,129 @@ def set_last_date(request):
 def record(request):
     if request.user.is_authenticated and request.method == "POST":
         today = datetime.now().astimezone()
-        today = f"{today.strftime("%Y")}-{today.strftime("%m")}-{today.strftime("%d")}"
+        today_str = today.strftime("%Y-%m-%d")
+        print(today)
 
-        last_accessed_date = request.user.last_accessed_date
-        if not last_accessed_date:
-            last_accessed_date = today
-            return
+        if not request.user.last_accessed_date:
+            request.user.last_accessed_date = today_str
+            request.user.save(update_fields=["last_accessed_date"])
+
+            return JsonResponse({"response": "last_accessed_date is null, no data yet"})
+        last_accessed_date = str(request.user.last_accessed_date)
+        print(last_accessed_date, today)
+
+        annotated_lists = request.user.todo_lists.annotate(
+            total_tasks=Count("tasks", distinct=True),
+            completed_on_date=Count(
+                "tasks",
+                filter=Q(
+                    tasks__completed_date=last_accessed_date,
+                    tasks__completed_for_good=False,
+                ),
+                distinct=True,
+            ),
+            inactive_tasks=Count(
+                "tasks",
+                filter=Q(tasks__active=False, tasks__completed_for_good=False)
+                | Q(
+                    tasks__completed_for_good=True,
+                    tasks__completed_date=last_accessed_date,
+                ),
+                distinct=True,
+            ),
+        )
 
         total_tasks_num = 0
         total_tasks_completed = 0
         total_lists_completed = 0
 
-        todo_lists = request.user.todo_lists.all()
-        for todo_list in todo_lists:
-            total_tasks_num += todo_list.tasks.count()
-            total_tasks_completed += todo_list.tasks.filter(
-                completed_date=last_accessed_date, completed_for_good=False
-            ).count()
+        for l in annotated_lists:
+            total_tasks_num += l.total_tasks
 
-            if todo_list.refreshing:
-                # Add all currently completed tasks
-                total_tasks_completed += todo_list.tasks.filter(active=False).count()
+            # If not refreshing, get only the tasks completed on the date
+            list_completed = l.completed_on_date
+            if l.refreshing:
+                # If refreshing, add (completed_for_good tasks that were completed that day) and (all completed & !completed_for_good tasks)
+                list_completed = l.inactive_tasks
 
-            if total_tasks_completed > 0:
+            total_tasks_completed += list_completed
+
+            if list_completed > 0:
                 total_lists_completed += 1
 
-        date1 = datetime.strptime(today, "%Y-%m-%d")
+        # Date differences
+        date1 = datetime.strptime(today_str, "%Y-%m-%d")
         date2 = datetime.strptime(last_accessed_date, "%Y-%m-%d")
-        delta = date1 - date2
-        diff = delta.days
+        diff = (date1 - date2).days
 
-        for todo_list in request.user.todo_lists.filter(refreshing=True):
+        refreshing_lists = request.user.todo_lists.filter(
+            refreshing=True
+        ).prefetch_related("tasks")
+        for todo_list in refreshing_lists:
+            # 1. Processing active tasks
             for task in todo_list.tasks.filter(active=True):
-                if task:
-                    completed_date_ranges = task.completed_dates
+                completed_date_ranges = list(task.completed_dates or [])
+                if completed_date_ranges:
                     recent_completed_pair = completed_date_ranges[-1]
 
-                    if recent_completed_pair and recent_completed_pair[1] == None:
-                        previous_date = datetime.strptime(
-                            last_accessed_date, "%Y-%m-%d"
-                        ) - timedelta(days=1)
-                        completed_date_ranges[-1][1] = previous_date.strftime(
-                            "%Y-%m-%d"
-                        )
-
-                task.save()
-
-            for task in todo_list.tasks.filter(active=False):
-                if task and not task.completed_for_good:
-                    completed_date_ranges = task.completed_dates
-                    recent_completed_pair = completed_date_ranges[-1]
-
-                    if diff > 1:
-                        if recent_completed_pair:
-                            completed_date_ranges[-1][1] = last_accessed_date
-                        else:
-                            task.completed_dates.append(
-                                [last_accessed_date, last_accessed_date]
+                    # If task streak is active
+                    if (
+                        isinstance(recent_completed_pair, (list, tuple))
+                        and len(recent_completed_pair) > 1
+                    ):
+                        if recent_completed_pair and recent_completed_pair[1] is None:
+                            previous_date = datetime.strptime(
+                                last_accessed_date, "%Y-%m-%d"
+                            ) - timedelta(days=1)
+                            completed_date_ranges[-1][1] = previous_date.strftime(
+                                "%Y-%m-%d"
                             )
+
+                            task.completed_dates = completed_date_ranges
+                            task.save(update_fields=["completed_dates"])
+
+            # 2. Processing completed tasks
+            for task in todo_list.tasks.filter(active=False):
+                if task.completed_for_good:
+                    continue
+
+                completed_date_ranges = list(task.completed_dates or [])
+
+                if diff > 1:
+                    if (
+                        completed_date_ranges
+                        and isinstance(recent_completed_pair, (list, tuple))
+                        and len(recent_completed_pair) > 1
+                        and completed_date_ranges[-1][1] is None
+                    ):
+                        completed_date_ranges[-1][1] = last_accessed_date
                     else:
-                        if len(completed_date_ranges) > 1:
-                            # If there was a closed streak, start another
-                            if recent_completed_pair[1] != None:
-                                task.completed_dates.append([last_accessed_date, None])
-                            # Else don't do anything
-                        else:
-                            task.completed_dates = [last_accessed_date, None]
+                        completed_date_ranges.append(
+                            [last_accessed_date, last_accessed_date]
+                        )
+                else:
+                    if len(completed_date_ranges) > 1:
+                        # If there was a closed streak, start another
+                        if (
+                            completed_date_ranges[-1]
+                            and completed_date_ranges[-1][1] is not None
+                        ):
+                            completed_date_ranges.append([last_accessed_date, None])
+                        # Else don't do anything
+                    else:
+                        completed_date_ranges = [[last_accessed_date, None]]
 
-                    task.active = True
+                task.completed_dates = completed_date_ranges
+                task.active = True
+                task.save(update_fields=["completed_dates", "active"])
 
-                task.save()
+        request.user.last_accessed_date = today_str
+        request.user.save(update_fields=["last_accessed_date"])
 
         return JsonResponse(
             {
                 "total_tasks_num": total_tasks_num,
-                "total_lists_num": request.user.todo_lists.count(),
+                "total_lists_num": annotated_lists.count(),
                 "total_tasks_completed": total_tasks_completed,
                 "total_lists_completed": total_lists_completed,
             }
@@ -422,7 +471,7 @@ def respond_chat(request):
 
             bot_reply = llm_response.choices[0].message.content
             bot_time = datetime.now().astimezone()
-            bot_time = f"{bot_time.strftime("%b")} {bot_time.strftime("%d")}, {bot_time.strftime("%Y")}, {bot_time.strftime("%I")}:{bot_time.strftime("%M")} {bot_time.strftime("%p")}"
+            bot_time = f"{bot_time.strftime('%b')} {bot_time.strftime('%d')}, {bot_time.strftime('%Y')}, {bot_time.strftime('%I')}:{bot_time.strftime('%M')} {bot_time.strftime('%p')}"
 
             ai_message = AIMessage(text=bot_reply, created_time=bot_time, user=user)
             ai_message.save()

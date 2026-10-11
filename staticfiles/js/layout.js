@@ -3,60 +3,7 @@ const date = new Date();
 const offset = date.getTimezoneOffset() * 60000;
 const today = new Date(date.getTime() - offset).toISOString().split('T')[0]; // Formatting into local-time ISO string
 
-console.log(today);
-fetch("/api/get-last-date/")
-    .then(response => response.json())
-    .then(async (data) => {
-        let lastAccessedDate = data["last_accessed_date"];
-
-        if (lastAccessedDate == null) {
-            let welcomeModal = new bootstrap.Modal(document.getElementById('welcomeModal'), {});
-            welcomeModal.show();
-
-            await fetch("/set-last-date/", {
-                method: "POST",
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': csrfToken
-                }
-            });
-
-        console.log("last accessed on", lastAccessedDate);
-        globalThis.csrfToken = document.querySelector('input[name="csrfmiddlewaretoken"]').value;
-        }
-        else {
-            if (today != lastAccessedDate) {
-                // Get all the refreshing to-do boxes
-                await fetch("/record/", {
-                    method: "POST",
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': csrfToken
-                    }
-                })
-                    .then(response => response.json())
-                    .then(data => {
-                        fetch("/set-last-date/", {
-                            method: "POST",
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'X-CSRFToken': csrfToken
-                            }
-                        });
-                        
-                        globalThis.totalTasksNum = data["total_tasks_num"];
-                        globalThis.totalListsNum = data["total_lists_num"];
-                        globalThis.totalTasksCompleted = data["total_tasks_completed"];
-                        globalThis.totalListsCompleted = data["total_lists_completed"];
-                        
-                        showRefreshModal();
-                    });
-            }
-        }
-    });
-
 document.addEventListener('DOMContentLoaded', async () => {
-
     // sidebar toggle button
     const toggleBtn = document.getElementsByClassName('toggle-btn')[0];
 
@@ -101,6 +48,51 @@ document.addEventListener('DOMContentLoaded', async () => {
                     });
 
                     trackSidebarList.appendChild(listLabel);
+                }
+            }
+        });
+
+    globalThis.csrfToken = document.querySelector('input[name="csrfmiddlewaretoken"]').value;
+    console.log(today);
+    fetch("/api/get-last-date/")
+        .then(response => response.json())
+        .then(async (data) => {
+            let lastAccessedDate = data["last_accessed_date"];
+    
+            if (lastAccessedDate == null) {
+                let welcomeModal = new bootstrap.Modal(document.getElementById('welcomeModal'), {});
+                welcomeModal.show();
+    
+                await fetch("/set-last-date/", {
+                    method: "POST",
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrfToken
+                    }
+                });
+    
+            console.log("last accessed on", lastAccessedDate);
+            globalThis.csrfToken = document.querySelector('input[name="csrfmiddlewaretoken"]').value;
+            }
+            else {
+                if (today != lastAccessedDate) {
+                    // Get all the refreshing to-do boxes
+                    await fetch("/record/", {
+                        method: "POST",
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': csrfToken
+                        }
+                    })
+                        .then(response => response.json())
+                        .then(data => {                            
+                            globalThis.totalTasksNum = data["total_tasks_num"];
+                            globalThis.totalListsNum = data["total_lists_num"];
+                            globalThis.totalTasksCompleted = data["total_tasks_completed"];
+                            globalThis.totalListsCompleted = data["total_lists_completed"];
+                            
+                            showRefreshModal();
+                        });
                 }
             }
         });
