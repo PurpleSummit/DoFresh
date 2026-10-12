@@ -111,7 +111,7 @@
         });
 
     function initCode() {
-        if (dateRanges.length >= 1 && streakData.length >= 1 && completionData.length >= 1) {
+        if (dateRanges.length >= 1 && Object.values(streakData).flat().length >= 1 && Object.values(completionData).flat().length >= 1) {
             chartCompletion();
             activityHeatmap();
             streakActivity();
@@ -155,16 +155,25 @@
             datasets: [{
                 data: formattedData,
                 fill: true,
-                tension: 0.4,
+                stepped: true,
+                cubicInterpolationMode: 'monotone',
 
                 backgroundColor: backgroundColor,
-                borderColor: chartColors[1],
-                borderWidth: borderWidth,
+                borderColor: '#8B5CF6',
+                borderWidth: 3,
 
                 pointBorderWidth: pointBorderWidth,
                 radius: 1,
-                hoverRadius: 5,
+                hoverRadius: 6,
                 hitRadius: 15,
+
+                backgroundColor: (context) => {
+                    const ctx = context.chart.ctx;
+                    const gradient = ctx.createLinearGradient(0, 0, 0, 300);
+                    gradient.addColorStop(0, 'rgba(139, 92, 246, 0.3)'); // Soft purple top
+                    gradient.addColorStop(1, 'rgba(139, 92, 246, 0.0)'); // Transparent bottom
+                    return gradient;
+                },
             }]
         };
         const scales = {
@@ -187,7 +196,10 @@
                 ticks: {
                     stepSize: 1
                 },
-                grid: { color: 'rgba(45, 38, 75, 0.08)' }
+                grid: {
+                    color: 'rgba(45, 38, 75, 0.08)',
+                    borderDash: [5, 5]
+                },
             },
         };
         const options = {
@@ -207,21 +219,24 @@
                             return ISOToDateString(context[0].raw.x, true);
                         },
                         label: function (context) {
-                            let label = ' ' + context.parsed.y || '';
+                            let labelLines = [];
+                            let countLabel = ' ' + context.parsed.y || '';
 
-                            if (label && label == 1) {
-                                label += ' task';
-                            } else if (label) {
-                                label += ' tasks';
+                            if (countLabel && context.parsed.y == 1) {
+                                countLabel += ' task';
+                            } else if (countLabel) {
+                                countLabel += ' tasks';
                             } else {
-                                label = '0 tasks';
+                                countLabel = '0 tasks';
                             }
 
+                            labelLines.push(countLabel);
+
                             completionData[context.raw.x]?.forEach(taskName => {
-                                label += `${taskName}\n`;
+                                labelLines.push(`  • ${taskName}`);
                             });
 
-                            return label;
+                            return labelLines;
                         },
                         labelTextColor: function (context) {
                             return '#ebebff';
@@ -374,15 +389,15 @@
         // Fill in yValues and labels
         xValues.forEach(date => {
             let yValue = completionData[date] || '';
-            yValue = yValue.length;
-            yValues.push(yValue);
+            yCount = yValue.length;
+            yValues.push(yCount);
 
             // HTML svg heatmap squares
             let weekday = newDateFromISO(date);
 
             let squareColor;
-            if (yValue < 5) {
-                squareColor = heatmapColors[yValue];
+            if (yCount < 5) {
+                squareColor = heatmapColors[yCount];
             } else {
                 squareColor = '#320A78';
             }
@@ -391,10 +406,24 @@
             heatmapSquare.innerHTML = `<rect width="20" height="21" rx="3" ry="3" fill="${squareColor}cc" />`;
 
             heatmapSquare.classList.add('heatmap-tile');
+            heatmapSquare.classList.add('text-left');
             heatmapSquare.dataset.bsToggle = 'tooltip';
             heatmapSquare.dataset.bsHtml = 'true';
             heatmapSquare.dataset.bsPlacement = 'right';
-            heatmapSquare.dataset.bsTitle = `${weekday.toDateString()} • ${yValue} tasks`;
+
+            let tooltipContent;
+            if (yCount == 1) {
+                tooltipContent = `${weekday.toDateString()} - 1 task <br>• ${completionData[date][0]}`;
+            } else if (yCount == 0) {
+                tooltipContent = `${weekday.toDateString()} - 0 tasks`;
+            } else {
+                    tooltipContent = `${weekday.toDateString()} • ${yCount} tasks`;
+
+                    completionData[date]?.forEach(taskName => {
+                        tooltipContent += `<br>• ${taskName}`;
+                    });
+            }
+            heatmapSquare.dataset.bsTitle = tooltipContent;
 
             document.getElementById(`heatmap-row-${weekday.getDay()}`).appendChild(heatmapSquare);
 
