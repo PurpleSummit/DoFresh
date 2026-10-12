@@ -79,10 +79,11 @@ pre {
     padding-bottom: 0px;
     background-color: transparent;
     width: 100%;
-    padding-right: 17px;
-    padding-left: 93px;
+    padding-left: 0px;
+    padding-right: 74px;
+    margin-left: 76px;
     transition: all .25s ease-in-out;
-    z-index: 1000000;
+    z-index: 150;
 }
 
 #user-form-container {

@@ -50,12 +50,6 @@ document.addEventListener('DOMContentLoaded', () => {
         // fetch for Flask backend API
         try {
             const url = event.target.getAttribute('data-url');
-            
-            const cleanLocalStorage = {};
-            for (let i = 0; i < localStorage.length; i++) {
-                const key = localStorage.key(i);
-                cleanLocalStorage[key] = localStorage.getItem(key);
-            }
 
             const response = await fetch("/api/respond-chat/", {
                 method: 'POST',
@@ -63,7 +57,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     'Content-Type': 'application/json',
                     'X-CSRFToken': csrfToken
                  },
-                body: JSON.stringify({ userMessage: userPrompt, userData: cleanLocalStorage })
+                body: JSON.stringify({ userMessage: userPrompt })
             });
 
             outputText.innerHTML = "";

@@ -3,6 +3,7 @@ from django.http import JsonResponse, HttpResponseRedirect
 from django.urls import reverse
 from django.db.models import Count, Q
 from django.contrib.auth import authenticate, login, logout
+from django.contrib.postgres.aggregates import ArrayAgg
 from datetime import timedelta
 import html
 import re
@@ -13,13 +14,13 @@ from freshapp.models import *
 import os, json
 from datetime import datetime
 from dotenv import load_dotenv
-from huggingface_hub import InferenceClient
+from groq import Groq
 
 load_dotenv()
 
-API_KEY = os.getenv("HUGGINGFACE_API_KEY")
+API_KEY = os.getenv("GROQ_API_KEY")
 
-client = InferenceClient(api_key=API_KEY)
+client = Groq(api_key=API_KEY)
 
 
 # Layout
@@ -102,6 +103,7 @@ def record(request):
         refreshing_lists = request.user.todo_lists.filter(
             refreshing=True
         ).prefetch_related("tasks")
+
         for todo_list in refreshing_lists:
             # 1. Processing active tasks
             for task in todo_list.tasks.filter(active=True):
@@ -183,9 +185,13 @@ def index(request):
 
 def lists_api(request):
     if request.user.is_authenticated:
-        todo_lists = request.user.todo_lists.all()
-        data = list(todo_lists.values("id", "title", "refreshing"))
-        return JsonResponse({"todo-lists": data}, safe=False)
+        todo_lists = (
+            request.user.todo_lists.all()
+            .only("id", "title", "refreshing")
+            .values("id", "title", "refreshing")
+            .iterator()
+        )
+        return JsonResponse({"todo-lists": list(todo_lists)}, safe=False)
 
 
 def tasks_api(request):
@@ -196,25 +202,27 @@ def tasks_api(request):
             return JsonResponse({"error": "Missing list_id parameter"}, status=400)
 
         parent_list = TodoList.objects.get(id=list_id)
-        tasks = parent_list.tasks.all()
+        tasks = (
+            parent_list.tasks.all()
+            .select_related("parent_list", "parent_task")
+            .prefetch_related("subtasks")
+        )
 
         data = [
             {
                 "id": t.id,
                 "active": t.active,
-                "parent_list": t.parent_list.id,
+                "parent_list": t.parent_list_id,
                 "task": t.task,
                 "details": t.details,
                 "completed_date": t.completed_date,
                 "completed_for_good": t.completed_for_good,
                 "completed_dates": t.completed_dates,
-                "parent_task": t.parent_task.id if t.parent_task is not None else None,
-                "subtasks": list(t.subtasks.values_list("id", flat=True)),
+                "parent_task": t.parent_task_id,
+                "subtasks": [sub.id for sub in t.subtasks.all()],
             }
             for t in tasks
         ]
-
-        print(data)
 
         return JsonResponse({"tasks-data": data}, safe=False)
 
@@ -413,7 +421,11 @@ def article(request, article_id):
     article_data = Article.objects.get(id=article_id)
     article_content = html.unescape(html.unescape(article_data.content))
 
-    return render(request, "freshapp/article.html", {"article": article_data, "article_content": (article_content)})
+    return render(
+        request,
+        "freshapp/article.html",
+        {"article": article_data, "article_content": (article_content)},
+    )
 
 
 # Chat Functions
@@ -441,42 +453,68 @@ def respond_chat(request):
                     status=401,
                 )
 
+            # User prompt proccessing
             user_prompt = data.get("userMessage", "")
-            user_data = data.get(
-                "userData",
-                "The user doesn't have any recorded task or completion data yet.",
-            )
+
+            if not user_prompt or len(user_prompt.strip()) < 1:
+                return JsonResponse({"result": "Hello! What's on your mind?"})
+
+            lists = request.user.todo_lists.all().prefetch_related("tasks")
+            user_data = [
+                {
+                    "id": l.id,
+                    "title": l.title,
+                    "tasks": list(
+                        l.tasks.values_list(
+                            "id", "task", "details", "completed_date", "completed_dates", "active"
+                        )
+                    ),
+                }
+                for l in lists
+            ]
 
             # Time of the message stored as {month} {date}, {yyyy}, {h}:{min} {am/pm}
             user_time = datetime.now().astimezone()
-            user_time = f"{user_time.strftime("%b")} {user_time.strftime("%d")}, {user_time.strftime("%Y")}, {user_time.strftime("%I")}:{user_time.strftime("%M")} {user_time.strftime("%p")}"
+            user_time = f"{user_time.strftime('%b')} {user_time.strftime('%d')}, {user_time.strftime('%Y')}, {user_time.strftime('%I')}:{user_time.strftime('%M')} {user_time.strftime('%p')}"
 
-            user_message = UserMessage(
-                text=user_prompt, created_time=user_time, user=user
+            user_message = Message(
+                text=user_prompt, created_time=user_time, user=user, user_prompt_bool=True
             )
             user_message.save()
 
-            if not user_prompt or len(user_prompt.strip()) < 1:
-                user_message.delete()
-                return JsonResponse({"result": "Hello! What's on your mind?"})
+            # Bot reply
+            # Organize prompt history
+            messages = [
+                {
+                    "role": "system",
+                    "content": f"[IDENTITY] You are Lumi (she/her), a cute star character and icon inside DoFresh, a productivity application. You are a helpful, wise, supportive, yet practical-and-matter-of-fact friend, cheerleader, and counselor who's sweetly considerate about the user's mental, emotional, and physical health as well as their work productivity, integrity, and persistence. You are also slightly childish when it comes to how 'cute' you are, comedically calling yourself cute and adorable, but not over-the-top or melodramatically enough to be repetitive. [CONTEXT] Users use DoFresh to keep track of tasks, to record their progress with refreshing tasks for long-term projects and goals, and to get motivated to do things they don't want to continue doing. They can look at their streaks and completion data in the Track page of the app, so help them analyze that information. This is their data in JSON form, with the completion dates of their refreshing tasks in ranges . Data: { user_data }. Each to-do list has tasks, which the data stores in id; task; details; date the task was completed if it was; date ranges the refreshing task was completed [start date, end date] with 'null' as the end date meaning that the streak is still active; and active status. [RULES] Be encouraging, supportive, and humanely empathetic while being professionally prudent, not sycophantic or blaming, and answer in short, genuine messages that give the user clear, applicable advice primed to their personal characteristics. When they're seriously tired or overwhelmed, simply listen; if they confess serious issues related to mental health or suicide, keep a gentle and supportive tone while suggesting that interpersonal help matters more than your help. Don't use headers in your response.",
+                }
+            ]
+            past_chats = Message.objects.filter(user=user).order_by('id')
+            for msg in past_chats:
+                role = "user" if msg.user_prompt_bool else "assistant"
+                messages.append({"role": role, "content": msg.text})
+            
+            # Append current user prompt
+            messages.append({"role": "user", "content": user_prompt})
 
-            llm_response = client.chat_completion(
-                model="meta-llama/Llama-3.1-8B-Instruct",
-                messages=[
-                    {"role": "user", "content": user_prompt},
-                    {
-                        "role": "system",
-                        "content": f"[IDENTITY] You are Lumi (she/her), a cute star character and icon inside DoFresh, a productivity application. You are a helpful, wise, supportive, yet practical-and-matter-of-fact friend, cheerleader, and counselor who's sweetly considerate about the user's mental, emotional, and physical health as well as their work productivity, integrity, and persistence. You are also slightly childish when it comes to how 'cute' you are, comedically calling yourself cute and adorable, but not over-the-top or melodramatically enough to be repetitive. [CONTEXT] Users use DoFresh to keep track of tasks, to record their progress with refreshing tasks for long-term projects and goals, and to get motivated to do things they don't want to continue doing. They can look at their streaks and completion data in the Track page of the app, so help them analyze that information. This is their data in JSON form, with the completion dates of their refreshing tasks in ranges [start date, end date]. The end date being null means that the streak is still active. Data: { user_data }. [RULES] Be encouraging, supportive, and humanely empathetic while being professionally prudent, not sycophantic or blaming, and answer in short, genuine messages that give the user clear, applicable advice primed to their personal characteristics. When they're seriously tired or overwhelmed, simply listen; if they confess serious issues related to mental health or suicide, keep a gentle and supportive tone while suggesting that interpersonal help matters more than your help.",
-                    },
-                ],
-                max_tokens=500,
-            )
+            try:
+                llm_response = client.chat.completions.create(
+                    model="qwen/qwen3.8-27b",
+                    messages=messages,
+                    max_tokens=500,
+                    temperature=0.7
+                )
+            except Exception as e:
+                return JsonResponse({"error": "LLM failed", "details": str(e)}, status=500)
 
+            # Extract the string content from the response object
             bot_reply = llm_response.choices[0].message.content
+
             bot_time = datetime.now().astimezone()
             bot_time = f"{bot_time.strftime('%b')} {bot_time.strftime('%d')}, {bot_time.strftime('%Y')}, {bot_time.strftime('%I')}:{bot_time.strftime('%M')} {bot_time.strftime('%p')}"
 
-            ai_message = AIMessage(text=bot_reply, created_time=bot_time, user=user)
+            ai_message = Message(text=bot_reply, created_time=bot_time, user=user, user_prompt_bool=False)
             ai_message.save()
 
             return JsonResponse({"result": bot_reply})
