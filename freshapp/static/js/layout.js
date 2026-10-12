@@ -148,7 +148,8 @@ function openSidebar() {
 
     const chatInputField = document.getElementById('user-input-container');
     if (chatInputField) {
-        chatInputField.style.paddingLeft = '277px';
+        chatInputField.style.marginLeft = '266px';
+        chatInputField.style.paddingRight = '266px';
     }
 }
 
@@ -157,6 +158,7 @@ function closeSidebar() {
 
     const chatInputField = document.getElementById('user-input-container');
     if (chatInputField) {
-        chatInputField.style.paddingLeft = '93px';
+        chatInputField.style.marginLeft = '76px';
+        chatInputField.style.paddingRight = '74px';
     }
 }
