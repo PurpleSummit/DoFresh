@@ -32,20 +32,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             const trackSidebarList = document.getElementById('track-lists');
 
             if (trackSidebarList) {
-                for (boxData in allTodoBoxes) {
+                for (boxId in allTodoBoxes) {
+                    let boxData = allTodoBoxes[boxId];
                     let listLabel = document.createElement('li');
                     listLabel.innerHTML = `<a class='sidebar-link' style='cursor: pointer;'>${boxData.title}</a>`;
-
-                    // If in the track page
-                    // Else travel to the track page and run this
-                    listLabel.addEventListener('click', () => {
-                        if (typeof selectTodoList === 'function') {
-                            selectTodoList(boxId);
-                        }
-                        else {
-                            window.location.href = '/track';
-                        }
-                    });
 
                     trackSidebarList.appendChild(listLabel);
                 }
