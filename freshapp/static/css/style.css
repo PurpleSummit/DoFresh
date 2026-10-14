@@ -124,23 +124,28 @@ button {
     border-color: transparent !important;
     box-shadow: none !important;
     padding: 3px 0px;
-    height: min-content;
-
-    border-radius: 22px !important;
-    width: 37px;
-    height: 37px;
+    
+    border-radius: 33px !important;
+    width: 39px;
+    height: 33px;
+    padding-bottom: 32px;
 }
 
 .edit-todo-task-btn:focus,
-.accordion-button:hover .edit-todo-task-btn,
+.todo-task:hover .edit-todo-task-btn,
 .edit-todo-task-btn:hover {
-    opacity: 1;
+    opacity: 1 !important;
 }
 
+.todo-task:hover .edit-todo-task-btn,
 .edit-todo-task-btn:focus,
 .edit-todo-task-btn:hover {
     transition: 0.3s;
-    background-color: rgba(252, 252, 252, 0.604) !important;
+}
+
+.edit-todo-task-btn:focus,
+.edit-todo-task-btn:hover {
+    background-color: rgba(252, 252, 252, 0.52);
 }
 
 .remove-task-btn {
