@@ -203,7 +203,7 @@ def tasks_api(request):
 
         parent_list = TodoList.objects.get(id=list_id)
         tasks = (
-            parent_list.tasks.all()
+            parent_list.tasks.filter(parent_list_id=list_id).order_by('id')
             .select_related("parent_list", "parent_task")
             .prefetch_related("subtasks")
         )

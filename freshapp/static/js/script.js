@@ -729,7 +729,7 @@ async function removeTask(button) {
         });
     }
 
-    // If it's a subtask, remove its ID from its parent task's subTasks array
+    // If it's a subtask, remove its ID from its parent task's subtasks array
     if (taskData['parent_task'] !== undefined) {
         let parentTaskId = taskData['parent_task'];
 
