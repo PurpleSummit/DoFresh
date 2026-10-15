@@ -205,7 +205,7 @@ function iDidList() {
 
         // Display all the completions
         const listTasksData = tasksData.get(Number(listId));
-        let completedTasks = listTasksData.filter(task => !task.active && (!task.completed_for_good && task.completed_date == toSimpleISOString(new Date())));
+        let completedTasks = listTasksData.filter(task => !task.active && (task.completed_for_good && task.completed_date == toSimpleISOString(new Date())));
         if (completedTasks && completedTasks.length > 0) {
             completedTasks.forEach(taskData => {
                 let taskId = taskData.id;
