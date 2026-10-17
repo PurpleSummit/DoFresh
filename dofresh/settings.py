@@ -34,6 +34,8 @@ DEBUG = False
 
 ALLOWED_HOSTS = [
     "https://dofresh.onrender.com",
+    "https://dofresh.vercel.app",
+    "https://dofresh-fm4liqt5z-promise21.vercel.app",
     "dofresh.vercel.app",
     "dofresh-fm4liqt5z-promise21.vercel.app",
     "dofresh.onrender.com",
