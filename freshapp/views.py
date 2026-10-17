@@ -137,8 +137,8 @@ def record(request):
                 if diff > 1:
                     if (
                         completed_date_ranges
-                        and isinstance(recent_completed_pair, (list, tuple))
-                        and len(recent_completed_pair) > 1
+                        and isinstance(completed_date_ranges[-1], (list, tuple))
+                        and len(completed_date_ranges[-1]) > 1
                         and completed_date_ranges[-1][1] is None
                     ):
                         completed_date_ranges[-1][1] = last_accessed_date
