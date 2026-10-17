@@ -1,5 +1,5 @@
 let months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'July', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-let fillText = ['Spill the tea! 🍵', "How ya doin'? 😉", 'Where should we start? 🤭', "What's on your mind??", "You're here 🎊", "Oh, welcome in!", "Hey there 💐", "Hurry in!"];
+let fillText = ['Spill the tea! 🍵', "How ya doin'? 😉", 'Where should we start? 🤭', "What's on your mind??", "You're here 🎊", "Oh, welcome in!", "Hey there 💐", "Hurry in!"]
 
 document.addEventListener('DOMContentLoaded', () => {
     // Activate sidebar link
@@ -28,7 +28,7 @@ document.addEventListener('DOMContentLoaded', () => {
         userTimeElement.className = 'user-message-time';
 
         let date = new Date();
-        date = `${months[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}, ${date.toLocaleString([], {hour: "2-digit",minute: "2-digit"})}`;
+        date = `${months[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}, ${date.toLocaleString([], { hour: "2-digit", minute: "2-digit" })}`;
 
         userTimeElement.textContent = `${date}`;
         sentMessageContainer.appendChild(userTimeElement);
@@ -49,17 +49,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // fetch for Flask backend API
         try {
-            const url = event.target.getAttribute('data-url');
-
             const response = await fetch("/api/respond-chat/", {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'X-CSRFToken': csrfToken
-                 },
+                },
                 body: JSON.stringify({ userMessage: userPrompt })
             });
-
             outputText.innerHTML = "";
             const data = await response.json();
             console.log(data);
@@ -68,11 +65,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 throw new Error(data.error);
             }
             else if (data.result) {
+
                 const botTimeElement = document.createElement('p');
                 botTimeElement.className = 'message-time';
 
-                let date = new Date();
-                const formattedDate = `${months[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}, ${date.toLocaleString([], {hour: "2-digit", minute: "2-digit"})}`;
+                date = new Date();
+                const formattedDate = `${months[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}, ${date.toLocaleString([], { hour: "2-digit", minute: "2-digit" })}`;
 
                 botTimeElement.textContent = `${formattedDate}`;
                 sentMessageContainer.appendChild(botTimeElement);
@@ -99,7 +97,6 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('chat-title').prepend(alertElement);
         }
 
-        buttonEnable();
     });
 
     document.getElementById('refresh-chat-btn').addEventListener('click', async (event) => {
@@ -148,9 +145,11 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 let i = 0;
-let speed = 27;
+let speed = 30;
 
 function typeResult(outputTextElement, result) {
+    buttonDisable();
+
     return new Promise((resolve) => {
         function type() {
             if (i < result.length) {
@@ -161,6 +160,8 @@ function typeResult(outputTextElement, result) {
             else {
                 i = 0;
                 resolve();
+
+                buttonEnable();
             }
         }
         type();
@@ -169,14 +170,22 @@ function typeResult(outputTextElement, result) {
 
 function buttonDisable() {
     const sendBtn = document.getElementById('send-btn');
-
     sendBtn.disabled = true;
+
+    sendBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-square-fill" viewBox="0 0 16 16">
+        <path d="M0 2a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2z"/>
+    </svg>`;
 }
 
 function buttonEnable() {
     const sendBtn = document.getElementById('send-btn');
-
     sendBtn.disabled = false;
+
+    sendBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-send"
+    viewBox="0 0 16 16">
+    <path
+        d="M15.854.146a.5.5 0 0 1 .11.54l-5.819 14.547a.75.75 0 0 1-1.329.124l-3.178-4.995L.643 7.184a.75.75 0 0 1 .124-1.33L15.314.037a.5.5 0 0 1 .54.11ZM6.636 10.07l2.761 4.338L14.13 2.576zm6.787-8.201L1.591 6.602l4.339 2.76z" />
+    </svg>`;
 }
 
 function fillChat() {
