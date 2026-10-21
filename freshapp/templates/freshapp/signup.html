@@ -28,19 +28,35 @@
             <h2>Sign Up</h2>
             <h5>Hello, first time?</h5>
 
-            {% if message %}
-            <div>{{message}}</div>
-            {% endif %}
-
             <div style="height: 28px;"></div>
             
             <form action="{% url 'signup' %}" method="post">
-                <input type="text" name="username" placeholder="☺︎ Username">
+                {% csrf_token %}
+                
+                {% if form.non_field_errors %}
+                    <div class="form-errors global-errors">
+                        {{ form.non_field_errors }}
+                    </div>
+                {% endif %}
+
+                {% if form.username.errors %}
+                    <div class="field-error-message">
+                        {{ form.username.errors }}
+                    </div>
+                {% endif %}
+                <input type="text" name="username" placeholder="☺︎ Username" value="{{ form.username.value|default_if_none:'' }}">
                 <br>
+
+                {% if form.password.errors %}
+                    <div class="field-error-message">
+                        {{ form.password.errors }}
+                    </div>
+                {% endif %}
                 <input type="password" name="password" placeholder="🔒︎ Password">
                 <br>
-                {% csrf_token %}
+
                 <p>Already have an account? Login <a href="{% url 'login' %}">here</a>!</p>
+                
                 <input class="btn-purple" type="submit" value="Join Us!">
             </form>
         </div>

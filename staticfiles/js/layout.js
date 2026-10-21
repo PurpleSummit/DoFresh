@@ -48,6 +48,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         .then(response => response.json())
         .then(async (data) => {
             let lastAccessedDate = data["last_accessed_date"];
+            
+            console.log(today == lastAccessedDate);
+            console.log(lastAccessedDate);
     
             if (lastAccessedDate == null) {
                 let welcomeModal = new bootstrap.Modal(document.getElementById('welcomeModal'), {});

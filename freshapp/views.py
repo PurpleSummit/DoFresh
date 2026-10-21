@@ -3,6 +3,7 @@ from django.http import JsonResponse, HttpResponseRedirect
 from django.urls import reverse
 from django.db.models import Count, Q
 from django.contrib.auth import authenticate, login, logout
+from .forms import DoFreshUserCreationForm
 from django.contrib.postgres.aggregates import ArrayAgg
 from datetime import timedelta
 import html
@@ -561,14 +562,16 @@ def logout_view(request):
 
 
 def signup_view(request):
+    form = None
     if request.method == "POST":
-        username = request.POST["username"]
-        password = request.POST["password"]
+        form = DoFreshUserCreationForm(request.POST)
 
-        new_user = User.objects.create_user(username=username, password=password)
+        if form.is_valid():
+            new_user = form.save()
+            login(request, new_user)
 
-        new_user.save()
+            return HttpResponseRedirect(reverse("index"))
+    #else:
+        # form = #
 
-        login_view(request)
-        return HttpResponseRedirect(reverse("index"))
-    return render(request, "freshapp/signup.html")
+    return render(request, "freshapp/signup.html", {"form": form})
