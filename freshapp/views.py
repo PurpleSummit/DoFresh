@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.http import JsonResponse, HttpResponseRedirect
 from django.urls import reverse
 from django.db.models import Count, Q
@@ -562,7 +562,7 @@ def logout_view(request):
 
 
 def signup_view(request):
-    form = None
+    form = DoFreshUserCreationForm()
     if request.method == "POST":
         form = DoFreshUserCreationForm(request.POST)
 
@@ -570,8 +570,9 @@ def signup_view(request):
             new_user = form.save()
             login(request, new_user)
 
-            return HttpResponseRedirect(reverse("index"))
-    #else:
-        # form = #
+            print(User.objects.all())
+
+            return redirect("index")
+        print(form.errors)
 
     return render(request, "freshapp/signup.html", {"form": form})
