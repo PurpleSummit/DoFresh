@@ -23,6 +23,8 @@ Note: the page takes about 50 seconds to load, as I'm on the free tier for hosti
     <li>✏️ Finally, a guiding <strong>advice column</strong> — articles on motivation, long-term goals, efficient time management, and more to come!</li>
 </ul>
 
+<p>To Stardance shipwrights: I really did not write this with AI!!! Please don't assume it's AI because I wanted to make it nicely organized and with headers and bullet points.</p>
+
 <hr> 
 
 <h2>🪻 Description</h2>
