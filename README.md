@@ -1,6 +1,4 @@
 <h1>💫 DoFresh</h1>
-<p>✨ A daily-reset task manager that turns consistency into records. </p>
-<blockquote> "I think I did enough this week" → "I practiced the drums twice this week; let's practice thirty more minutes today!" </blockquote>
 <img alt="Static Badge" src="https://img.shields.io/badge/Made_with-love,_springshine,_and_starlight-7447e1">
 
 <hr>
@@ -15,12 +13,12 @@ Note: the page takes about 50 seconds to load, as I'm on the free tier for hosti
 
 <h2>🌱 Features</h2>
 <ul>
-    <li>🌐 An <strong>interactive, dynamic web interface</strong> — Made with HTML, CSS, JavaScript, and Django. Allows authentication for multiple users. </li>
-    <li>📋 Traditional <strong>to-do list functions</strong> — adding, editing, removing, and completing tasks across to-do list boxes.</li>
-    <li>🍃 Automatic <strong>zero-reset tasks</strong> — refreshing tasks return to activeness every day and gently remind the user to move into a new day, with yesterday's completion being honestly recorded</li>
-    <li>📊 <strong>Streak and completion tracking</strong> — task analysis based on your activity, organized and displayed for your easy viewing and reflection. Includes heatmap, streak activity, completion chart.</li>
-    <li>⭐ In-app, personalized <strong>AI companion</strong> — the app's icon/mascot, Lumi, is brought to life to talk with you, motivate you, suggest your next steps, and offer advice, all personally based in your real task data.</li>
-    <li>✏️ Finally, a guiding <strong>advice column</strong> — articles on motivation, long-term goals, efficient time management, and more to come!</li>
+    <li>An interactive, dynamic web interface — Made with HTML, CSS, JavaScript, and Django. Allows authentication for multiple users. </li>
+    <li>Traditional to-do list functions — adding, editing, removing, and completing tasks across to-do list boxes.</li>
+    <li>Automatic zero-reset tasks — refreshing tasks return to activeness every day and gently remind the user to move into a new day, with yesterday's completion being honestly recorded</li>
+    <li>Streak and completion tracking — task analysis based on your activity, organized and displayed for your easy viewing and reflection. Includes heatmap, streak activity, completion chart.</li>
+    <li>In-app, personalized AI companion — the app's icon/mascot, Lumi, is brought to life to talk with you, motivate you, suggest your next steps, and offer advice, all personally based in your real task data.</li>
+    <li>Finally, a guiding advice column — articles on motivation, long-term goals, efficient time management, and more to come!</li>
 </ul>
 
 <p>To Stardance shipwrights: I really did not write this with AI!!! Please don't assume it's AI because I wanted to make it nicely organized and with headers and bullet points.</p>
