@@ -4,24 +4,27 @@
 <hr>
 
 <h2>💜 Check it out here!</h2>
-→ <a href="https://dofresh.onrender.com">DoFresh</a>
+→ <a href="https://dofresh.vercel.app">DoFresh</a>
 <br><br>
-<blockquote><p>Log in with the credentials 'stardance_tester' for both username & passwrd! This means that different people will be using the account, so there may be changes to the site that you didn't make. </p> <br>
-Note: the page takes about 50 seconds to load, as I'm on the free tier for hosting on Render! Sorry and thank you 🥹</blockquote>
+<em>IMPORTANT: </em>
+<blockquote>Log in with the credentials 'stardance_tester' for both username & passwrd! This means that different people will be using the account, so there may be changes to the site that you didn't make.<br></blockquote>
 
 <hr>
 
 <h2>🌱 Features</h2>
-<ul>
-    <li>An interactive, dynamic web interface — Made with HTML, CSS, JavaScript, and Django. Allows authentication for multiple users. </li>
-    <li>Traditional to-do list functions — adding, editing, removing, and completing tasks across to-do list boxes.</li>
-    <li>Automatic zero-reset tasks — refreshing tasks return to activeness every day and gently remind the user to move into a new day, with yesterday's completion being honestly recorded</li>
-    <li>Streak and completion tracking — task analysis based on your activity, organized and displayed for your easy viewing and reflection. Includes heatmap, streak activity, completion chart.</li>
-    <li>In-app, personalized AI companion — the app's icon/mascot, Lumi, is brought to life to talk with you, motivate you, suggest your next steps, and offer advice, all personally based in your real task data.</li>
-    <li>Finally, a guiding advice column — articles on motivation, long-term goals, efficient time management, and more to come!</li>
-</ul>
+1. A dynamic website made with HTML, CSS, JavaScript, and Django, which allows authentication and handling of multiple users.
+    
+2. Adding, editing, removing, and completing tasks across to-do list boxes. Includes subtasks and adding details.
 
-<p>To Stardance shipwrights: I really did not write this with AI!!! Please don't assume it's AI because I wanted to make it nicely organized and with headers and bullet points.</p>
+3. Refreshing tasks return every day to gently remind the user to move into a new day, with yesterday's completion being honestly recorded
+    
+4. Task analysis based on your activity, organized and displayed for the user's reflection. Includes heatmap, streak activity, completion chart.
+    
+5. Lumi, as an AI agent, can talk with you, motivate you, suggest your next steps, and offer advice, all customized and personalized by your real task data.
+    
+6. Finally, a guiding advice column — articles on motivation, long-term goals, efficient time management, and more to come!
+        
+<p>To Stardance Challenge shipwrights: I really did not write this with AI!!! 😢 I even rewrote it, too! <3 Thanks </p>
 
 <hr> 
 
