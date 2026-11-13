@@ -165,16 +165,17 @@ function iDidList() {
                     tasks.forEach(task => {
                         let completed_dates = task.completed_dates;
                         for (const range of completed_dates) {
-                            let dateOneParts = range[0].split('-');
+                            let localStartStr = utcToLocalSimpleISO(range[0]);
+                            let dateOneParts = localStartStr.split('-');
                             let dateOne = new Date(dateOneParts[0], dateOneParts[1] - 1, dateOneParts[2]);
 
-                            let dateTwoParts = range[1];
                             let dateTwo;
-                            if (dateTwoParts === null) {
+                            if (range[1] === null) {
                                 dateTwo = new Date(yesterday);
                             }
                             else {
-                                dateTwoParts = dateTwoParts.split('-');
+                                let localEndStr = utcToLocalSimpleISO(range[1]);
+                                let dateTwoParts = localEndStr.split('-');
                                 dateTwo = new Date(dateTwoParts[0], dateTwoParts[1] - 1, dateTwoParts[2]);
                             }
 
@@ -205,17 +206,18 @@ function iDidList() {
 
         // Display all the completions
         const listTasksData = tasksData.get(Number(listId));
-        let completedTasks = listTasksData.filter(task => !task.active || (task.completed_for_good && task.completed_date == toSimpleISOString(new Date())));
+        let completedTasks = listTasksData.filter(task => !task.active || (task.completed_for_good && utcToLocalSimpleISO(task.completed_date) == todayStr));
         if (completedTasks && completedTasks.length > 0) {
             completedTasks.forEach(taskData => {
                 let taskId = taskData.id;
-                let completed_date = taskData.completed_date || todayStr;
+                let completed_date = utcToLocalSimpleISO(taskData.completed_date) || todayStr;
 
                 if (!document.getElementById(`i-did-header-${completed_date}`)) {
                     let iDidDateHeader = document.createElement('div');
                     iDidDateHeader.className = 'i-did-date-header';
                     iDidDateHeader.id = `i-did-header-${completed_date}`;
                     iDidDateHeader.innerHTML = `<h5>${ISOToDateString(completed_date)}</h5>`;
+                    document.getElementsByClassName('i-did-body')[0].appendChild(iDidDateHeader);
                 }
 
                 addHTMLTaskIDid(taskId, completed_date);
@@ -1092,4 +1094,13 @@ function getIdsFromDropdown(dropdownElement) {
     let listId = parentTodoBox.id.replace('todo-box', '');
 
     return [taskId, listId];
+}
+
+function utcToLocalSimpleISO(isoStr) {
+    if (!isoStr) return null;
+    if (!isoStr.includes('T')) {
+        return isoStr;
+    }
+    const localDate = new Date(isoStr);
+    return localDate.toLocaleDateString('en-CA');
 }

@@ -93,7 +93,7 @@
             globalThis.dateRanges = Object.values(streakData);
             globalThis.startDates = dateRanges.flatMap((task) => {
                 return task.map(range => {
-                    return (range === undefined || range[1] === null) ? todayStr : range[0];
+                    return (range === undefined || range[1] === null) ? todayStr : utcToLocalSimpleISO(range[0]);
                 });
             });
 
@@ -270,8 +270,8 @@
             if (!ranges || ranges.length === 0) return [];
 
             return ranges.map(range => {
-                const startDate = range[0];
-                const endDate = range[1] === null ? yesterdayStr : range[1];
+                const startDate = utcToLocalSimpleISO(range[0]);
+                const endDate = range[1] === null ? yesterdayStr : utcToLocalSimpleISO(range[1]);
 
                 return {
                     x: [startDate, endDate],
@@ -453,8 +453,8 @@
             let completedRanges = taskData["completed_dates"];
 
             completedRanges.forEach(range => {
-                let rangeEndDate = range[1] === null ? todayStr : range[1];
-                let rangeStartDate = range[0];
+                let rangeEndDate = range[1] === null ? todayStr : utcToLocalSimpleISO(range[1]);
+                let rangeStartDate = utcToLocalSimpleISO(range[0]);
 
                 let streak = Math.floor(newDateFromISO(rangeEndDate) - newDateFromISO(rangeStartDate)) / (1000 * 60 * 60 * 24) + 1;
 
@@ -478,9 +478,9 @@
             let completedRanges = taskData["completed_dates"];
 
             completedRanges.forEach(range => {
-                let rangeEndDate = range[1] === null ? todayStr : range[1];
+                let rangeEndDate = range[1] === null ? todayStr : utcToLocalSimpleISO(range[1]);
                 if (rangeEndDate == todayStr) {
-                    rangeStartDate = range[0];
+                    rangeStartDate = utcToLocalSimpleISO(range[0]);
 
                     let streak = Math.floor(newDateFromISO(rangeEndDate) - newDateFromISO(rangeStartDate)) / (1000 * 60 * 60 * 24) + 1;
 
@@ -522,14 +522,17 @@
 
     // Small date-formatting functions
 
+    function utcToLocalSimpleISO(isoStr) {
+        if (!isoStr) return null;
+        if (!isoStr.includes('T')) return isoStr;
+        return new Date(isoStr).toLocaleDateString('en-CA');
+    }
+
     function newDateFromISO(dateStr) {
-        let dateParts = dateStr.split('-');
+        const cleanISO = utcToLocalSimpleISO(dateStr);
+        let dateParts = cleanISO.split('-');
 
-        let yearPart = dateParts[0];
-        let monthPart = dateParts[1] - 1;
-        let dayPart = dateParts[2];
-
-        return new Date(yearPart, monthPart, dayPart);
+        return new Date(dateParts[0], dateParts[1] - 1, dateParts[2]);
     }
 
     function toSimpleISOString(date) {
@@ -538,7 +541,8 @@
 
     // 2026-08-01 to Month Date, YY
     function ISOToDateString(ISOString, yearIncluded) {
-        let dateParts = ISOString.split('-');
+        const cleanISO = utcToLocalSimpleISO(ISOString);
+        let dateParts = cleanISO.split('-');
 
         labelDate = `${months[dateParts[1] - 1]} ${dateParts[2]}`;
 

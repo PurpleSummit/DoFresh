@@ -5,7 +5,7 @@ from django.db.models import Count, Q
 from django.contrib.auth import authenticate, login, logout
 from .forms import DoFreshUserCreationForm
 from django.contrib.postgres.aggregates import ArrayAgg
-from datetime import timedelta
+from datetime import datetime, timezone
 import html
 import re
 
@@ -33,10 +33,9 @@ def last_date_api(request):
 
 def set_last_date(request):
     if request.user.is_authenticated and request.method == "POST":
-        today = datetime.now().astimezone()
-        today_str = today.strftime("%Y-%m-%d")
+        today = datetime.now(timezone.utc).isoformat()
 
-        request.user.last_accessed_date = today_str
+        request.user.last_accessed_date = today
         request.user.save()
 
         return JsonResponse({"last_accessed_date": request.user.last_accessed_date})
@@ -45,24 +44,25 @@ def set_last_date(request):
 
 def record(request):
     if request.user.is_authenticated and request.method == "POST":
-        today = datetime.now().astimezone()
-        today_str = today.strftime("%Y-%m-%d")
-        print(today)
+        now_utc = datetime.now(timezone.utc)
+        today_iso = now_utc.isoformat()
+        today_date = now_utc.date()
 
         if not request.user.last_accessed_date:
-            request.user.last_accessed_date = today_str
+            request.user.last_accessed_date = today_iso
             request.user.save(update_fields=["last_accessed_date"])
+            return JsonResponse({"response": "last_accessed_str is null, no data yet"})
 
-            return JsonResponse({"response": "last_accessed_date is null, no data yet"})
-        last_accessed_date = str(request.user.last_accessed_date)
-        print(last_accessed_date, today)
+        last_accessed_str = str(request.user.last_accessed_date)
+        last_date = parse_utc_to_date(last_accessed_str)
+        diff = (today_date - last_date).days
 
         annotated_lists = request.user.todo_lists.annotate(
             total_tasks=Count("tasks", distinct=True),
             completed_on_date=Count(
                 "tasks",
                 filter=Q(
-                    tasks__completed_date=last_accessed_date,
+                    tasks__completed_date=last_accessed_str,
                     tasks__completed_for_good=False,
                 ),
                 distinct=True,
@@ -72,7 +72,7 @@ def record(request):
                 filter=Q(tasks__active=False, tasks__completed_for_good=False)
                 | Q(
                     tasks__completed_for_good=True,
-                    tasks__completed_date=last_accessed_date,
+                    tasks__completed_date=last_accessed_str,
                 ),
                 distinct=True,
             ),
@@ -96,11 +96,6 @@ def record(request):
             if list_completed > 0:
                 total_lists_completed += 1
 
-        # Date differences
-        date1 = datetime.strptime(today_str, "%Y-%m-%d")
-        date2 = datetime.strptime(last_accessed_date, "%Y-%m-%d")
-        diff = (date1 - date2).days
-
         refreshing_lists = request.user.todo_lists.filter(
             refreshing=True
         ).prefetch_related("tasks")
@@ -118,12 +113,8 @@ def record(request):
                         and len(recent_completed_pair) > 1
                     ):
                         if recent_completed_pair and recent_completed_pair[1] is None:
-                            previous_date = datetime.strptime(
-                                last_accessed_date, "%Y-%m-%d"
-                            ) - timedelta(days=1)
-                            completed_date_ranges[-1][1] = previous_date.strftime(
-                                "%Y-%m-%d"
-                            )
+                            previous_date = datetime.fromisoformat(last_accessed_str) - timedelta(days=1)
+                            completed_date_ranges[-1][1] = previous_date.isoformat()
 
                             task.completed_dates = completed_date_ranges
                             task.save(update_fields=["completed_dates"])
@@ -142,10 +133,10 @@ def record(request):
                         and len(completed_date_ranges[-1]) > 1
                         and completed_date_ranges[-1][1] is None
                     ):
-                        completed_date_ranges[-1][1] = last_accessed_date
+                        completed_date_ranges[-1][1] = last_accessed_str
                     else:
                         completed_date_ranges.append(
-                            [last_accessed_date, last_accessed_date]
+                            [last_accessed_str, last_accessed_str]
                         )
                 else:
                     if len(completed_date_ranges) > 1:
@@ -154,16 +145,16 @@ def record(request):
                             completed_date_ranges[-1]
                             and completed_date_ranges[-1][1] is not None
                         ):
-                            completed_date_ranges.append([last_accessed_date, None])
+                            completed_date_ranges.append([last_accessed_str, None])
                         # Else don't do anything
                     else:
-                        completed_date_ranges = [[last_accessed_date, None]]
+                        completed_date_ranges = [[last_accessed_str, None]]
 
                 task.completed_dates = completed_date_ranges
                 task.active = True
                 task.save(update_fields=["completed_dates", "active"])
 
-        request.user.last_accessed_date = today_str
+        request.user.last_accessed_date = today_iso
         request.user.save(update_fields=["last_accessed_date"])
 
         return JsonResponse(
@@ -313,8 +304,7 @@ def complete_task(request):
 
         task = Task.objects.get(id=task_id)
 
-        today = datetime.now().astimezone()
-        today = today.strftime("%Y-%m-%d")
+        today = datetime.now(timezone.utc).isoformat()
 
         if task.parent_list.refreshing == False:
             # If it is being completed
@@ -338,8 +328,7 @@ def complete_refreshing_task(request):
 
         task = Task.objects.get(id=task_id)
 
-        today = datetime.now().astimezone()
-        today = today.strftime("%Y-%m-%d")
+        today = datetime.now(timezone.utc).isoformat()
 
         if task.parent_list.refreshing:
             task.completed_date = today
@@ -475,11 +464,12 @@ def respond_chat(request):
             ]
 
             # Time of the message stored as {month} {date}, {yyyy}, {h}:{min} {am/pm}
-            user_time = datetime.now().astimezone()
-            user_time = f"{user_time.strftime('%b')} {user_time.strftime('%d')}, {user_time.strftime('%Y')}, {user_time.strftime('%I')}:{user_time.strftime('%M')} {user_time.strftime('%p')}"
+        
+            user_local_time = data.get("userLocalTime", "")
+            user_time_utc = datetime.now(timezone.utc).isoformat()
 
             user_message = Message(
-                text=user_prompt, created_time=user_time, user=user, user_prompt_bool=True
+                text=user_prompt, created_time=user_time_utc, user=user, user_prompt_bool=True
             )
             user_message.save()
 
@@ -488,7 +478,7 @@ def respond_chat(request):
             messages = [
                 {
                     "role": "system",
-                    "content": f"[IDENTITY] You are Lumi (she/her), a cute star character and icon inside DoFresh, a productivity application. You are a helpful, wise, supportive, yet practical-and-matter-of-fact friend, cheerleader, and counselor who's sweetly considerate about the user's mental, emotional, and physical health as well as their work productivity, integrity, and persistence. You are also slightly childish when it comes to how 'cute' you are, comedically calling yourself cute and adorable, but not over-the-top or melodramatically enough to be repetitive. [CONTEXT] Users use DoFresh to keep track of tasks, to record their progress with refreshing tasks for long-term projects and goals, and to get motivated to do things they don't want to continue doing. They can look at their streaks and completion data in the Track page of the app, so help them analyze that information. Data: { user_data }. Each to-do list has tasks, which the data stores in id; task; details; date the task was completed if it was (completed for good if the task was a refreshing one with date ranges); date ranges the refreshing task (long-term goals and streaks) was completed [start date, end date] with 'null' as the end date meaning that the streak is still active; and active status (True means it's incomplete, False means it was completed already and done). When the user asks what incomplete tasks they have or what tasks they have left to do, you should tell them about the ones that are still ACTIVE (active is True), because the in-active ones are already completed. The dates are not due dates but markers of when the tasks were completed. [RULES] Be encouraging, supportive, and humanely empathetic while being professionally prudent, not sycophantic or blaming, and answer in short, genuine messages that give the user clear, applicable advice primed to their personal characteristics. When they're seriously tired or overwhelmed, simply listen; if they confess serious issues related to mental health or suicide, keep a gentle and supportive tone while suggesting that interpersonal help matters more than your help. Don't use headers in your response, but you can use 'Header:' in plain text and long dashes for list items. Right now it's {user_time}. No italics or bold either.",
+                    "content": f"You are Lumi, a cute star character and helper inside the DoFresh productivity app. Your role: • Act as a wise, supportive, practical, and slightly playful friend who likes to remind people how cute you are. • Help users manage tasks, track long-term goals, and stay motivated. How to handle task data: • Treat tasks with active equal to True as incomplete tasks left to do. • Treat active equal to False as already finished tasks. • Treat dates as the time a task was completed, not a due date. • Never talk about or explain the raw data structure to the user. Tone and rules: • Keep messages short, warm, honest, and practical. • Never blame the user or fake over-the-top praise. • If the user is very tired or overwhelmed, just listen. Be human and quiet sometimes instead of pushing 'I'm here to listen!' or such. • If the user mentions severe mental health struggles or suicide, respond gently and suggest real-world or professional help. • The current time is {user_time_utc}. Formatting rules: • Do not use any bold or italic text. • Do not use markdown headers (use plain text labels like Header: instead). • Use long dashes for list items.",
                 }
             ]
             past_chats = Message.objects.filter(user=user).order_by('id')
@@ -511,10 +501,9 @@ def respond_chat(request):
             # Extract the string content from the response object
             bot_reply = llm_response.choices[0].message.content
 
-            bot_time = datetime.now().astimezone()
-            bot_time = f"{bot_time.strftime('%b')} {bot_time.strftime('%d')}, {bot_time.strftime('%Y')}, {bot_time.strftime('%I')}:{bot_time.strftime('%M')} {bot_time.strftime('%p')}"
+            bot_time_utc = datetime.now(timezone.utc).isoformat()
 
-            ai_message = Message(text=bot_reply, created_time=bot_time, user=user, user_prompt_bool=False)
+            ai_message = Message(text=bot_reply, created_time=bot_time_utc, user=user, user_prompt_bool=False)
             ai_message.save()
 
             return JsonResponse({"result": bot_reply})
@@ -576,3 +565,15 @@ def signup_view(request):
         print(form.errors)
 
     return render(request, "freshapp/signup.html", {"form": form})
+
+
+def parse_utc_to_date(date_str):
+    if not date_str:
+        return None
+    
+    dt = datetime.fromisoformat(str(date_str))
+
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=timezone.utc)
+    
+    return dt.astimezone(timezone.utc).date()

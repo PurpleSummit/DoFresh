@@ -48,14 +48,22 @@ document.addEventListener('DOMContentLoaded', async () => {
         .then(response => response.json())
         .then(async (data) => {
             let lastAccessedDate = data["last_accessed_date"];
-            
-            console.log(today == lastAccessedDate);
-            console.log(lastAccessedDate);
-    
-            if (lastAccessedDate == null) {
+
+            let lastAccessedLocalStr = null;
+            if (lastAccessedDate) {
+                lastAccessedLocalStr = lastAccessedDate.includes('T')
+                    ? new Date(lastAccessedDate).toLocaleDateString('en-CA')
+                    : lastAccessedDate;
+            }
+
+            console.log("last accessed on", lastAccessedDate);
+
+            if (false) {
                 let welcomeModal = new bootstrap.Modal(document.getElementById('welcomeModal'), {});
                 welcomeModal.show();
-    
+            }
+
+            if (!lastAccessedDate) {
                 await fetch("/set-last-date/", {
                     method: "POST",
                     headers: {
@@ -63,33 +71,29 @@ document.addEventListener('DOMContentLoaded', async () => {
                         'X-CSRFToken': csrfToken
                     }
                 });
-    
-            console.log("last accessed on", lastAccessedDate);
-            globalThis.csrfToken = document.querySelector('input[name="csrfmiddlewaretoken"]').value;
             }
-            else {
-                if (today != lastAccessedDate) {
-                    // Get all the refreshing to-do boxes
-                    await fetch("/record/", {
-                        method: "POST",
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRFToken': csrfToken
+            else if (today != lastAccessedLocalStr) {
+                // Get all the refreshing to-do boxes
+                await fetch("/record/", {
+                    method: "POST",
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrfToken
+                    }
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        globalThis.totalTasksNum = data["total_tasks_num"];
+                        globalThis.totalListsNum = data["total_lists_num"];
+                        globalThis.totalTasksCompleted = data["total_tasks_completed"];
+                        globalThis.totalListsCompleted = data["total_lists_completed"];
+
+                        if (totalListsNum > 0 && totalTasksNum > 0) {
+                            showRefreshModal();
                         }
-                    })
-                        .then(response => response.json())
-                        .then(data => {                            
-                            globalThis.totalTasksNum = data["total_tasks_num"];
-                            globalThis.totalListsNum = data["total_lists_num"];
-                            globalThis.totalTasksCompleted = data["total_tasks_completed"];
-                            globalThis.totalListsCompleted = data["total_lists_completed"];
-                            
-                            if (totalListsNum > 0 && totalTasksNum > 0) {
-                                showRefreshModal();
-                            }
-                        });
-                }
+                    });
             }
+
         });
 });
 

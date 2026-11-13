@@ -55,7 +55,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     'Content-Type': 'application/json',
                     'X-CSRFToken': csrfToken
                 },
-                body: JSON.stringify({ userMessage: userPrompt })
+                body: JSON.stringify({ userMessage: userPrompt, userLocalTime: date })
             });
             outputText.innerHTML = "";
             const data = await response.json();
@@ -141,11 +141,19 @@ document.addEventListener('DOMContentLoaded', () => {
         fillChat();
     });
 
+    document.querySelectorAll('.user-message-time, .message-time').forEach(el => {
+        const rawTime = el.textContent.trim();
+        if (rawTime.includes('T')) {
+            const d = new Date(rawTime);
+            el.textContent = `${months[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}, ${d.toLocaleString([], { hour: "2-digit", minute: "2-digit" })}`;
+        }
+    });
+
     fillChat();
 });
 
 let i = 0;
-let speed = 30;
+let speed = 52;
 
 function typeResult(outputTextElement, result) {
     buttonDisable();
